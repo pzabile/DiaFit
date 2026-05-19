@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>my.diafit.app — Your Dashboard</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body class="dashboard">
+  <aside class="side">
+    <div class="brand">
+      <span class="logo-dot"></span>
+      <span class="brand-name">DiaFit</span>
+      <span class="sub-tag">my.diafit.app</span>
+    </div>
+    <nav class="side-nav">
+      <a class="active" href="#log">📓 Daily log</a>
+      <a href="#program">🏋️ My program</a>
+      <a href="#nutrition">🥗 Nutrition</a>
+      <a href="#stats">📈 Progress</a>
+      <a href="#chat">💬 Coach chat</a>
+      <a href="#account">⚙️ Account</a>
+    </nav>
+    <div class="side-foot">
+      <div class="avatar">A</div>
+      <div>
+        <strong id="userName">Alex</strong>
+        <small id="userEmail">you@example.com</small>
+      </div>
+    </div>
+  </aside>
+
+  <main class="dash-main">
+    <header class="dash-header">
+      <div>
+        <p class="kicker">Welcome back</p>
+        <h1>Hi <span id="userNameH">Alex</span> — let's log today.</h1>
+      </div>
+      <div class="dash-meta">
+        <div><strong id="streak">7</strong><span>day streak</span></div>
+        <div><strong id="entries">14</strong><span>total logs</span></div>
+      </div>
+    </header>
+
+    <section class="card-row">
+      <div class="metric-card">
+        <span class="metric-label">Today's workout</span>
+        <strong class="metric-value" id="todayWorkout">Lower body + 20m walk</strong>
+        <a href="#log" class="link">Mark complete →</a>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Latest glucose</span>
+        <strong class="metric-value"><span id="latestGlucose">—</span> <small>mg/dL</small></strong>
+        <span class="link muted">From your last entry</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Coach</span>
+        <strong class="metric-value">Dr. Patel</strong>
+        <a href="#chat" class="link">Open Telegram →</a>
+      </div>
+    </section>
+
+    <section class="card big" id="log">
+      <h2>Log today</h2>
+      <p class="muted">Track everything in one place — your coach reviews it weekly.</p>
+      <form id="logForm" class="log-form">
+        <div class="grid-2">
+          <label>Date<input type="date" name="date" required /></label>
+          <label>How did you feel?
+            <select name="feeling">
+              <option>Great</option><option>Good</option><option>Okay</option><option>Tired</option><option>Bad</option>
+            </select>
+          </label>
+        </div>
+
+        <fieldset>
+          <legend>Workout</legend>
+          <div class="grid-2">
+            <label>Did you train today?
+              <select name="trained"><option>Yes</option><option>No</option><option>Partial</option></select>
+            </label>
+            <label>Where?
+              <select name="where"><option>Gym</option><option>Home</option><option>Outdoors</option></select>
+            </label>
+          </div>
+          <label>What did you do? <textarea name="workout" placeholder="e.g. Squats 4x8 @ 60kg, lat pulldown 3x10, 15m incline walk"></textarea></label>
+          <label>Muscle soreness (0–10) <input type="range" min="0" max="10" name="soreness" value="0" oninput="this.nextElementSibling.textContent=this.value" /><output>0</output></label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Blood sugar</legend>
+          <div class="grid-3">
+            <label>Before workout (mg/dL)<input type="number" name="bsBefore" placeholder="120" /></label>
+            <label>After workout (mg/dL)<input type="number" name="bsAfter" placeholder="105" /></label>
+            <label>Trend
+              <select name="bsTrend"><option>Stable</option><option>Increased</option><option>Decreased</option><option>Hypo event</option><option>Hyper event</option></select>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Food</legend>
+          <label>What did you eat before training?<input type="text" name="foodBefore" placeholder="e.g. oatmeal + banana" /></label>
+          <label>What did you eat after?<input type="text" name="foodAfter" placeholder="e.g. chicken, rice, salad" /></label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Observations</legend>
+          <label><textarea name="notes" placeholder="Any notes — energy, mood, symptoms, sleep, medication changes…"></textarea></label>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary btn-lg">Save today's log</button>
+      </form>
+
+      <div id="logList" class="log-list"></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

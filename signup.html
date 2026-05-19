@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Create your DiaFit account</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body class="signup-page">
+  <header class="nav slim">
+    <a href="index.html" class="brand">
+      <span class="logo-dot"></span>
+      <span class="brand-name">DiaFit</span>
+    </a>
+    <div class="timer-pill">
+      <span class="dot pulse"></span>
+      <span>50% off ends in <strong id="timer">15:00</strong></span>
+    </div>
+  </header>
+
+  <main class="signup-main">
+    <div class="signup-card">
+      <span class="pill green">Step 2 of 2 — Create your account</span>
+      <h1>Last step: connect to your dashboard</h1>
+      <p class="sub">You'll get your nutrition PDF, exercise program, and Telegram invite at the email below. Your private logging dashboard lives at <strong>my.diafit.app</strong>.</p>
+
+      <form id="signupForm" class="form">
+        <label>
+          First name
+          <input type="text" name="firstName" required placeholder="Alex" />
+        </label>
+        <label>
+          Email
+          <input type="email" name="email" required placeholder="you@example.com" id="signupEmail" />
+        </label>
+        <label>
+          Phone number
+          <input type="tel" name="phone" required placeholder="+1 555 123 4567" />
+        </label>
+
+        <div class="order-box">
+          <div class="row"><span>DiaFit Coaching</span><span>$80.00</span></div>
+          <div class="row discount"><span>Launch discount (50%)</span><span>−$40.00</span></div>
+          <div class="row total"><span>Today's total</span><span><strong>$40.00</strong>/month</span></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-xl">Create my account & continue</button>
+        <p class="micro">By continuing you agree to our Terms and Privacy Policy. Cancel anytime.</p>
+      </form>
+    </div>
+
+    <aside class="signup-side">
+      <h3>What happens next</h3>
+      <ol class="next-steps">
+        <li>Your account is created on <strong>my.diafit.app</strong></li>
+        <li>You receive your nutrition PDF & Telegram invite by email</li>
+        <li>Your coach posts your personalized program within 24h</li>
+        <li>You start logging workouts, meals & glucose</li>
+      </ol>
+      <div class="trust">
+        <div>🔒 Bank-level encryption</div>
+        <div>👨‍⚕️ Reviewed by licensed doctors</div>
+        <div>↩️ 14-day money-back guarantee</div>
+      </div>
+    </aside>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
