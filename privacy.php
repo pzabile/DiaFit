@@ -50,8 +50,10 @@ $support = cfg('support_email');
     <p>We share your information only with:</p>
     <ul>
       <li><strong>Stripe</strong> — payment processing.</li>
-      <li><strong>Telegram</strong> — when you communicate with our coaches/doctors through the
-      messaging app, your messages are processed by Telegram under its own privacy policy.</li>
+      <li><strong>Telegram</strong> — all 24/7 support communication happens through the Telegram
+      messaging app. When you message your coach there, your messages are processed by Telegram
+      under its own privacy policy. We use Telegram both to receive notifications about your
+      account and to chat with members.</li>
       <li><strong>Email provider / hosting</strong> — to deliver the website and emails.</li>
       <li><strong>Legal authorities</strong> — when required by law, court order or to protect
       our rights.</li>

@@ -10,7 +10,7 @@ $answers  = answers();
 $prefillEmail = $answers['email'] ?? '';
 ?>
   <header class="nav slim">
-    <a href="index.php" class="brand">
+    <a href="/" class="brand">
       <span class="logo-dot"></span>
       <span class="brand-name">DiaFitus</span>
     </a>
@@ -26,7 +26,7 @@ $prefillEmail = $answers['email'] ?? '';
       <h1>Last step: connect to your dashboard</h1>
       <p class="sub">You'll get your nutrition PDF, exercise program and Telegram invite at the email below. Your private logging dashboard lives at <strong>my.diafitus.com</strong>.</p>
 
-      <form id="signupForm" class="form" action="create_checkout.php" method="post">
+      <form id="signupForm" class="form" action="create_checkout" method="post">
         <label>
           First name
           <input type="text" name="firstName" required placeholder="Alex" />
@@ -48,7 +48,7 @@ $prefillEmail = $answers['email'] ?? '';
 
         <label class="check">
           <input type="checkbox" name="agreed" value="1" required />
-          <span>I agree to the <a href="terms.php" target="_blank">Terms &amp; Conditions</a> and <a href="privacy.php" target="_blank">Privacy Policy</a>. I understand DiaFitus is fitness coaching, not medical advice, and I am responsible for consulting my doctor.</span>
+          <span>I agree to the <a href="terms" target="_blank">Terms &amp; Conditions</a> and <a href="privacy" target="_blank">Privacy Policy</a>. I understand DiaFitus is fitness coaching, not medical advice, and I am responsible for consulting my doctor.</span>
         </label>
 
         <button type="submit" class="btn btn-primary btn-xl">Continue to secure checkout →</button>

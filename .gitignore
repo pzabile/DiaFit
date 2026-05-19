@@ -1,0 +1,10 @@
+# Never commit live secrets or uploaded user content.
+uploads/*
+!uploads/.gitkeep
+
+# If you switch to ignoring config.php (recommended once secrets are real),
+# uncomment the next line and keep config.example.php as the template.
+# config.php
+
+.DS_Store
+*.log

@@ -3,7 +3,7 @@ require __DIR__ . '/includes/bootstrap.php';
 require __DIR__ . '/includes/stripe.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: signup.php'); exit;
+    header('Location: signup'); exit;
 }
 
 $firstName = trim($_POST['firstName'] ?? '');
@@ -13,11 +13,11 @@ $agreed    = !empty($_POST['agreed']);
 
 if (!$firstName || !$email || !$phone || !$agreed) {
     $_SESSION['signup_error'] = 'Please fill in all fields and accept the terms.';
-    header('Location: signup.php'); exit;
+    header('Location: signup'); exit;
 }
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $_SESSION['signup_error'] = 'Please enter a valid email address.';
-    header('Location: signup.php'); exit;
+    header('Location: signup'); exit;
 }
 
 $user = ['firstName' => $firstName, 'email' => $email, 'phone' => $phone];
@@ -34,6 +34,6 @@ try {
 } catch (Throwable $ex) {
     error_log('create_checkout error: ' . $ex->getMessage());
     $_SESSION['signup_error'] = 'Sorry, we could not start checkout. Please try again or contact ' . cfg('support_email') . '.';
-    header('Location: signup.php');
+    header('Location: signup');
     exit;
 }

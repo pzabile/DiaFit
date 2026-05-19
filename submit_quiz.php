@@ -1,5 +1,7 @@
 <?php
 require __DIR__ . '/includes/bootstrap.php';
+require __DIR__ . '/includes/db.php';
+require __DIR__ . '/includes/auth.php';
 require __DIR__ . '/includes/telegram.php';
 require __DIR__ . '/includes/pdf.php';
 
@@ -11,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$raw = file_get_contents('php://input');
+$raw  = file_get_contents('php://input');
 $data = json_decode($raw, true);
 if (!is_array($data)) {
     http_response_code(400);
@@ -19,7 +21,6 @@ if (!is_array($data)) {
     exit;
 }
 
-// Whitelist + sanitize.
 $allowed = [
     'diabetes_type', 'gender', 'age', 'weight', 'motivation',
     'doctor_recommended', 'exercise_history', 'side_effects',
@@ -29,32 +30,38 @@ $clean = [];
 foreach ($allowed as $k) {
     if (!array_key_exists($k, $data)) continue;
     $v = $data[$k];
-    if (is_array($v)) {
-        $clean[$k] = array_values(array_map(fn($x) => substr((string)$x, 0, 80), $v));
-    } else {
-        $clean[$k] = substr((string)$v, 0, 200);
-    }
+    $clean[$k] = is_array($v)
+        ? array_values(array_map(fn($x) => substr((string)$x, 0, 80), $v))
+        : substr((string)$v, 0, 200);
 }
 
 $_SESSION['answers'] = $clean;
-$_SESSION['answers_submitted_at'] = date('c');
+$email = $clean['email'] ?? '';
 
-// Build PDF + text and dispatch to Telegram (non-blocking errors).
+if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    try {
+        $leadId = lead_upsert_from_assessment($email, '', '', $clean);
+        $_SESSION['lead_id'] = $leadId;
+    } catch (Throwable $ex) {
+        error_log('lead upsert failed: ' . $ex->getMessage());
+    }
+}
+
 try {
     $tmpPdf = sys_get_temp_dir() . '/diafitus_lead_' . time() . '_' . bin2hex(random_bytes(3)) . '.pdf';
     build_lead_pdf($tmpPdf, $clean);
 
-    $textLines = ["<b>DiaFitus — New questionnaire submission</b>"];
-    $textLines[] = "Time: " . date('Y-m-d H:i:s');
+    $lines = ['<b>DiaFitus — new questionnaire submission</b>'];
+    $lines[] = 'Time: ' . date('Y-m-d H:i:s');
     foreach ($clean as $k => $v) {
         $val = is_array($v) ? implode(', ', $v) : $v;
-        $textLines[] = "<b>" . htmlspecialchars(ucwords(str_replace('_', ' ', $k))) . ":</b> " . htmlspecialchars($val);
+        $lines[] = '<b>' . htmlspecialchars(ucwords(str_replace('_', ' ', $k))) . ':</b> ' . htmlspecialchars($val);
     }
-    tg_send_message(implode("\n", $textLines));
+    tg_send_message(implode("\n", $lines));
     tg_send_document($tmpPdf, 'DiaFitus questionnaire (PDF)');
     @unlink($tmpPdf);
 } catch (Throwable $ex) {
     error_log('submit_quiz dispatch error: ' . $ex->getMessage());
 }
 
-echo json_encode(['ok' => true, 'redirect' => 'offer.php']);
+echo json_encode(['ok' => true, 'redirect' => 'offer']);

@@ -1,12 +1,41 @@
+# --------------------------------------------------------------------
+# DiaFitus — Apache config for Hostinger shared hosting
+# --------------------------------------------------------------------
+
 # Protect sensitive files from direct web access.
-<FilesMatch "^(config\.php|composer\.json|composer\.lock|\.env)$">
+<FilesMatch "^(config\.php|config\.example\.php|composer\.json|composer\.lock|schema\.sql|\.env|\.gitignore|\.htaccess)$">
   Require all denied
 </FilesMatch>
 
-# Pretty URLs (optional): /terms -> /terms.php
+# Stronger MIME sniffing protection.
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Pretty URLs: /foo -> /foo.php, /admin/bar -> /admin/bar.php
 <IfModule mod_rewrite.c>
   RewriteEngine On
+
+  # Block direct access to .php where a pretty URL exists (optional cleanliness):
+  # this keeps both /login and /login.php working but normalizes to /login.
+  RewriteCond %{THE_REQUEST} \s/+([^\s]+)\.php([?\s])
+  RewriteRule ^ /%1%2 [R=301,L,NE]
+
+  # Route extensionless URLs to .php files.
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^([a-zA-Z0-9_-]+)/?$ $1.php [L]
+  RewriteRule ^(.+?)/?$ $1.php [L]
+</IfModule>
+
+# Cache static assets.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/svg+xml      "access plus 7 days"
+  ExpiresByType image/png          "access plus 30 days"
+  ExpiresByType image/jpeg         "access plus 30 days"
+  ExpiresByType image/webp         "access plus 30 days"
+  ExpiresByType text/css           "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
 </IfModule>

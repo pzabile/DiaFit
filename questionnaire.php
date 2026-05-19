@@ -4,7 +4,7 @@ $bodyClass = 'quiz';
 require __DIR__ . '/includes/header.php';
 ?>
   <header class="quiz-header">
-    <a href="index.php" class="brand">
+    <a href="/" class="brand">
       <span class="logo-dot"></span>
       <span class="brand-name">DiaFitus</span>
     </a>
@@ -170,7 +170,7 @@ require __DIR__ . '/includes/header.php';
   </main>
 
   <script>
-    window.QUIZ_SUBMIT_URL = 'submit_quiz.php';
-    window.QUIZ_NEXT_URL   = 'offer.php';
+    window.QUIZ_SUBMIT_URL = 'submit_quiz';
+    window.QUIZ_NEXT_URL   = 'offer';
   </script>
 <?php require __DIR__ . '/includes/footer.php'; ?>

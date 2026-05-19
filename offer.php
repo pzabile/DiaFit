@@ -1,4 +1,5 @@
 <?php
+require __DIR__ . '/includes/avatar.php';
 $pageTitle = 'Your DiaFitus Plan is Ready';
 $bodyClass = 'offer';
 require __DIR__ . '/includes/header.php';
@@ -20,7 +21,7 @@ $priceNow = (int) cfg('price_today');
 $savings  = $priceReg - $priceNow;
 ?>
   <header class="nav slim">
-    <a href="index.php" class="brand">
+    <a href="/" class="brand">
       <span class="logo-dot"></span>
       <span class="brand-name">DiaFitus</span>
     </a>
@@ -35,17 +36,17 @@ $savings  = $priceReg - $priceNow;
       <span class="pill green">✓ Plan ready</span>
       <h1>Your personalized DiaFitus program is built.</h1>
       <p class="lede">Based on your answers, we've prepared a 12-week glucose-aware training plan,
-      a custom nutrition PDF, and a direct line to your coach and doctor on Telegram.</p>
+      a custom nutrition PDF, and 24/7 direct access to your coach.</p>
 
       <div class="summary-card">
         <h3>What's in your plan</h3>
         <ul class="check-list">
           <li>Personalized training program — <?= e($planLoc) ?>, <?= e($planDays) ?></li>
           <li>Nutrition PDF — what to eat before / during / after workouts</li>
-          <li>Glucose-safe exercise progression reviewed by a doctor</li>
-          <li>Direct chat with coaches &amp; doctors on Telegram, 24/7</li>
-          <li>Access to your private dashboard to log workouts, meals &amp; glucose</li>
-          <li>Weekly plan adjustments based on your progress</li>
+          <li>Glucose-safe exercise progression reviewed by our medical team</li>
+          <li>24/7 access to your coach — ask anything, any time</li>
+          <li>Private dashboard to log workouts, meals, glucose &amp; meal photos</li>
+          <li>Weekly plan adjustments based on your check-ins</li>
         </ul>
       </div>
     </section>
@@ -65,12 +66,12 @@ $savings  = $priceReg - $priceNow;
           <strong id="timer2">15:00</strong>
         </div>
 
-        <a href="signup.php" class="btn btn-primary btn-xl">Claim 50% off — Start now</a>
+        <a href="signup" class="btn btn-primary btn-xl">Claim 50% off — Start now</a>
 
         <ul class="micro-trust">
           <li>🔒 Secure Stripe checkout</li>
           <li>↩️ Cancel anytime</li>
-          <li>👨‍⚕️ Doctor-reviewed</li>
+          <li>🛡️ 14-day money-back guarantee</li>
         </ul>
       </div>
 
@@ -78,7 +79,7 @@ $savings  = $priceReg - $priceNow;
         <h3>Everything you get for $<?= e($priceNow) ?>/month</h3>
         <div class="benefit"><div class="bi">🏋️</div><div><strong>Personalized exercise program</strong><p>Built around your diabetes type, fitness level and schedule.</p></div></div>
         <div class="benefit"><div class="bi">📕</div><div><strong>Nutrition guide (PDF)</strong><p>A clear, doctor-reviewed guide on what to eat to stabilize blood sugar.</p></div></div>
-        <div class="benefit"><div class="bi">💬</div><div><strong>Telegram access to coaches &amp; doctors</strong><p>Ask anything, anytime — real humans on the other end.</p></div></div>
+        <div class="benefit"><div class="bi">💬</div><div><strong>24/7 coach access</strong><p>Ask anything, anytime — real humans on the other end.</p></div></div>
         <div class="benefit"><div class="bi">📊</div><div><strong>Private dashboard</strong><p>Log workouts, meals, blood sugar, soreness and observations.</p></div></div>
         <div class="benefit"><div class="bi">🔄</div><div><strong>Weekly adjustments</strong><p>Your coach reviews your logs and tunes the plan every week.</p></div></div>
       </div>
@@ -91,7 +92,7 @@ $savings  = $priceReg - $priceNow;
         <?php
         $reviews = [
           ['Marcus T.', 'Type 2',       'A1C: 8.1 → 6.4 in four months. The coaches actually understand diabetes.'],
-          ['Lena R.',   'Type 1',       'Finally a program that does not crash my blood sugar. Telegram support is gold.'],
+          ['Lena R.',   'Type 1',       'Finally a program that does not crash my blood sugar. The 24/7 support is gold.'],
           ['David P.',  'Pre-diabetes', 'Lost 12 kg, off two medications. I would pay much more.'],
           ['Aisha K.',  'Type 2',       'Stronger at 49 than I was at 35. The plan respected my limits.'],
           ['Tom B.',    'Type 1',       'The nutrition PDF alone is worth the subscription.'],
@@ -101,16 +102,22 @@ $savings  = $priceReg - $priceNow;
           ['Yusuf A.',  'Pre-diabetes', 'Fasting glucose 118 → 92. Weekly check-ins keep me on track.'],
           ['Megan F.',  'Type 2',       'Energy in the afternoons came back within three weeks.'],
           ['Rajiv S.',  'Type 2',       'Home program needs zero equipment. Game-changer.'],
-          ['Olivia W.', 'Type 1',       '24/7 doctor on Telegram replies faster than my own clinic.'],
+          ['Olivia W.', 'Type 1',       '24/7 messaging replies faster than my own clinic.'],
           ['Sophie L.', 'Type 2',       'No more guesswork — I know exactly what to do every single day.'],
           ['Ethan J.',  'Type 1',       'My CGM graphs have never looked this flat. Worth every cent.'],
           ['Nadia O.',  'Pre-diabetes', 'I learned more about nutrition in a week than in years of Googling.'],
         ];
         foreach ($reviews as $r): [$name, $tag, $text] = $r; ?>
           <div class="testi">
-            <div class="stars">★★★★★</div>
+            <div class="testi-head">
+              <span class="avatar-svg"><?= avatar_svg($name, 56) ?></span>
+              <div>
+                <strong><?= e($name) ?></strong>
+                <small><?= e($tag) ?></small>
+              </div>
+              <div class="stars">★★★★★</div>
+            </div>
             <p><?= e($text) ?></p>
-            <span class="who">— <?= e($name) ?> · <?= e($tag) ?></span>
           </div>
         <?php endforeach; ?>
       </div>
@@ -125,13 +132,13 @@ $savings  = $priceReg - $priceNow;
       <strong>Important:</strong> DiaFitus is a fitness and lifestyle coaching service. It is not medical advice
       and is not a substitute for consultation with a licensed physician. Always talk to your doctor before starting
       any new exercise or nutrition program, especially with diabetes. Read our
-      <a href="terms.php">Terms</a> and <a href="privacy.php">Privacy Policy</a>.
+      <a href="terms">Terms</a> and <a href="privacy">Privacy Policy</a>.
     </section>
 
     <section class="final-cta">
       <h2>Don't lose your 50% off</h2>
       <p>The discount disappears in <strong id="timer3">15:00</strong>. After that, it's $<?= e($priceReg) ?>/month.</p>
-      <a href="signup.php" class="btn btn-primary btn-xl">Lock in $<?= e($priceNow) ?>/month →</a>
+      <a href="signup" class="btn btn-primary btn-xl">Lock in $<?= e($priceNow) ?>/month →</a>
     </section>
   </main>
 

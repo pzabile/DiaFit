@@ -35,12 +35,18 @@ function send_email($toEmail, $toName, $subject, $htmlBody, $textBody = null) {
     return @mail($to, $encodedSubject, $body, implode("\r\n", $headers), '-f' . $fromEmail);
 }
 
-function welcome_email_html($firstName) {
+function welcome_email_html($firstName, $email = '', $password = '') {
     $brand   = cfg('brand_name');
     $support = cfg('support_email');
+    $site    = cfg('site_url');
     $fn      = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
     $brandE  = htmlspecialchars($brand, ENT_QUOTES, 'UTF-8');
+    $emailE  = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
+    $pwE     = htmlspecialchars($password, ENT_QUOTES, 'UTF-8');
     $price   = (int)cfg('price_today');
+    $creds   = $password ? "<p style=\"line-height:1.55;color:#4a5651;\"><strong>Your login:</strong></p>
+      <table style=\"border-collapse:collapse;margin:0 0 16px 0;\"><tr><td style=\"padding:4px 12px 4px 0;color:#8a8f8b;\">Email</td><td style=\"padding:4px 0;font-family:monospace;\">{$emailE}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#8a8f8b;\">Password</td><td style=\"padding:4px 0;font-family:monospace;\">{$pwE}</td></tr></table>
+      <p style=\"line-height:1.55;color:#4a5651;\">Sign in at <a href=\"{$site}/login\" style=\"color:#0d7d4f;\">{$site}/login</a>. You can change your password from your dashboard.</p>" : '';
     return <<<HTML
 <!doctype html>
 <html><body style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f7f5f0;margin:0;padding:24px;color:#0f1a14;">
@@ -51,12 +57,13 @@ function welcome_email_html($firstName) {
     </div>
     <h1 style="font-size:24px;margin:0 0 12px;">Welcome to {$brandE}, {$fn} 👋</h1>
     <p style="line-height:1.55;color:#4a5651;">Thanks for joining. Your payment of <strong>\${$price}/month</strong> went through and your membership is active.</p>
-    <p style="line-height:1.55;color:#4a5651;"><strong>What happens next:</strong> our coaches and doctors are reviewing your assessment right now and <strong>building your personalized program</strong>. We'll reach out within the next <strong>24 hours</strong> with:</p>
+    {$creds}
+    <p style="line-height:1.55;color:#4a5651;"><strong>What happens next:</strong> our team is reviewing your assessment right now and <strong>building your personalized program</strong>. We'll reach out within the next <strong>24 hours</strong> with:</p>
     <ul style="line-height:1.7;color:#4a5651;">
       <li>Your personalized exercise program</li>
       <li>Your nutrition PDF guide</li>
-      <li>An invite to our private Telegram with coaches &amp; doctors</li>
-      <li>Access to your private dashboard</li>
+      <li>24/7 access to support whenever you need a hand</li>
+      <li>Full access to your private dashboard</li>
     </ul>
     <p style="line-height:1.55;color:#4a5651;">If you need anything in the meantime, just reply to this email or write to <a href="mailto:{$support}" style="color:#0d7d4f;">{$support}</a>.</p>
     <hr style="border:none;border-top:1px solid #e3e0d6;margin:24px 0;" />
