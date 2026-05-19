@@ -1,16 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Your DiaFit Assessment</title>
-<link rel="stylesheet" href="styles.css" />
-</head>
-<body class="quiz">
+<?php
+$pageTitle = 'Your DiaFitus Assessment';
+$bodyClass = 'quiz';
+require __DIR__ . '/includes/header.php';
+?>
   <header class="quiz-header">
-    <a href="index.html" class="brand">
+    <a href="index.php" class="brand">
       <span class="logo-dot"></span>
-      <span class="brand-name">DiaFit</span>
+      <span class="brand-name">DiaFitus</span>
     </a>
     <div class="progress-wrap">
       <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
@@ -19,7 +15,6 @@
   </header>
 
   <main class="quiz-main" id="quizMain">
-    <!-- Step 1: Diabetes type -->
     <section class="step active" data-step="1" data-key="diabetes_type">
       <p class="kicker">A few questions to build your plan</p>
       <h1>Which type of diabetes do you have?</h1>
@@ -32,7 +27,6 @@
       </div>
     </section>
 
-    <!-- Step 2: Gender -->
     <section class="step" data-step="2" data-key="gender">
       <h1>What is your gender?</h1>
       <p class="sub">We use this to calibrate calorie and intensity targets.</p>
@@ -43,7 +37,6 @@
       </div>
     </section>
 
-    <!-- Step 3: Age -->
     <section class="step" data-step="3" data-key="age" data-type="input">
       <h1>How old are you?</h1>
       <p class="sub">Age helps us set safe heart-rate zones.</p>
@@ -51,7 +44,6 @@
       <button class="btn btn-primary btn-lg next-btn" data-target="ageInput">Continue →</button>
     </section>
 
-    <!-- Step 4: Weight -->
     <section class="step" data-step="4" data-key="weight" data-type="input">
       <h1>What is your weight?</h1>
       <p class="sub">In kilograms. We'll use it to scale your plan.</p>
@@ -59,20 +51,18 @@
       <button class="btn btn-primary btn-lg next-btn" data-target="weightInput">Continue →</button>
     </section>
 
-    <!-- Step 5: Why exercise -->
     <section class="step" data-step="5" data-key="motivation">
       <h1>Why did you decide to start exercising?</h1>
       <div class="options">
         <button class="option" data-value="control_glucose"><span class="opt-emoji">📉</span><span>Improve blood sugar control</span></button>
         <button class="option" data-value="lose_weight"><span class="opt-emoji">⚖️</span><span>Lose weight</span></button>
         <button class="option" data-value="more_energy"><span class="opt-emoji">⚡</span><span>Have more energy</span></button>
-        <button class="option" data-value="build_muscle"><span class="opt-emoji">💪</span><span>Build muscle & strength</span></button>
+        <button class="option" data-value="build_muscle"><span class="opt-emoji">💪</span><span>Build muscle &amp; strength</span></button>
         <button class="option" data-value="reduce_meds"><span class="opt-emoji">💊</span><span>Reduce medication dependency</span></button>
         <button class="option" data-value="feel_better"><span class="opt-emoji">😊</span><span>Just feel better day-to-day</span></button>
       </div>
     </section>
 
-    <!-- Step 6: Doctor recommended -->
     <section class="step" data-step="6" data-key="doctor_recommended">
       <h1>Did your doctor recommend exercise?</h1>
       <div class="options two">
@@ -82,7 +72,6 @@
       </div>
     </section>
 
-    <!-- Step 7: Past exercise -->
     <section class="step" data-step="7" data-key="exercise_history">
       <h1>Have you exercised regularly in the past?</h1>
       <div class="options">
@@ -93,7 +82,6 @@
       </div>
     </section>
 
-    <!-- Step 8: Side effects -->
     <section class="step" data-step="8" data-key="side_effects" data-type="multi">
       <h1>Are you experiencing any of these from diabetes?</h1>
       <p class="sub">Select all that apply.</p>
@@ -110,7 +98,6 @@
       <button class="btn btn-primary btn-lg next-btn multi-next">Continue →</button>
     </section>
 
-    <!-- Step 9: Goals -->
     <section class="step" data-step="9" data-key="goals" data-type="multi">
       <h1>What are your main goals?</h1>
       <p class="sub">Pick up to 3.</p>
@@ -119,13 +106,12 @@
         <button class="option" data-value="fat_loss"><span>Fat loss</span></button>
         <button class="option" data-value="muscle_gain"><span>Build muscle</span></button>
         <button class="option" data-value="cardio"><span>Better cardio</span></button>
-        <button class="option" data-value="flexibility"><span>Mobility & flexibility</span></button>
+        <button class="option" data-value="flexibility"><span>Mobility &amp; flexibility</span></button>
         <button class="option" data-value="mental"><span>Mental health</span></button>
       </div>
       <button class="btn btn-primary btn-lg next-btn multi-next">Continue →</button>
     </section>
 
-    <!-- Step 10: Gym or home -->
     <section class="step" data-step="10" data-key="location">
       <h1>Where do you want to train?</h1>
       <div class="options two">
@@ -136,7 +122,6 @@
       </div>
     </section>
 
-    <!-- Step 11: Days per week -->
     <section class="step" data-step="11" data-key="days_per_week">
       <h1>How many days per week do you want to train?</h1>
       <div class="options">
@@ -148,7 +133,6 @@
       </div>
     </section>
 
-    <!-- Step 12: Minutes per day -->
     <section class="step" data-step="12" data-key="minutes_per_day">
       <h1>How many minutes per day can you commit?</h1>
       <div class="options">
@@ -160,19 +144,17 @@
       </div>
     </section>
 
-    <!-- Step 13: Email -->
     <section class="step" data-step="13" data-key="email" data-type="input">
       <h1>Where should we send your plan?</h1>
       <p class="sub">Enter your email and we'll prepare your personalized program.</p>
       <input type="email" class="text-input" id="emailInput" placeholder="you@example.com" />
       <label class="check">
         <input type="checkbox" id="consent" checked />
-        <span>I agree to receive my plan and updates from DiaFit.</span>
+        <span>I agree to receive my plan and updates from DiaFitus. I understand DiaFitus is not medical advice and I will consult my doctor.</span>
       </label>
       <button class="btn btn-primary btn-lg next-btn" data-target="emailInput" id="finishBtn">See my plan →</button>
     </section>
 
-    <!-- Loading -->
     <section class="step loading-step" data-step="loading">
       <div class="loader-wrap">
         <div class="loader"></div>
@@ -181,12 +163,14 @@
           <li class="done">Analyzing your diabetes profile</li>
           <li class="done">Matching glucose-safe exercises</li>
           <li>Calibrating nutrition guide</li>
-          <li>Assigning your coach & doctor</li>
+          <li>Assigning your coach &amp; doctor</li>
         </ul>
       </div>
     </section>
   </main>
 
-  <script src="script.js"></script>
-</body>
-</html>
+  <script>
+    window.QUIZ_SUBMIT_URL = 'submit_quiz.php';
+    window.QUIZ_NEXT_URL   = 'offer.php';
+  </script>
+<?php require __DIR__ . '/includes/footer.php'; ?>

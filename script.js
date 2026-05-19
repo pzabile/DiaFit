@@ -1,6 +1,6 @@
 // ---------- Shared: timers across offer / signup pages ----------
 (function () {
-  const TIMER_KEY = 'diafit_offer_deadline';
+  const TIMER_KEY = 'diafitus_offer_deadline';
   const TIMER_LENGTH_MS = 15 * 60 * 1000;
   const timerEls = document.querySelectorAll('#timer, #timer2, #timer3');
   if (timerEls.length === 0) return;
@@ -29,6 +29,9 @@
 (function () {
   const main = document.getElementById('quizMain');
   if (!main) return;
+
+  const SUBMIT_URL = window.QUIZ_SUBMIT_URL || 'submit_quiz.php';
+  const NEXT_URL   = window.QUIZ_NEXT_URL   || 'offer.php';
 
   const steps = Array.from(main.querySelectorAll('.step'));
   const total = steps.filter(s => s.dataset.step !== 'loading').length;
@@ -60,24 +63,32 @@
 
   function runLoading() {
     const items = steps[current].querySelectorAll('.loader-list li');
-    let i = 0;
     items.forEach(li => li.classList.remove('done'));
     items[0].classList.add('done');
     items[1].classList.add('done');
+
+    // Submit answers to backend in parallel with the animation.
+    const submission = fetch(SUBMIT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(answers),
+      credentials: 'same-origin',
+    }).then(r => r.ok ? r.json() : Promise.reject(new Error('Submit failed')))
+      .catch(err => { console.error(err); return { redirect: NEXT_URL }; });
+
+    let i = 1;
     const t = setInterval(() => {
       i++;
-      if (items[i + 1]) items[i + 1].classList.add('done');
-      if (i + 1 >= items.length - 1) {
+      if (items[i]) items[i].classList.add('done');
+      if (i >= items.length - 1) {
         clearInterval(t);
-        setTimeout(() => {
-          try { localStorage.setItem('diafit_answers', JSON.stringify(answers)); } catch (e) {}
-          window.location.href = 'offer.html';
-        }, 700);
+        submission.then(res => {
+          setTimeout(() => { window.location.href = (res && res.redirect) || NEXT_URL; }, 500);
+        });
       }
     }, 700);
   }
 
-  // single-choice options
   steps.forEach(step => {
     const key = step.dataset.key;
     const type = step.dataset.type;
@@ -91,7 +102,7 @@
       const btn = step.querySelector('.multi-next');
       btn.addEventListener('click', () => {
         const sel = Array.from(step.querySelectorAll('.option.selected')).map(o => o.dataset.value);
-        if (sel.length === 0) { btn.classList.add('shake'); return; }
+        if (sel.length === 0) return;
         answers[key] = sel;
         next();
       });
@@ -123,72 +134,16 @@
   show(0);
 })();
 
-// ---------- Offer page personalization ----------
-(function () {
-  if (!document.body.classList.contains('offer')) return;
-  let a = {};
-  try { a = JSON.parse(localStorage.getItem('diafit_answers') || '{}'); } catch (e) {}
-  const loc = document.getElementById('planLocation');
-  const days = document.getElementById('planDays');
-  const locMap = { gym: 'at the gym', home: 'at home', both: 'gym + home', outdoors: 'outdoors' };
-  if (loc && a.location) loc.textContent = locMap[a.location] || 'gym or home';
-  if (days && a.days_per_week) days.textContent = `${a.days_per_week} days a week, ${a.minutes_per_day || 30} min/day`;
-})();
-
-// ---------- Signup form ----------
-(function () {
-  const form = document.getElementById('signupForm');
-  if (!form) return;
-  let a = {};
-  try { a = JSON.parse(localStorage.getItem('diafit_answers') || '{}'); } catch (e) {}
-  const emailField = document.getElementById('signupEmail');
-  if (emailField && a.email) emailField.value = a.email;
-
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    const fd = new FormData(form);
-    const user = {
-      firstName: fd.get('firstName'),
-      email: fd.get('email'),
-      phone: fd.get('phone'),
-    };
-    try { localStorage.setItem('diafit_user', JSON.stringify(user)); } catch (err) {}
-    window.location.href = 'dashboard.html';
-  });
-})();
-
-// ---------- Dashboard ----------
+// ---------- Dashboard logging (client-side) ----------
 (function () {
   if (!document.body.classList.contains('dashboard')) return;
 
-  let user = {};
-  let answers = {};
-  try { user = JSON.parse(localStorage.getItem('diafit_user') || '{}'); } catch (e) {}
-  try { answers = JSON.parse(localStorage.getItem('diafit_answers') || '{}'); } catch (e) {}
-
-  if (user.firstName) {
-    document.getElementById('userName').textContent = user.firstName;
-    document.getElementById('userNameH').textContent = user.firstName;
-    document.querySelector('.avatar').textContent = user.firstName[0].toUpperCase();
-  }
-  if (user.email) document.getElementById('userEmail').textContent = user.email;
-
-  // Today's workout from answers
-  const todayEl = document.getElementById('todayWorkout');
-  if (todayEl) {
-    const days = answers.days_per_week || '3';
-    const mins = answers.minutes_per_day || '30';
-    const loc = answers.location || 'home';
-    todayEl.textContent = `${mins}-min ${loc} session — ${days}x / week plan`;
-  }
-
-  // Pre-fill date
   const dateInput = document.querySelector('input[name="date"]');
   if (dateInput) dateInput.value = new Date().toISOString().slice(0, 10);
 
   const list = document.getElementById('logList');
   const form = document.getElementById('logForm');
-  const STORAGE_KEY = 'diafit_logs';
+  const STORAGE_KEY = 'diafitus_logs';
 
   function loadLogs() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (e) { return []; }

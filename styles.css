@@ -517,3 +517,93 @@ body.dashboard {
 }
 .log-entry h4 { margin: 0 0 .25rem; font-size: .95rem; }
 .log-entry small { color: var(--muted); }
+
+/* ---------- ADDITIONAL: footer, legal, success, guarantee, disclaimer ---------- */
+.site-footer {
+  padding: 2rem clamp(1rem, 4vw, 3rem);
+  border-top: 1px solid var(--line);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+  gap: 1rem; color: var(--muted); font-size: .9rem; background: #fff;
+}
+.footer-links { display: flex; gap: 1.25rem; }
+.footer-links a { color: var(--ink-soft); }
+.footer-links a:hover { color: var(--ink); }
+.footer-legal { width: 100%; margin: 0; font-size: .8rem; color: var(--muted); }
+
+/* Legal pages */
+body.legal { background: var(--bg); }
+.legal-main {
+  max-width: 760px; margin: 0 auto;
+  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 2rem);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin-top: 2rem; margin-bottom: 2rem;
+}
+.legal-main h1 { margin-bottom: .25rem; }
+.legal-main h2 {
+  margin-top: 2rem; margin-bottom: .5rem;
+  font-size: 1.25rem; border-bottom: 1px solid var(--line);
+  padding-bottom: .35rem;
+}
+.legal-main p, .legal-main li { color: var(--ink-soft); }
+.legal-main ul { padding-left: 1.25rem; }
+.legal-main li { padding: .25rem 0; }
+.legal-main a { color: var(--accent-2); text-decoration: underline; }
+
+/* Success page */
+body.success-page { background: var(--bg); }
+.success-main {
+  max-width: 640px; margin: 0 auto;
+  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 2rem);
+}
+.success-card {
+  background: #fff; border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 2.5rem;
+  text-align: center; box-shadow: var(--shadow);
+}
+.success-icon {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; margin: 0 auto 1.25rem;
+}
+.next-card {
+  text-align: left;
+  background: var(--bg-soft);
+  border-radius: var(--radius-sm);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+/* Guarantee + disclaimer on offer page */
+.guarantee {
+  background: var(--accent-soft);
+  border: 1px solid #b6e3c8;
+  border-radius: var(--radius);
+  padding: 1.5rem 1.75rem;
+  margin: 2rem 0;
+}
+.guarantee h3 { color: var(--accent-2); margin-bottom: .35rem; }
+.guarantee p { color: var(--ink-soft); margin: 0; }
+
+.disclaimer {
+  font-size: .85rem;
+  color: var(--ink-soft);
+  background: #fff;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+}
+.disclaimer strong { color: var(--ink); }
+.disclaimer a { color: var(--accent-2); text-decoration: underline; }
+
+/* Form check on signup */
+.signup-card .check {
+  background: var(--bg-soft);
+  border-radius: var(--radius-sm);
+  padding: .85rem 1rem;
+}
+.signup-card .check a { color: var(--accent-2); text-decoration: underline; }

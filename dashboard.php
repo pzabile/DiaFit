@@ -1,17 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>my.diafit.app — Your Dashboard</title>
-<link rel="stylesheet" href="styles.css" />
-</head>
-<body class="dashboard">
+<?php
+$pageTitle = 'my.diafitus.com — Your Dashboard';
+$bodyClass = 'dashboard';
+require __DIR__ . '/includes/header.php';
+$user = user_session();
+?>
   <aside class="side">
     <div class="brand">
       <span class="logo-dot"></span>
-      <span class="brand-name">DiaFit</span>
-      <span class="sub-tag">my.diafit.app</span>
+      <span class="brand-name">DiaFitus</span>
+      <span class="sub-tag">my.diafitus.com</span>
     </div>
     <nav class="side-nav">
       <a class="active" href="#log">📓 Daily log</a>
@@ -22,10 +19,10 @@
       <a href="#account">⚙️ Account</a>
     </nav>
     <div class="side-foot">
-      <div class="avatar">A</div>
+      <div class="avatar"><?= e(strtoupper(substr($user['firstName'] ?? 'A', 0, 1))) ?></div>
       <div>
-        <strong id="userName">Alex</strong>
-        <small id="userEmail">you@example.com</small>
+        <strong id="userName"><?= e($user['firstName'] ?? 'Member') ?></strong>
+        <small id="userEmail"><?= e($user['email'] ?? '') ?></small>
       </div>
     </div>
   </aside>
@@ -34,18 +31,18 @@
     <header class="dash-header">
       <div>
         <p class="kicker">Welcome back</p>
-        <h1>Hi <span id="userNameH">Alex</span> — let's log today.</h1>
+        <h1>Hi <span id="userNameH"><?= e($user['firstName'] ?? 'there') ?></span> — let's log today.</h1>
       </div>
       <div class="dash-meta">
-        <div><strong id="streak">7</strong><span>day streak</span></div>
-        <div><strong id="entries">14</strong><span>total logs</span></div>
+        <div><strong id="streak">0</strong><span>day streak</span></div>
+        <div><strong id="entries">0</strong><span>total logs</span></div>
       </div>
     </header>
 
     <section class="card-row">
       <div class="metric-card">
         <span class="metric-label">Today's workout</span>
-        <strong class="metric-value" id="todayWorkout">Lower body + 20m walk</strong>
+        <strong class="metric-value" id="todayWorkout">Your coach is building your plan</strong>
         <a href="#log" class="link">Mark complete →</a>
       </div>
       <div class="metric-card">
@@ -113,9 +110,11 @@
       </form>
 
       <div id="logList" class="log-list"></div>
+
+      <p class="muted" style="margin-top:1.5rem;font-size:.85rem">
+        Reminder: DiaFitus suggestions are not medical advice. Always consult your doctor about your readings, medications and any symptoms.
+      </p>
     </section>
   </main>
 
-  <script src="script.js"></script>
-</body>
-</html>
+<?php require __DIR__ . '/includes/footer.php'; ?>
