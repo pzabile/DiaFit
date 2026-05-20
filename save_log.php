@@ -36,5 +36,5 @@ db_insert(
     ]
 );
 
-$_SESSION['flash'] = 'Daily log saved.';
-header('Location: dashboard#daily');
+$_SESSION['flash'] = 'Check-in saved.';
+header('Location: /logs');

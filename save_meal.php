@@ -27,4 +27,4 @@ try {
     $_SESSION['flash'] = 'Could not upload photo: ' . $ex->getMessage();
 }
 
-header('Location: dashboard#meals');
+header('Location: /meals');
