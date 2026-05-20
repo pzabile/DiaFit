@@ -14,11 +14,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$email || !$pw) {
             $error = 'Please enter your email and password.';
         } else {
-            $lead = login_lead($email, $pw);
-            if ($lead && !empty($lead['paid'])) {
-                header('Location: dashboard'); exit;
+            try {
+                $lead = login_lead($email, $pw);
+            } catch (Throwable $ex) {
+                error_log('login error: ' . $ex->getMessage());
+                $lead = false;
+                $error = 'The login system is temporarily unavailable. Please try again in a moment.';
             }
-            $error = 'Email or password incorrect. If you just paid, please use the password from your welcome email.';
+            if (!$error) {
+                if ($lead && !empty($lead['paid'])) {
+                    header('Location: /dashboard'); exit;
+                }
+                $error = 'Email or password incorrect. If you just paid, please use the password from your welcome email.';
+            }
         }
     }
 }
@@ -52,7 +60,7 @@ require __DIR__ . '/includes/header.php';
           <input type="password" name="password" required />
         </label>
         <button type="submit" class="btn btn-primary btn-xl">Sign in →</button>
-        <p class="micro">Don't have an account yet? <a href="questionnaire">Take the free assessment</a>.</p>
+        <p class="micro">Don't have an account yet? <a href="/questionnaire">Take the free assessment</a>.</p>
       </form>
     </div>
   </main>

@@ -32,8 +32,8 @@ require __DIR__ . '/includes/header.php';
       <a href="#meals">🍽️ Meal photos</a>
       <a href="#daily">📓 Daily logs</a>
       <a href="#coach">💬 From my coach</a>
-      <a href="account">⚙️ Account</a>
-      <a href="logout">↩️ Log out</a>
+      <a href="/account">⚙️ Account</a>
+      <a href="/logout">↩️ Log out</a>
     </nav>
     <div class="side-foot">
       <div class="avatar"><?= e(strtoupper(substr($me['first_name'] ?? 'M', 0, 1))) ?></div>

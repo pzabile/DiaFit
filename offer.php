@@ -67,7 +67,7 @@ $discount  = $priceReg > 0 ? (int) round(($savings / $priceReg) * 100) : 0;
           <strong id="timer2">15:00</strong>
         </div>
 
-        <a href="signup" class="btn btn-primary btn-xl">Claim 50% off — Start now</a>
+        <a href="/signup" class="btn btn-primary btn-xl">Claim <?= e($discount) ?>% off — Start now</a>
 
         <ul class="micro-trust">
           <li>🔒 Secure Stripe checkout</li>
@@ -86,41 +86,46 @@ $discount  = $priceReg > 0 ? (int) round(($savings / $priceReg) * 100) : 0;
       </div>
     </section>
 
-    <section class="testimonials">
+    <section class="testimonials reviews-block">
       <h2>What members are saying</h2>
-      <p class="muted" style="margin-bottom:1.5rem">4.9 / 5 average from 3,400+ verified members.</p>
-      <div class="grid-3">
-        <?php
-        $reviews = [
-          ['Marcus T.', 'Type 2',       'A1C: 8.1 → 6.4 in four months. The coaches actually understand diabetes.'],
-          ['Lena R.',   'Type 1',       'Finally a program that does not crash my blood sugar. The 24/7 support is gold.'],
-          ['David P.',  'Pre-diabetes', 'Lost 12 kg, off two medications. I would pay much more.'],
-          ['Aisha K.',  'Type 2',       'Stronger at 49 than I was at 35. The plan respected my limits.'],
-          ['Tom B.',    'Type 1',       'The nutrition PDF alone is worth the subscription.'],
-          ['Priya N.',  'Gestational',  'Safe pregnancy routine, doctor-approved within a day. Reassuring.'],
-          ['Carlos M.', 'Type 2',       '58 and never more active. Started with 15-min walks, now 4x at the gym.'],
-          ['Hannah G.', 'Type 1',       'Months without a hypo thanks to the pre-workout fueling guide.'],
-          ['Yusuf A.',  'Pre-diabetes', 'Fasting glucose 118 → 92. Weekly check-ins keep me on track.'],
-          ['Megan F.',  'Type 2',       'Energy in the afternoons came back within three weeks.'],
-          ['Rajiv S.',  'Type 2',       'Home program needs zero equipment. Game-changer.'],
-          ['Olivia W.', 'Type 1',       '24/7 messaging replies faster than my own clinic.'],
-          ['Sophie L.', 'Type 2',       'No more guesswork — I know exactly what to do every single day.'],
-          ['Ethan J.',  'Type 1',       'My CGM graphs have never looked this flat. Worth every cent.'],
-          ['Nadia O.',  'Pre-diabetes', 'I learned more about nutrition in a week than in years of Googling.'],
-        ];
-        foreach ($reviews as $r): [$name, $tag, $text] = $r; ?>
-          <div class="testi">
-            <div class="testi-head">
-              <span class="avatar-svg"><?= avatar_svg($name, 56) ?></span>
-              <div>
-                <strong><?= e($name) ?></strong>
-                <small><?= e($tag) ?></small>
-              </div>
-              <div class="stars">★★★★★</div>
-            </div>
-            <p><?= e($text) ?></p>
-          </div>
-        <?php endforeach; ?>
+      <p class="muted" style="margin-bottom:1.5rem">4.9 / 5 average from 3,400+ verified members. Hover the strip to pause.</p>
+      <?php
+      $reviews = [
+        ['Marcus T.', 'Type 2',       'A1C: 8.1 → 6.4 in four months. The coaches actually understand diabetes.'],
+        ['Lena R.',   'Type 1',       'Finally a program that does not crash my blood sugar. The 24/7 support is gold.'],
+        ['David P.',  'Pre-diabetes', 'Lost 12 kg, off two medications. I would pay much more.'],
+        ['Aisha K.',  'Type 2',       'Stronger at 49 than I was at 35. The plan respected my limits.'],
+        ['Tom B.',    'Type 1',       'The nutrition PDF alone is worth the subscription.'],
+        ['Priya N.',  'Gestational',  'Safe pregnancy routine, doctor-approved within a day. Reassuring.'],
+        ['Carlos M.', 'Type 2',       '58 and never more active. Started with 15-min walks, now 4x at the gym.'],
+        ['Hannah G.', 'Type 1',       'Months without a hypo thanks to the pre-workout fueling guide.'],
+        ['Yusuf A.',  'Pre-diabetes', 'Fasting glucose 118 → 92. Weekly check-ins keep me on track.'],
+        ['Megan F.',  'Type 2',       'Energy in the afternoons came back within three weeks.'],
+        ['Rajiv S.',  'Type 2',       'Home program needs zero equipment. Game-changer.'],
+        ['Olivia W.', 'Type 1',       '24/7 messaging replies faster than my own clinic.'],
+        ['Sophie L.', 'Type 2',       'No more guesswork — I know exactly what to do every single day.'],
+        ['Ethan J.',  'Type 1',       'My CGM graphs have never looked this flat. Worth every cent.'],
+        ['Nadia O.',  'Pre-diabetes', 'I learned more about nutrition in a week than in years of Googling.'],
+      ];
+      ?>
+      <div class="marquee-wrap">
+        <div class="reviews-marquee">
+          <?php for ($d = 0; $d < 2; $d++): ?>
+            <?php foreach ($reviews as $r): [$name, $tag, $text] = $r; ?>
+              <article class="rev-card">
+                <header>
+                  <div class="rev-avatar"><?= avatar_svg($name, 56) ?></div>
+                  <div class="rev-meta">
+                    <strong><?= e($name) ?></strong>
+                    <small><?= e($tag) ?></small>
+                  </div>
+                  <div class="rev-stars">★★★★★</div>
+                </header>
+                <p><?= e($text) ?></p>
+              </article>
+            <?php endforeach; ?>
+          <?php endfor; ?>
+        </div>
       </div>
     </section>
 
@@ -133,13 +138,13 @@ $discount  = $priceReg > 0 ? (int) round(($savings / $priceReg) * 100) : 0;
       <strong>Important:</strong> DiaFitus is a fitness and lifestyle coaching service. It is not medical advice
       and is not a substitute for consultation with a licensed physician. Always talk to your doctor before starting
       any new exercise or nutrition program, especially with diabetes. Read our
-      <a href="terms">Terms</a> and <a href="privacy">Privacy Policy</a>.
+      <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
     </section>
 
     <section class="final-cta">
-      <h2>Don't lose your 50% off</h2>
+      <h2>Don't lose your <?= e($discount) ?>% off</h2>
       <p>The discount disappears in <strong id="timer3">15:00</strong>. After that, it's $<?= e($priceReg) ?>/month.</p>
-      <a href="signup" class="btn btn-primary btn-xl">Lock in $<?= e($priceNow) ?>/month →</a>
+      <a href="/signup" class="btn btn-primary btn-xl">Lock in $<?= e($priceNow) ?>/month →</a>
     </section>
   </main>
 

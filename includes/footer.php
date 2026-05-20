@@ -8,6 +8,6 @@
     </div>
     <p class="footer-legal">© <?= date('Y') ?> <?= e(cfg('company_name')) ?>. <?= e(cfg('brand_name')) ?> provides general fitness and lifestyle suggestions and is not a substitute for medical advice. Always consult your physician.</p>
   </footer>
-  <script src="script.js"></script>
+  <script src="/script.js"></script>
 </body>
 </html>

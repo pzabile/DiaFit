@@ -46,11 +46,11 @@ $bodyClass = 'account-page';
 require __DIR__ . '/includes/header.php';
 ?>
   <header class="nav slim">
-    <a href="dashboard" class="brand">
+    <a href="/dashboard" class="brand">
       <span class="logo-dot"></span>
       <span class="brand-name">DiaFitus</span>
     </a>
-    <a href="dashboard" class="btn btn-ghost">Back to dashboard</a>
+    <a href="/dashboard" class="btn btn-ghost">Back to dashboard</a>
   </header>
 
   <main class="account-main">

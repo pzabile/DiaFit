@@ -22,9 +22,12 @@ if (!is_array($data)) {
 }
 
 $allowed = [
-    'diabetes_type', 'gender', 'age', 'weight', 'motivation',
-    'doctor_recommended', 'exercise_history', 'side_effects',
-    'goals', 'location', 'days_per_week', 'minutes_per_day', 'email',
+    'diabetes_type', 'years_diagnosed', 'gender', 'age', 'height_cm',
+    'weight', 'fasting_glucose', 'on_insulin', 'meds', 'foot_condition',
+    'hypo_history', 'side_effects', 'complications', 'exercise_history',
+    'motivation', 'goals', 'location', 'equipment', 'days_per_week',
+    'minutes_per_day', 'sleep_hours', 'diet_style', 'doctor_recommended',
+    'email', 'consent',
 ];
 $clean = [];
 foreach ($allowed as $k) {

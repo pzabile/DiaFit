@@ -182,18 +182,30 @@ function build_lead_pdf($filePath, $answers, $user = null) {
 
     $labels = [
         'diabetes_type'      => 'Diabetes type',
+        'years_diagnosed'    => 'Years since diagnosis',
         'gender'             => 'Gender',
         'age'                => 'Age',
+        'height_cm'          => 'Height (cm)',
         'weight'             => 'Weight (kg)',
-        'motivation'         => 'Motivation',
-        'doctor_recommended' => 'Doctor recommended',
+        'fasting_glucose'    => 'Typical fasting glucose',
+        'on_insulin'         => 'On insulin',
+        'meds'               => 'Other medications',
+        'foot_condition'     => 'Foot condition',
+        'hypo_history'       => 'Hypoglycemia history',
+        'side_effects'       => 'Current symptoms',
+        'complications'      => 'Other diagnoses',
         'exercise_history'   => 'Exercise history',
-        'side_effects'       => 'Side effects',
+        'motivation'         => 'Motivation',
         'goals'              => 'Goals',
         'location'           => 'Training location',
+        'equipment'          => 'Equipment',
         'days_per_week'      => 'Days per week',
         'minutes_per_day'    => 'Minutes per day',
+        'sleep_hours'        => 'Sleep per night',
+        'diet_style'         => 'Diet style',
+        'doctor_recommended' => 'Doctor recommended exercise',
         'email'              => 'Email',
+        'consent'            => 'Disclaimer accepted',
     ];
 
     $pdf->h2('Questionnaire answers');

@@ -1292,3 +1292,18 @@ body.results-page { background: var(--bg); }
   margin-bottom: 1.5rem;
 }
 .db-warn strong { display: block; margin-bottom: .35rem; color: #5a3d08; }
+
+/* Consent checkboxes in questionnaire final step */
+.consent-box {
+  display: flex; flex-direction: column; gap: .75rem;
+  background: var(--bg-soft);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.15rem;
+  margin: 1rem 0;
+}
+.consent-box .check { margin: 0; }
+.consent-box .check input { margin-top: .3rem; }
+.next-btn[disabled] {
+  opacity: .45; cursor: not-allowed;
+}
+.next-btn[disabled]:hover { transform: none; }

@@ -107,6 +107,17 @@
         answers[key] = sel;
         next();
       });
+    } else if (type === 'consent') {
+      const boxes = Array.from(step.querySelectorAll('input[type="checkbox"]'));
+      const btn   = step.querySelector('.next-btn');
+      const refresh = () => { btn.disabled = !boxes.every(b => b.checked); };
+      boxes.forEach(b => b.addEventListener('change', refresh));
+      refresh();
+      btn.addEventListener('click', () => {
+        if (btn.disabled) return;
+        answers[key] = 'agreed';
+        next();
+      });
     } else if (type === 'input') {
       const btn = step.querySelector('.next-btn');
       const input = step.querySelector('.text-input');

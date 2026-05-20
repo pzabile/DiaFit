@@ -105,12 +105,12 @@ require __DIR__ . '/includes/header.php';
             <li>Track everything from your private dashboard</li>
           </ul>
         </div>
-        <a href="dashboard" class="btn btn-primary btn-xl">Open my dashboard →</a>
+        <a href="/dashboard" class="btn btn-primary btn-xl">Open my dashboard →</a>
       <?php else: ?>
         <div class="success-icon">⏳</div>
         <h1>Almost there…</h1>
         <p class="lede">We're confirming your payment. If you've been charged but don't see your dashboard within a minute, contact <a href="mailto:<?= e(cfg('support_email')) ?>"><?= e(cfg('support_email')) ?></a>.</p>
-        <a href="login" class="btn btn-primary btn-lg">Go to login</a>
+        <a href="/login" class="btn btn-primary btn-lg">Go to login</a>
       <?php endif; ?>
     </div>
   </main>

@@ -48,7 +48,7 @@ $prefillEmail = $answers['email'] ?? '';
 
         <label class="check">
           <input type="checkbox" name="agreed" value="1" required />
-          <span>I agree to the <a href="terms" target="_blank">Terms &amp; Conditions</a> and <a href="privacy" target="_blank">Privacy Policy</a>. I understand DiaFitus is fitness coaching, not medical advice, and I am responsible for consulting my doctor.</span>
+          <span>I agree to the <a href="/terms" target="_blank">Terms &amp; Conditions</a> and <a href="/privacy" target="_blank">Privacy Policy</a>. I understand DiaFitus is fitness coaching, not medical advice, and I am responsible for consulting my doctor.</span>
         </label>
 
         <button type="submit" class="btn btn-primary btn-xl">Continue to secure checkout →</button>
