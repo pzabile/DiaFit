@@ -60,6 +60,7 @@ require __DIR__ . '/includes/header.php';
           <input type="password" name="password" required />
         </label>
         <button type="submit" class="btn btn-primary btn-xl">Sign in →</button>
+        <p class="micro"><a href="/forgot">Forgot your password?</a></p>
         <p class="micro">Don't have an account yet? <a href="/questionnaire">Take the free assessment</a>.</p>
       </form>
     </div>

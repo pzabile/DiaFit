@@ -35,6 +35,32 @@ function send_email($toEmail, $toName, $subject, $htmlBody, $textBody = null) {
     return @mail($to, $encodedSubject, $body, implode("\r\n", $headers), '-f' . $fromEmail);
 }
 
+function password_reset_email_html($firstName, $resetUrl) {
+    $brand   = cfg('brand_name');
+    $support = cfg('support_email');
+    $fn      = htmlspecialchars($firstName ?: 'there', ENT_QUOTES, 'UTF-8');
+    $brandE  = htmlspecialchars($brand, ENT_QUOTES, 'UTF-8');
+    $urlE    = htmlspecialchars($resetUrl, ENT_QUOTES, 'UTF-8');
+    $sup     = htmlspecialchars($support, ENT_QUOTES, 'UTF-8');
+    return <<<HTML
+<!doctype html>
+<html><body style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f7f5f0;margin:0;padding:24px;color:#0f1a14;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:16px;padding:32px;border:1px solid #e3e0d6;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
+      <span style="width:14px;height:14px;border-radius:50%;background:#16a36a;display:inline-block;"></span>
+      <strong style="font-size:18px;">{$brandE}</strong>
+    </div>
+    <h1 style="font-size:22px;margin:0 0 12px;">Reset your password</h1>
+    <p style="line-height:1.55;color:#4a5651;">Hi {$fn} — we got a request to reset your {$brandE} password. Click the button below to choose a new one. The link expires in one hour.</p>
+    <p style="margin:24px 0;"><a href="{$urlE}" style="background:#0f1a14;color:#fff;padding:14px 22px;border-radius:999px;text-decoration:none;font-weight:600;">Set a new password</a></p>
+    <p style="font-size:13px;color:#8a8f8b;line-height:1.55;">If the button doesn't work, copy and paste this link:<br><span style="word-break:break-all;color:#0d7d4f;">{$urlE}</span></p>
+    <hr style="border:none;border-top:1px solid #e3e0d6;margin:24px 0;" />
+    <p style="font-size:12px;color:#8a8f8b;line-height:1.6;">If you didn't request this, ignore this email — your password won't change. Questions: <a href="mailto:{$sup}" style="color:#0d7d4f;">{$sup}</a>.</p>
+  </div>
+</body></html>
+HTML;
+}
+
 function welcome_email_html($firstName, $email = '', $password = '') {
     $brand   = cfg('brand_name');
     $support = cfg('support_email');

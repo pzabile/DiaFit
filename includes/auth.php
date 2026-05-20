@@ -141,6 +141,41 @@ function logout_admin() {
     session_regenerate_id(true);
 }
 
+// ---------- Password reset ----------
+function create_password_reset_token($email) {
+    $lead = lead_find_by_email($email);
+    if (!$lead) return null; // do not reveal whether email exists
+    $plain   = bin2hex(random_bytes(32));
+    $hash    = hash('sha256', $plain);
+    $expires = (new DateTime('+1 hour'))->format('Y-m-d H:i:s');
+    db_exec(
+        'UPDATE leads SET password_reset_hash = ?, password_reset_expires = ? WHERE id = ?',
+        [$hash, $expires, $lead['id']]
+    );
+    return ['token' => $plain, 'lead' => $lead];
+}
+
+function find_lead_by_reset_token($plainToken) {
+    if (!$plainToken || strlen($plainToken) !== 64) return null;
+    $hash = hash('sha256', $plainToken);
+    return db_get(
+        'SELECT * FROM leads
+         WHERE password_reset_hash = ? AND password_reset_expires > NOW()
+         LIMIT 1',
+        [$hash]
+    );
+}
+
+function consume_password_reset($leadId, $newPassword) {
+    db_exec(
+        'UPDATE leads
+         SET password_hash = ?, password_reset_hash = NULL,
+             password_reset_expires = NULL, updated_at = NOW()
+         WHERE id = ?',
+        [password_hash($newPassword, PASSWORD_BCRYPT), (int) $leadId]
+    );
+}
+
 // ---------- CSRF ----------
 function csrf_token() {
     if (empty($_SESSION['csrf'])) {

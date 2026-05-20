@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS `leads` (
   `stripe_customer` VARCHAR(80)     NULL,
   `stripe_sub`      VARCHAR(80)     NULL,
   `password_hash`   VARCHAR(255)    NULL,
+  `password_reset_hash`    VARCHAR(64) NULL,
+  `password_reset_expires` DATETIME    NULL,
   `dob`             DATE            NULL,
   `started_at`      DATE            NULL,
   `program_path`    VARCHAR(255)    NULL,
