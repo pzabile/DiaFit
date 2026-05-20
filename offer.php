@@ -16,9 +16,10 @@ $planDays = isset($answers['days_per_week'])
     ? $answers['days_per_week'] . ' days/week, ' . ($answers['minutes_per_day'] ?? '30') . ' min/day'
     : 'your chosen schedule';
 
-$priceReg = (int) cfg('price_regular');
-$priceNow = (int) cfg('price_today');
-$savings  = $priceReg - $priceNow;
+$priceReg  = (int) cfg('price_regular');
+$priceNow  = (int) cfg('price_today');
+$savings   = $priceReg - $priceNow;
+$discount  = $priceReg > 0 ? (int) round(($savings / $priceReg) * 100) : 0;
 ?>
   <header class="nav slim">
     <a href="/" class="brand">
@@ -53,7 +54,7 @@ $savings  = $priceReg - $priceNow;
 
     <section class="pricing">
       <div class="price-card">
-        <div class="discount-banner">⚡ 50% off — today only</div>
+        <div class="discount-banner">⚡ <?= e($discount) ?>% off — today only</div>
         <h2>DiaFitus Coaching</h2>
         <div class="price-row">
           <span class="old-price">$<?= e($priceReg) ?></span>

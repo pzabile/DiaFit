@@ -135,29 +135,7 @@
   show(0);
 })();
 
-// ---------- Reviews carousel ----------
-(function () {
-  const carousel = document.getElementById('reviewsCarousel');
-  if (!carousel) return;
-  const prev = document.querySelector('.carousel-btn.prev');
-  const next = document.querySelector('.carousel-btn.next');
-  const step = () => {
-    const card = carousel.querySelector('.rev-card');
-    return card ? card.getBoundingClientRect().width + 16 : 320;
-  };
-  prev && prev.addEventListener('click', () => carousel.scrollBy({ left: -step(), behavior: 'smooth' }));
-  next && next.addEventListener('click', () => carousel.scrollBy({ left:  step(), behavior: 'smooth' }));
-
-  // Auto-advance every 6s, pause on hover/touch.
-  let timer = setInterval(() => {
-    if (carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 4) {
-      carousel.scrollTo({ left: 0, behavior: 'smooth' });
-    } else {
-      carousel.scrollBy({ left: step(), behavior: 'smooth' });
-    }
-  }, 6000);
-  ['mouseenter', 'touchstart'].forEach(ev => carousel.addEventListener(ev, () => clearInterval(timer)));
-})();
+// Reviews marquee is now a pure-CSS continuous animation.
 
 // ---------- Dashboard logging (client-side) ----------
 (function () {

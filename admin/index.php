@@ -4,21 +4,34 @@ require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require_admin();
 
+$dbError = null;
 $stats = [
-    'leads'           => (int) db_get('SELECT COUNT(*) c FROM leads')['c'],
-    'unpaid'          => (int) db_get('SELECT COUNT(*) c FROM leads WHERE paid = 0')['c'],
-    'members'         => (int) db_get('SELECT COUNT(*) c FROM leads WHERE paid = 1')['c'],
-    'members_7d'      => (int) db_get('SELECT COUNT(*) c FROM leads WHERE paid = 1 AND created_at >= NOW() - INTERVAL 7 DAY')['c'],
-    'leads_7d'        => (int) db_get('SELECT COUNT(*) c FROM leads WHERE created_at >= NOW() - INTERVAL 7 DAY')['c'],
-    'logs_today'      => (int) db_get('SELECT COUNT(*) c FROM daily_logs WHERE log_date = CURDATE()')['c'],
-    'weeklies_7d'     => (int) db_get('SELECT COUNT(*) c FROM weekly_notes WHERE created_at >= NOW() - INTERVAL 7 DAY')['c'],
-    'meals_7d'        => (int) db_get('SELECT COUNT(*) c FROM meal_photos WHERE created_at >= NOW() - INTERVAL 7 DAY')['c'],
+    'leads' => 0, 'unpaid' => 0, 'members' => 0,
+    'members_7d' => 0, 'leads_7d' => 0, 'logs_today' => 0,
+    'weeklies_7d' => 0, 'meals_7d' => 0,
 ];
-$conversionRate = $stats['leads'] > 0 ? round(100 * $stats['members'] / $stats['leads'], 1) : 0;
-$mrr = $stats['members'] * (int) cfg('price_today');
+$recentPaid = $recentLeads = [];
+$conversionRate = 0;
+$mrr = 0;
 
-$recentPaid    = db_all('SELECT id, first_name, email, created_at FROM leads WHERE paid = 1 ORDER BY id DESC LIMIT 8');
-$recentLeads   = db_all('SELECT id, first_name, email, created_at FROM leads WHERE paid = 0 ORDER BY id DESC LIMIT 8');
+try {
+    $stats = [
+        'leads'           => (int) db_get('SELECT COUNT(*) c FROM leads')['c'],
+        'unpaid'          => (int) db_get('SELECT COUNT(*) c FROM leads WHERE paid = 0')['c'],
+        'members'         => (int) db_get('SELECT COUNT(*) c FROM leads WHERE paid = 1')['c'],
+        'members_7d'      => (int) db_get('SELECT COUNT(*) c FROM leads WHERE paid = 1 AND created_at >= NOW() - INTERVAL 7 DAY')['c'],
+        'leads_7d'        => (int) db_get('SELECT COUNT(*) c FROM leads WHERE created_at >= NOW() - INTERVAL 7 DAY')['c'],
+        'logs_today'      => (int) db_get('SELECT COUNT(*) c FROM daily_logs WHERE log_date = CURDATE()')['c'],
+        'weeklies_7d'     => (int) db_get('SELECT COUNT(*) c FROM weekly_notes WHERE created_at >= NOW() - INTERVAL 7 DAY')['c'],
+        'meals_7d'        => (int) db_get('SELECT COUNT(*) c FROM meal_photos WHERE created_at >= NOW() - INTERVAL 7 DAY')['c'],
+    ];
+    $conversionRate = $stats['leads'] > 0 ? round(100 * $stats['members'] / $stats['leads'], 1) : 0;
+    $mrr = $stats['members'] * (int) cfg('price_today');
+    $recentPaid  = db_all('SELECT id, first_name, email, created_at FROM leads WHERE paid = 1 ORDER BY id DESC LIMIT 8');
+    $recentLeads = db_all('SELECT id, first_name, email, created_at FROM leads WHERE paid = 0 ORDER BY id DESC LIMIT 8');
+} catch (Throwable $ex) {
+    $dbError = $ex->getMessage();
+}
 
 $pageTitle = 'Admin — DiaFitus';
 $bodyClass = 'admin-page';
@@ -28,6 +41,14 @@ require __DIR__ . '/_layout.php';
 ?>
   <main class="admin-main">
     <h1>Overview</h1>
+
+    <?php if ($dbError): ?>
+      <div class="db-warn">
+        <strong>The database isn't ready yet.</strong>
+        Make sure you've created the MySQL database in Hostinger, updated <code>config.php</code> with the credentials, and run <code>schema.sql</code> in phpMyAdmin. Detail: <em><?= e($dbError) ?></em>
+      </div>
+    <?php endif; ?>
+
     <div class="kpi-grid">
       <div class="kpi"><span>Total leads</span><strong><?= $stats['leads'] ?></strong><small>+<?= $stats['leads_7d'] ?> in 7d</small></div>
       <div class="kpi"><span>Paid members</span><strong><?= $stats['members'] ?></strong><small>+<?= $stats['members_7d'] ?> in 7d</small></div>

@@ -2,8 +2,11 @@
 # DiaFitus — Apache config for Hostinger shared hosting
 # --------------------------------------------------------------------
 
+# Always use index.php as the default file in any directory.
+DirectoryIndex index.php index.html
+
 # Protect sensitive files from direct web access.
-<FilesMatch "^(config\.php|config\.example\.php|composer\.json|composer\.lock|schema\.sql|\.env|\.gitignore|\.htaccess)$">
+<FilesMatch "^(config\.php|config\.example\.php|composer\.json|composer\.lock|schema\.sql|seed_test\.sql|\.env|\.gitignore|\.htaccess|INSTALL\.txt)$">
   Require all denied
 </FilesMatch>
 

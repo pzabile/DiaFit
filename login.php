@@ -45,8 +45,8 @@ require __DIR__ . '/includes/header.php';
 
       <form method="post" class="form" autocomplete="on">
         <?= csrf_input() ?>
-        <label>Email
-          <input type="email" name="email" required autofocus value="<?= e($_POST['email'] ?? '') ?>" />
+        <label>Email or username
+          <input type="text" name="email" required autofocus value="<?= e($_POST['email'] ?? '') ?>" autocomplete="username" />
         </label>
         <label>Password
           <input type="password" name="password" required />

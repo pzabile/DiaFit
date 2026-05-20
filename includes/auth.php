@@ -71,8 +71,15 @@ function lead_mark_paid($email, $stripeCustomer, $stripeSub, $firstName = null, 
     return ['id' => $id, 'password' => $plainPassword];
 }
 
-function login_lead($email, $password) {
-    $lead = lead_find_by_email($email);
+function login_lead($identifier, $password) {
+    $identifier = trim((string) $identifier);
+    $lead = null;
+    if (strpos($identifier, '@') !== false) {
+        $lead = lead_find_by_email($identifier);
+    } else {
+        // Fallback: allow username-style logins (matches first_name exactly).
+        $lead = db_get('SELECT * FROM leads WHERE LOWER(first_name) = LOWER(?) LIMIT 1', [$identifier]);
+    }
     if (!$lead || empty($lead['password_hash'])) return false;
     if (!password_verify($password, $lead['password_hash'])) return false;
     $_SESSION['member_id'] = (int) $lead['id'];

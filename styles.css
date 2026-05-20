@@ -1161,3 +1161,134 @@ body.results-page { background: var(--bg); }
 .testi-head strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
 .testi-head small  { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
 .testi-head .stars { font-size: .85rem; white-space: nowrap; }
+
+/* ============================================================ */
+/*  LANDING — auto-scrolling vertical collage                    */
+/* ============================================================ */
+.lm-collage {
+  position: relative;
+  height: clamp(440px, 60vh, 620px);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  overflow: hidden;
+}
+.collage-marquee {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .5rem;
+  height: 100%;
+}
+.m-col {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+.m-up   { animation-name: scrollUp;   }
+.m-down { animation-name: scrollDown; }
+@keyframes scrollUp   { from { transform: translateY(0);    } to { transform: translateY(-50%); } }
+@keyframes scrollDown { from { transform: translateY(-50%); } to { transform: translateY(0);    } }
+.collage-marquee:hover .m-col { animation-play-state: paused; }
+.m-tile {
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--bg-soft);
+  flex: 0 0 clamp(150px, 19vw, 220px);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.25rem;
+  box-shadow: 0 4px 14px rgba(15,26,20,.06);
+}
+.m-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ============================================================ */
+/*  RESULTS — multi-step                                         */
+/* ============================================================ */
+.results-top {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem clamp(1rem, 4vw, 3rem);
+}
+.step-dots { display: flex; gap: 6px; align-items: center; }
+.step-dots .dot {
+  width: 28px; height: 6px; border-radius: 3px;
+  background: var(--line);
+  transition: background .25s ease;
+}
+.step-dots .dot.on { background: var(--accent); }
+
+.r-card .pill { display: inline-block; margin-bottom: .65rem; }
+.r-card h1 {
+  text-align: center;
+  font-size: clamp(1.6rem, 3.2vw, 2.4rem);
+  margin-bottom: .5rem;
+}
+.r-card .lede {
+  text-align: center;
+  margin-left: auto; margin-right: auto;
+  max-width: 640px;
+  margin-bottom: 1.75rem;
+}
+.r-card { text-align: left; }
+.r-card .pill { display: block; text-align: center; max-width: max-content; margin-left: auto; margin-right: auto; }
+
+.motivation {
+  background: var(--accent-soft);
+  color: var(--ink);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  padding: .85rem 1.1rem;
+  margin: 1.5rem 0 0;
+}
+.motivation strong { color: var(--accent-2); }
+
+.step-actions {
+  display: flex; flex-direction: column; align-items: center; gap: .75rem;
+  padding: 1rem 0;
+}
+.step-actions .btn { max-width: 380px; }
+.back-link { color: var(--muted); font-size: .9rem; }
+.back-link:hover { color: var(--ink); }
+
+/* ============================================================ */
+/*  Reviews continuous marquee                                   */
+/* ============================================================ */
+.marquee-wrap {
+  position: relative;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+}
+.reviews-marquee {
+  display: flex;
+  gap: 1rem;
+  width: max-content;
+  animation: marqueeX 60s linear infinite;
+  padding: .5rem 0 1rem;
+}
+.reviews-marquee:hover { animation-play-state: paused; }
+@keyframes marqueeX {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Override the per-card carousel sizing so flex/marquee works smoothly */
+.reviews-marquee .rev-card {
+  flex: 0 0 320px;
+}
+
+/* Hide old prev/next buttons if any */
+.carousel-btn { display: none !important; }
+
+/* ============================================================ */
+/*  Admin — friendly DB error                                    */
+/* ============================================================ */
+.db-warn {
+  background: #fff5e5;
+  border: 1px solid #f0d9a8;
+  color: #6c4a0a;
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.db-warn strong { display: block; margin-bottom: .35rem; color: #5a3d08; }

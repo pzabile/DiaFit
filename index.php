@@ -4,7 +4,7 @@ $pageDescription = 'A fully personalized fitness and nutrition program designed 
 $bodyClass = 'landing-min';
 require __DIR__ . '/includes/header.php';
 
-// Look for client collage photos uploaded into /assets/clients/
+// Collage photos: scan /assets/clients/ if present, else use placeholder tiles.
 $clientDir = __DIR__ . '/assets/clients';
 $clientPhotos = [];
 if (is_dir($clientDir)) {
@@ -12,16 +12,27 @@ if (is_dir($clientDir)) {
         $clientPhotos[] = '/assets/clients/' . basename($p);
     }
 }
-// Limit to 9 to keep the layout balanced.
-$clientPhotos = array_slice($clientPhotos, 0, 9);
+
+$placeholders = [
+    ['#d6f0e1', '💪'], ['#cde7ff', '🥗'], ['#fde6c1', '🏃'],
+    ['#f3d9d9', '🩺'], ['#e6dffb', '📈'], ['#d4f4e1', '🍎'],
+    ['#fff1c4', '🧘'], ['#dbecff', '🚴'], ['#fce0ec', '😊'],
+    ['#d6f0e1', '🏆'], ['#cde7ff', '⚡'], ['#fde6c1', '🔥'],
+];
+
+$cols = [[], [], []];
+if ($clientPhotos) {
+    foreach ($clientPhotos as $i => $src) $cols[$i % 3][] = ['photo', $src];
+} else {
+    foreach ($placeholders as $i => $ph) $cols[$i % 3][] = ['ph', $ph];
+}
+foreach ($cols as &$col) { if (empty($col)) $col[] = ['ph', ['#d6f0e1', '✨']]; }
+unset($col);
 ?>
   <header class="nav">
     <div class="brand">
       <span class="logo-dot"></span>
       <span class="brand-name">DiaFitus</span>
-    </div>
-    <div class="nav-actions">
-      <a href="/login" class="btn btn-ghost">Sign in</a>
     </div>
   </header>
 
@@ -40,35 +51,31 @@ $clientPhotos = array_slice($clientPhotos, 0, 9);
     </section>
 
     <aside class="lm-collage" aria-hidden="true">
-      <?php if ($clientPhotos): ?>
-        <div class="collage-grid">
-          <?php foreach ($clientPhotos as $i => $src): ?>
-            <div class="collage-tile t<?= $i % 9 ?>"><img src="<?= e($src) ?>" alt="" loading="lazy" /></div>
-          <?php endforeach; ?>
-        </div>
-      <?php else: ?>
-        <div class="collage-grid">
-          <?php
-          $stock = [
-            ['#d6f0e1', '💪'], ['#cde7ff', '🥗'], ['#fde6c1', '🏃'],
-            ['#f3d9d9', '🩺'], ['#e6dffb', '📈'], ['#d4f4e1', '🍎'],
-            ['#fff1c4', '🧘'], ['#dbecff', '🚴'], ['#fce0ec', '😊'],
-          ];
-          foreach ($stock as $i => $s): [$bg, $emoji] = $s; ?>
-            <div class="collage-tile placeholder t<?= $i ?>" style="background:<?= $bg ?>">
-              <span><?= $emoji ?></span>
-            </div>
-          <?php endforeach; ?>
-        </div>
-        <p class="collage-hint">Add client photos to <code>/assets/clients/</code> to fill this collage.</p>
-      <?php endif; ?>
+      <div class="collage-marquee">
+        <?php foreach ($cols as $colIndex => $col):
+          $direction = $colIndex % 2 === 0 ? 'm-up' : 'm-down';
+          $speed     = ['28s', '34s', '30s'][$colIndex];
+        ?>
+          <div class="m-col <?= $direction ?>" style="animation-duration: <?= $speed ?>">
+            <?php for ($d = 0; $d < 2; $d++): ?>
+              <?php foreach ($col as $tile):
+                [$kind, $data] = $tile;
+                if ($kind === 'photo'): ?>
+                  <div class="m-tile"><img src="<?= e($data) ?>" alt="" loading="lazy" /></div>
+                <?php else: [$bg, $emoji] = $data; ?>
+                  <div class="m-tile ph" style="background:<?= e($bg) ?>"><span><?= e($emoji) ?></span></div>
+                <?php endif; ?>
+              <?php endforeach; ?>
+            <?php endfor; ?>
+          </div>
+        <?php endforeach; ?>
+      </div>
     </aside>
   </main>
 
   <footer class="lm-footer">
     <a href="/" class="brand"><span class="logo-dot"></span><span class="brand-name">DiaFitus</span></a>
     <div class="lm-foot-links">
-      <a href="/login">Member sign in</a>
       <a href="/terms">Terms &amp; Conditions</a>
       <a href="/privacy">Privacy Policy</a>
       <a href="mailto:<?= e(cfg('support_email')) ?>">Contact</a>

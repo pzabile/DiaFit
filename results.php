@@ -1,30 +1,17 @@
 <?php
 require __DIR__ . '/includes/avatar.php';
+
+$step = (int) ($_GET['step'] ?? 1);
+if ($step < 1 || $step > 4) $step = 1;
+$totalSteps = 4;
+
 $pageTitle = 'Your DiaFitus Results';
 $bodyClass = 'results-page';
 require __DIR__ . '/includes/header.php';
 
 $answers = answers();
-$name = '';
 $days = (int) ($answers['days_per_week'] ?? 3);
 $mins = (int) ($answers['minutes_per_day'] ?? 30);
-
-// Build the review list. If a matching image exists in /assets/reviews/
-// (named lower-cased + dashed) we'll show it instead of the SVG avatar.
-$reviews = [
-  ['Marcus T.',  'Type 2',        'My A1C dropped from 8.1 to 6.4 in four months. The coaches actually understand diabetes.'],
-  ['Lena R.',    'Type 1',        'Finally a program that does not crash my blood sugar. Having 24/7 support is gold.'],
-  ['David P.',   'Pre-diabetes',  'Lost 12 kg, off two medications. I would pay much more for what I have gotten.'],
-  ['Aisha K.',   'Type 2',        'Stronger at 49 than I was at 35. The plan respected my limits and grew with me.'],
-  ['Tom B.',     'Type 1',        'The nutrition PDF alone is worth the subscription. Clear, no fluff.'],
-  ['Priya N.',   'Gestational',   'They built me a safe routine during pregnancy. Doctor-approved within a day.'],
-  ['Carlos M.',  'Type 2',        '58 and never more active. Started with 15-min walks, now 4x a week at the gym.'],
-  ['Hannah G.',  'Type 1',        'Hypos used to scare me away from cardio. Months without one now.'],
-  ['Yusuf A.',   'Pre-diabetes',  'Fasting glucose 118 → 92. Weekly check-ins keep me on track.'],
-  ['Megan F.',   'Type 2',        'Energy in the afternoons came back within three weeks.'],
-  ['Rajiv S.',   'Type 2',        'Home program needs zero equipment. Game-changer.'],
-  ['Olivia W.',  'Type 1',        '24/7 messaging replies faster than my own clinic.'],
-];
 
 function reviewer_image($name) {
     $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $name));
@@ -35,26 +22,29 @@ function reviewer_image($name) {
     }
     return null;
 }
+
+$nextUrl = $step < $totalSteps ? '/results?step=' . ($step + 1) : '/offer';
+$btnText = $step < $totalSteps ? 'Continue →' : 'See my plan →';
 ?>
-  <header class="nav slim">
+  <header class="nav slim results-top">
     <a href="/" class="brand">
       <span class="logo-dot"></span>
       <span class="brand-name">DiaFitus</span>
     </a>
-    <a href="/offer" class="btn btn-ghost">See my plan →</a>
+    <div class="step-dots" aria-label="Step <?= $step ?> of <?= $totalSteps ?>">
+      <?php for ($i = 1; $i <= $totalSteps; $i++): ?>
+        <span class="dot <?= $i <= $step ? 'on' : '' ?>"></span>
+      <?php endfor; ?>
+    </div>
   </header>
 
   <main class="results-main">
-    <section class="r-block">
-      <span class="pill">Your personalized summary</span>
-      <h1>Here's how DiaFitus is going to change your life.</h1>
-      <p class="lede">Based on your answers, we mapped out where you are today, where you can get to, and what's holding you back. Take a minute to look at it.</p>
-    </section>
 
-    <!-- 1. Life satisfaction curve -->
+  <?php if ($step === 1): ?>
     <section class="r-card">
-      <h2>Your projected health &amp; energy level</h2>
-      <p class="muted">Members typically see the biggest jumps in week 2 (first stable blood sugar) and week 8 (sustained energy).</p>
+      <span class="pill">Step 1 of <?= $totalSteps ?> · Your projection</span>
+      <h1>This is where DiaFitus can take you.</h1>
+      <p class="lede">Most members feel a clear difference by the second week — fewer blood-sugar swings, more energy, and the first real wins. By week 12 you're a different person.</p>
       <div class="curve-wrap">
         <svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg" class="curve-svg" preserveAspectRatio="none">
           <defs>
@@ -89,11 +79,15 @@ function reviewer_image($name) {
           </g>
         </svg>
       </div>
+      <p class="motivation"><strong>You can do this.</strong> Thousands of people with diabetes have walked this exact path — and the only difference between week 1 and week 12 is showing up consistently. We'll help you do that.</p>
     </section>
+  <?php endif; ?>
 
-    <!-- 2. Stuck zone vs Full potential zone -->
+  <?php if ($step === 2): ?>
     <section class="r-card">
-      <h2>What's holding you back right now</h2>
+      <span class="pill">Step 2 of <?= $totalSteps ?> · Where you are now</span>
+      <h1>What's holding you back right now.</h1>
+      <p class="lede">Your answers point to a few patterns most people with diabetes feel — and that we can fix together.</p>
       <div class="zone-grid">
         <div class="zone stuck">
           <div class="zone-head">
@@ -140,12 +134,15 @@ function reviewer_image($name) {
           </ul>
         </div>
       </div>
+      <p class="motivation"><strong>This is fixable.</strong> Diabetes doesn't get the last word on your energy, your strength or your life.</p>
     </section>
+  <?php endif; ?>
 
-    <!-- 3. Personal summary: Now vs Goal -->
+  <?php if ($step === 3): ?>
     <section class="r-card">
-      <h2>Your personal summary</h2>
-      <p class="muted">The quiz shows you're facing a few challenges that <strong>are completely fixable</strong> with the right plan.</p>
+      <span class="pill">Step 3 of <?= $totalSteps ?> · Personal summary</span>
+      <h1>Now vs. where DiaFitus takes you.</h1>
+      <p class="lede">Based on your assessment, we mapped your starting point against where a consistent <?= (int) $days ?>-day, <?= (int) $mins ?>-minute weekly program can get you.</p>
       <div class="now-goal">
         <div class="ng now">
           <div class="ng-head">
@@ -201,62 +198,70 @@ function reviewer_image($name) {
       </div>
       <div class="potential-note">
         <span class="icon">📈</span>
-        <p>Your answers show <strong>strong potential</strong> to reach your goals with a consistent <?= (int) $days ?>-day, <?= (int) $mins ?>-minute weekly plan.</p>
+        <p>Your answers show <strong>strong potential</strong> to hit every one of these goals. Most people see the first jump in just two weeks.</p>
       </div>
     </section>
+  <?php endif; ?>
 
-    <!-- 4. What you get -->
-    <section class="r-card">
-      <h2>What you'll get with DiaFitus</h2>
-      <div class="benefit-grid">
-        <div class="b-tile"><span class="b-emoji">🏋️</span><strong>Personalized training</strong><p>Built around your diabetes type, fitness level and schedule.</p></div>
-        <div class="b-tile"><span class="b-emoji">📕</span><strong>Nutrition PDF</strong><p>Exactly what to eat before, during and after your workouts.</p></div>
-        <div class="b-tile"><span class="b-emoji">📊</span><strong>Private dashboard</strong><p>Log workouts, meals, glucose &amp; meal photos in one place.</p></div>
-        <div class="b-tile"><span class="b-emoji">💬</span><strong>24/7 support</strong><p>Message us any time of day to get help fast.</p></div>
-        <div class="b-tile"><span class="b-emoji">🔄</span><strong>Weekly adjustments</strong><p>Your coach tunes the plan every week based on your check-ins.</p></div>
-        <div class="b-tile"><span class="b-emoji">🛡️</span><strong>14-day guarantee</strong><p>If it's not for you, we refund every cent. No questions asked.</p></div>
-      </div>
-    </section>
-
-    <!-- 5. Reviews carousel -->
+  <?php if ($step === 4): ?>
     <section class="r-card reviews-block">
-      <h2>People like you who already changed their life</h2>
-      <p class="muted">4.9 / 5 average from 3,400+ verified members.</p>
+      <span class="pill">Step 4 of <?= $totalSteps ?> · Real members</span>
+      <h1>People just like you, already living it.</h1>
+      <p class="lede">4.9 / 5 average from 3,400+ verified members. Hover the strip to pause.</p>
 
-      <div class="carousel-wrap">
-        <button class="carousel-btn prev" type="button" aria-label="Previous reviews">‹</button>
-        <div class="reviews-carousel" id="reviewsCarousel">
-          <?php foreach ($reviews as $r):
-            [$name, $tag, $text] = $r;
-            $img = reviewer_image($name);
-          ?>
-            <article class="rev-card">
-              <header>
-                <div class="rev-avatar">
-                  <?php if ($img): ?>
-                    <img src="<?= e($img) ?>" alt="" loading="lazy" />
-                  <?php else: ?>
-                    <?= avatar_svg($name, 56) ?>
-                  <?php endif; ?>
-                </div>
-                <div class="rev-meta">
-                  <strong><?= e($name) ?></strong>
-                  <small><?= e($tag) ?></small>
-                </div>
-                <div class="rev-stars">★★★★★</div>
-              </header>
-              <p><?= e($text) ?></p>
-            </article>
-          <?php endforeach; ?>
+      <?php
+      $reviews = [
+        ['Marcus T.',  'Type 2',        'My A1C dropped from 8.1 to 6.4 in four months. The coaches actually understand diabetes.'],
+        ['Lena R.',    'Type 1',        'Finally a program that does not crash my blood sugar. Having 24/7 support is gold.'],
+        ['David P.',   'Pre-diabetes',  'Lost 12 kg, off two medications. I would pay much more for what I have gotten.'],
+        ['Aisha K.',   'Type 2',        'Stronger at 49 than I was at 35. The plan respected my limits and grew with me.'],
+        ['Tom B.',     'Type 1',        'The nutrition PDF alone is worth the subscription. Clear, no fluff.'],
+        ['Priya N.',   'Gestational',   'They built me a safe routine during pregnancy. Doctor-approved within a day.'],
+        ['Carlos M.',  'Type 2',        '58 and never more active. Started with 15-min walks, now 4x a week at the gym.'],
+        ['Hannah G.',  'Type 1',        'Hypos used to scare me away from cardio. Months without one now.'],
+        ['Yusuf A.',   'Pre-diabetes',  'Fasting glucose 118 → 92. Weekly check-ins keep me on track.'],
+        ['Megan F.',   'Type 2',        'Energy in the afternoons came back within three weeks.'],
+        ['Rajiv S.',   'Type 2',        'Home program needs zero equipment. Game-changer.'],
+        ['Olivia W.',  'Type 1',        '24/7 messaging replies faster than my own clinic.'],
+      ];
+      ?>
+      <div class="marquee-wrap">
+        <div class="reviews-marquee">
+          <?php for ($d = 0; $d < 2; $d++): ?>
+            <?php foreach ($reviews as $r):
+              [$name, $tag, $text] = $r;
+              $img = reviewer_image($name);
+            ?>
+              <article class="rev-card">
+                <header>
+                  <div class="rev-avatar">
+                    <?php if ($img): ?>
+                      <img src="<?= e($img) ?>" alt="" loading="lazy" />
+                    <?php else: ?>
+                      <?= avatar_svg($name, 56) ?>
+                    <?php endif; ?>
+                  </div>
+                  <div class="rev-meta">
+                    <strong><?= e($name) ?></strong>
+                    <small><?= e($tag) ?></small>
+                  </div>
+                  <div class="rev-stars">★★★★★</div>
+                </header>
+                <p><?= e($text) ?></p>
+              </article>
+            <?php endforeach; ?>
+          <?php endfor; ?>
         </div>
-        <button class="carousel-btn next" type="button" aria-label="Next reviews">›</button>
       </div>
+      <p class="motivation" style="margin-top:1.5rem"><strong>Your turn.</strong> One decision today is what separates you from these stories.</p>
     </section>
+  <?php endif; ?>
 
-    <section class="r-cta">
-      <h2>Ready to see your full plan?</h2>
-      <p>You unlocked a launch discount. Lock it in before the timer runs out.</p>
-      <a href="/offer" class="btn btn-primary btn-xl">See my personalized plan →</a>
+    <section class="step-actions">
+      <a href="<?= e($nextUrl) ?>" class="btn btn-primary btn-xl"><?= e($btnText) ?></a>
+      <?php if ($step > 1): ?>
+        <a href="/results?step=<?= $step - 1 ?>" class="back-link">← Back</a>
+      <?php endif; ?>
     </section>
 
     <p class="muted disclaimer-small">

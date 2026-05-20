@@ -42,7 +42,7 @@ $prefillEmail = $answers['email'] ?? '';
 
         <div class="order-box">
           <div class="row"><span>DiaFitus Coaching</span><span>$<?= e($priceReg) ?>.00</span></div>
-          <div class="row discount"><span>Launch discount (50%)</span><span>−$<?= e($savings) ?>.00</span></div>
+          <div class="row discount"><span>Launch discount</span><span>−$<?= e($savings) ?>.00</span></div>
           <div class="row total"><span>Today's total</span><span><strong>$<?= e($priceNow) ?>.00</strong>/month</span></div>
         </div>
 

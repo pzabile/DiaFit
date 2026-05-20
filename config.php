@@ -17,8 +17,8 @@ return [
     'dashboard_url'  => 'https://my.diafitus.com',
 
     // Pricing ------------------------------------------------------------
-    'price_regular'  => 80,
-    'price_today'    => 40,
+    'price_regular'  => 129,
+    'price_today'    => 49,
     'currency'       => 'usd',
     'offer_minutes'  => 15,
 
