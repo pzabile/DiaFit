@@ -121,16 +121,34 @@
     } else if (type === 'input') {
       const btn = step.querySelector('.next-btn');
       const input = step.querySelector('.text-input');
+      const suffix = btn.dataset.suffix || '';
       btn.addEventListener('click', () => {
         const val = (input.value || '').trim();
         if (!val) { input.focus(); input.style.borderColor = 'var(--danger)'; return; }
         if (input.type === 'email' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val)) {
           input.style.borderColor = 'var(--danger)'; return;
         }
-        answers[key] = val;
+        answers[key] = suffix ? (val + suffix) : val;
         next();
       });
       input.addEventListener('keydown', e => { if (e.key === 'Enter') btn.click(); });
+    } else if (type === 'dual') {
+      const a = step.querySelector('.dual-a');
+      const b = step.querySelector('.dual-b');
+      const btn = step.querySelector('.next-btn');
+      const fmt = btn.dataset.format || '';
+      btn.addEventListener('click', () => {
+        const av = (a.value || '').trim();
+        const bv = (b.value || '').trim();
+        if (av === '') { a.focus(); a.style.borderColor = 'var(--danger)'; return; }
+        if (bv === '') { b.focus(); b.style.borderColor = 'var(--danger)'; return; }
+        let combined;
+        if (fmt === 'height_ftin') combined = `${av}'${bv}"`;
+        else combined = `${av} / ${bv}`;
+        answers[key] = combined;
+        next();
+      });
+      [a, b].forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') btn.click(); }));
     } else {
       step.querySelectorAll('.option').forEach(opt => {
         opt.addEventListener('click', () => {

@@ -64,19 +64,26 @@ $preGender = $_GET['gender'] ?? '';
     </section>
 
     <!-- Height -->
-    <section class="step" data-step="5" data-key="height_cm" data-type="input">
+    <section class="step" data-step="5" data-key="height" data-type="dual">
       <h1>What is your height?</h1>
-      <p class="sub">In centimeters. Used together with weight to calibrate your plan.</p>
-      <input type="number" min="120" max="230" class="text-input" id="heightInput" placeholder="e.g. 175 cm" />
-      <button class="btn btn-primary btn-lg next-btn" data-target="heightInput">Continue →</button>
+      <p class="sub">In feet and inches. <span class="muted-inline">(Metric: 1 ft ≈ 30 cm.)</span></p>
+      <div class="dual-input">
+        <label>Feet
+          <input type="number" min="3" max="8" class="text-input dual-a" id="heightFt" placeholder="e.g. 5" />
+        </label>
+        <label>Inches
+          <input type="number" min="0" max="11" class="text-input dual-b" id="heightIn" placeholder="e.g. 9" />
+        </label>
+      </div>
+      <button class="btn btn-primary btn-lg next-btn" data-format="height_ftin">Continue →</button>
     </section>
 
     <!-- Weight -->
     <section class="step" data-step="6" data-key="weight" data-type="input">
       <h1>What is your weight?</h1>
-      <p class="sub">In kilograms.</p>
-      <input type="number" min="30" max="300" class="text-input" id="weightInput" placeholder="e.g. 85 kg" />
-      <button class="btn btn-primary btn-lg next-btn" data-target="weightInput">Continue →</button>
+      <p class="sub">In pounds. <span class="muted-inline">(Metric: 1 lb ≈ 0.45 kg.)</span></p>
+      <input type="number" min="70" max="700" class="text-input" id="weightInput" placeholder="e.g. 187" />
+      <button class="btn btn-primary btn-lg next-btn" data-target="weightInput" data-suffix=" lbs">Continue →</button>
     </section>
 
     <!-- Typical fasting glucose -->
