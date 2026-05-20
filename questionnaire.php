@@ -10,7 +10,7 @@ require __DIR__ . '/includes/header.php';
     </a>
     <div class="progress-wrap">
       <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
-      <span class="progress-text" id="progressText">Step 1 of 13</span>
+      <span class="progress-text" id="progressText">Step 1</span>
     </div>
   </header>
 
@@ -27,6 +27,10 @@ require __DIR__ . '/includes/header.php';
       </div>
     </section>
 
+    <?php
+    $preGender = $_GET['gender'] ?? '';
+    if (!in_array($preGender, ['male', 'female'], true)):
+    ?>
     <section class="step" data-step="2" data-key="gender">
       <h1>What is your gender?</h1>
       <p class="sub">We use this to calibrate calorie and intensity targets.</p>
@@ -36,6 +40,7 @@ require __DIR__ . '/includes/header.php';
         <button class="option big" data-value="other"><span class="opt-emoji">🧑</span><span>Other / Prefer not to say</span></button>
       </div>
     </section>
+    <?php endif; ?>
 
     <section class="step" data-step="3" data-key="age" data-type="input">
       <h1>How old are you?</h1>
@@ -170,7 +175,10 @@ require __DIR__ . '/includes/header.php';
   </main>
 
   <script>
-    window.QUIZ_SUBMIT_URL = 'submit_quiz';
-    window.QUIZ_NEXT_URL   = 'offer';
+    window.QUIZ_SUBMIT_URL = '/submit_quiz';
+    window.QUIZ_NEXT_URL   = '/results';
+    <?php if (in_array($preGender, ['male', 'female'], true)): ?>
+    window.QUIZ_PRESET = { gender: <?= json_encode($preGender) ?> };
+    <?php endif; ?>
   </script>
 <?php require __DIR__ . '/includes/footer.php'; ?>

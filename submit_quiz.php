@@ -64,4 +64,4 @@ try {
     error_log('submit_quiz dispatch error: ' . $ex->getMessage());
 }
 
-echo json_encode(['ok' => true, 'redirect' => 'offer']);
+echo json_encode(['ok' => true, 'redirect' => '/results']);

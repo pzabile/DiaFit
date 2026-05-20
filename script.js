@@ -30,15 +30,15 @@
   const main = document.getElementById('quizMain');
   if (!main) return;
 
-  const SUBMIT_URL = window.QUIZ_SUBMIT_URL || 'submit_quiz.php';
-  const NEXT_URL   = window.QUIZ_NEXT_URL   || 'offer.php';
+  const SUBMIT_URL = window.QUIZ_SUBMIT_URL || '/submit_quiz';
+  const NEXT_URL   = window.QUIZ_NEXT_URL   || '/results';
 
   const steps = Array.from(main.querySelectorAll('.step'));
   const total = steps.filter(s => s.dataset.step !== 'loading').length;
   const bar = document.getElementById('progressBar');
   const txt = document.getElementById('progressText');
   let current = 0;
-  const answers = {};
+  const answers = Object.assign({}, window.QUIZ_PRESET || {});
 
   function show(i) {
     steps.forEach(s => s.classList.remove('active'));
@@ -48,9 +48,10 @@
       bar.style.width = '100%';
       txt.textContent = 'Almost there…';
     } else {
-      const num = parseInt(stepData, 10);
-      bar.style.width = `${(num / total) * 100}%`;
-      txt.textContent = `Step ${num} of ${total}`;
+      const visibleSteps = steps.filter(s => s.dataset.step !== 'loading');
+      const ix = visibleSteps.indexOf(steps[i]) + 1;
+      bar.style.width = `${(ix / visibleSteps.length) * 100}%`;
+      txt.textContent = `Step ${ix} of ${visibleSteps.length}`;
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -132,6 +133,30 @@
   });
 
   show(0);
+})();
+
+// ---------- Reviews carousel ----------
+(function () {
+  const carousel = document.getElementById('reviewsCarousel');
+  if (!carousel) return;
+  const prev = document.querySelector('.carousel-btn.prev');
+  const next = document.querySelector('.carousel-btn.next');
+  const step = () => {
+    const card = carousel.querySelector('.rev-card');
+    return card ? card.getBoundingClientRect().width + 16 : 320;
+  };
+  prev && prev.addEventListener('click', () => carousel.scrollBy({ left: -step(), behavior: 'smooth' }));
+  next && next.addEventListener('click', () => carousel.scrollBy({ left:  step(), behavior: 'smooth' }));
+
+  // Auto-advance every 6s, pause on hover/touch.
+  let timer = setInterval(() => {
+    if (carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 4) {
+      carousel.scrollTo({ left: 0, behavior: 'smooth' });
+    } else {
+      carousel.scrollBy({ left: step(), behavior: 'smooth' });
+    }
+  }, 6000);
+  ['mouseenter', 'touchstart'].forEach(ev => carousel.addEventListener(ev, () => clearInterval(timer)));
 })();
 
 // ---------- Dashboard logging (client-side) ----------

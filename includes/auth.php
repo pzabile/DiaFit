@@ -124,10 +124,9 @@ function current_admin() {
 }
 
 function require_admin() {
-    if (!current_admin()) {
-        header('Location: /admin/login');
-        exit;
-    }
+    // Authentication is handled at the web-server level (Hostinger ->
+    // "Password Protect Directories" or an IP whitelist on /admin/).
+    // We intentionally do not enforce a PHP login here.
 }
 
 function logout_admin() {
