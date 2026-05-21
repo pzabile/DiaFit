@@ -5,21 +5,17 @@ $bodyClass = 'offer';
 require __DIR__ . '/includes/header.php';
 
 $answers = answers();
-$locMap = [
-    'gym' => 'at the gym',
-    'home' => 'at home',
-    'both' => 'gym + home',
-    'outdoors' => 'outdoors',
-];
-$planLoc = isset($answers['location']) ? ($locMap[$answers['location']] ?? 'gym or home') : 'gym or home';
+$locMap = ['gym' => 'at the gym', 'home' => 'at home', 'both' => 'gym + home', 'outdoors' => 'outdoors'];
+$planLoc  = isset($answers['location']) ? ($locMap[$answers['location']] ?? 'gym or home') : 'gym or home';
 $planDays = isset($answers['days_per_week'])
     ? $answers['days_per_week'] . ' days/week, ' . ($answers['minutes_per_day'] ?? '30') . ' min/day'
     : 'your chosen schedule';
 
-$priceReg  = (int) cfg('price_regular');
-$priceNow  = (int) cfg('price_today');
-$savings   = $priceReg - $priceNow;
-$discount  = $priceReg > 0 ? (int) round(($savings / $priceReg) * 100) : 0;
+$plans = cfg('plans');
+$default = cfg('default_plan');
+
+function discount_pct($r, $t) { return $r > 0 ? (int) round((($r - $t) / $r) * 100) : 0; }
+function per_day($t, $d)      { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
 ?>
   <header class="nav slim">
     <a href="/" class="brand">
@@ -36,8 +32,7 @@ $discount  = $priceReg > 0 ? (int) round(($savings / $priceReg) * 100) : 0;
     <section class="offer-hero">
       <span class="pill green">✓ Plan ready</span>
       <h1>Your personalized DiaFitus program is built.</h1>
-      <p class="lede">Based on your answers, we've prepared a 12-week glucose-aware training plan,
-      a custom nutrition PDF, and 24/7 direct access to your coach.</p>
+      <p class="lede">Based on your answers, we've prepared a glucose-aware training plan, a custom nutrition PDF, and 24/7 access to your coach. Choose how long you want to start with — you'll see your first wins by week 2.</p>
 
       <div class="summary-card">
         <h3>What's in your plan</h3>
@@ -45,45 +40,56 @@ $discount  = $priceReg > 0 ? (int) round(($savings / $priceReg) * 100) : 0;
           <li>Personalized training program — <?= e($planLoc) ?>, <?= e($planDays) ?></li>
           <li>Nutrition PDF — what to eat before / during / after workouts</li>
           <li>Glucose-safe exercise progression reviewed by our medical team</li>
-          <li>24/7 access to your coach — ask anything, any time</li>
+          <li>24/7 access to your coach — message us any time</li>
           <li>Private dashboard to log workouts, meals, glucose &amp; meal photos</li>
           <li>Weekly plan adjustments based on your check-ins</li>
         </ul>
       </div>
     </section>
 
-    <section class="pricing">
-      <div class="price-card">
-        <div class="discount-banner">⚡ <?= e($discount) ?>% off — today only</div>
-        <h2>DiaFitus Coaching</h2>
-        <div class="price-row">
-          <span class="old-price">$<?= e($priceReg) ?></span>
-          <span class="new-price">$<?= e($priceNow) ?><span class="per">/month</span></span>
+    <section class="plan-banner">
+      <strong>🎯 Get visible results in 4 weeks.</strong>
+      <span>Members typically see their first stable blood-sugar week by day 14 and sustained energy by week 4.</span>
+    </section>
+
+    <section class="plans-grid">
+      <?php foreach ($plans as $key => $p):
+        $pct  = discount_pct($p['price_regular'], $p['price_today']);
+        $perD = per_day($p['price_today'], $p['days']);
+        $popular = !empty($p['most_popular']);
+      ?>
+        <div class="plan-card<?= $popular ? ' popular' : '' ?>">
+          <?php if ($popular): ?><div class="popular-banner">⭐ Most popular · <?= $pct ?>% off</div><?php endif; ?>
+          <?php if (!empty($p['badge']) && !$popular): ?><div class="plan-badge"><?= e($p['badge']) ?></div><?php endif; ?>
+          <h3><?= e($p['name']) ?></h3>
+          <div class="plan-price">
+            <span class="old">$<?= number_format($p['price_regular'], 2) ?></span>
+            <span class="now">$<?= number_format($p['price_today'], 2) ?></span>
+          </div>
+          <div class="plan-perday">
+            <strong>$<?= $perD ?></strong><span>/day</span>
+          </div>
+          <div class="plan-discount"><?= $pct ?>% off · save $<?= number_format($p['price_regular'] - $p['price_today'], 2) ?></div>
+          <a href="/signup?plan=<?= e($key) ?>" class="btn btn-primary plan-cta">
+            Choose <?= e($p['name']) ?>
+          </a>
+          <ul class="plan-includes">
+            <li>✓ Full personalized program</li>
+            <li>✓ Nutrition PDF guide</li>
+            <li>✓ 24/7 coach access</li>
+            <li>✓ Dashboard tracking</li>
+            <?php if ($p['days'] >= 28): ?><li>✓ Weekly plan adjustments</li><?php endif; ?>
+            <?php if ($p['days'] >= 84): ?><li>✓ 12-week complete transformation</li><?php endif; ?>
+          </ul>
         </div>
-        <p class="save">You save $<?= e($savings) ?> every month. Cancel anytime.</p>
+      <?php endforeach; ?>
+    </section>
 
-        <div class="countdown">
-          <span>This price expires in</span>
-          <strong id="timer2">15:00</strong>
-        </div>
-
-        <a href="/signup" class="btn btn-primary btn-xl">Claim <?= e($discount) ?>% off — Start now</a>
-
-        <ul class="micro-trust">
-          <li>🔒 Secure Stripe checkout</li>
-          <li>↩️ Cancel anytime</li>
-          <li>🛡️ 14-day money-back guarantee</li>
-        </ul>
-      </div>
-
-      <div class="benefits">
-        <h3>Everything you get for $<?= e($priceNow) ?>/month</h3>
-        <div class="benefit"><div class="bi">🏋️</div><div><strong>Personalized exercise program</strong><p>Built around your diabetes type, fitness level and schedule.</p></div></div>
-        <div class="benefit"><div class="bi">📕</div><div><strong>Nutrition guide (PDF)</strong><p>A clear, doctor-reviewed guide on what to eat to stabilize blood sugar.</p></div></div>
-        <div class="benefit"><div class="bi">💬</div><div><strong>24/7 coach access</strong><p>Ask anything, anytime — real humans on the other end.</p></div></div>
-        <div class="benefit"><div class="bi">📊</div><div><strong>Private dashboard</strong><p>Log workouts, meals, blood sugar, soreness and observations.</p></div></div>
-        <div class="benefit"><div class="bi">🔄</div><div><strong>Weekly adjustments</strong><p>Your coach reviews your logs and tunes the plan every week.</p></div></div>
-      </div>
+    <section class="micro-trust-row">
+      <span>🔒 Secure Stripe checkout</span>
+      <span>↩️ Cancel anytime</span>
+      <span>🛡️ 14-day money-back guarantee</span>
+      <span>👨‍⚕️ Doctor-reviewed</span>
     </section>
 
     <section class="testimonials reviews-block">
@@ -142,9 +148,9 @@ $discount  = $priceReg > 0 ? (int) round(($savings / $priceReg) * 100) : 0;
     </section>
 
     <section class="final-cta">
-      <h2>Don't lose your <?= e($discount) ?>% off</h2>
-      <p>The discount disappears in <strong id="timer3">15:00</strong>. After that, it's $<?= e($priceReg) ?>/month.</p>
-      <a href="/signup" class="btn btn-primary btn-xl">Lock in $<?= e($priceNow) ?>/month →</a>
+      <h2>Don't miss your launch discount</h2>
+      <p>The offer disappears in <strong id="timer3">15:00</strong>. Lock in 62% off across every plan.</p>
+      <a href="/signup?plan=<?= e($default) ?>" class="btn btn-primary btn-xl">Start the 12-week transformation →</a>
     </section>
   </main>
 

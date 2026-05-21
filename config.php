@@ -17,6 +17,36 @@ return [
     'dashboard_url'  => 'https://my.diafitus.com',
 
     // Pricing ------------------------------------------------------------
+    // Three one-time plans; same discount (~62% off). Per-day price is
+    // computed automatically from price_today / days. The 12-week plan
+    // is featured as the most popular.
+    'plans' => [
+        'week' => [
+            'id'            => 'week',
+            'name'          => '7-day jump-start',
+            'days'          => 7,
+            'price_regular' => 26,
+            'price_today'   => 9.99,
+        ],
+        'month' => [
+            'id'            => 'month',
+            'name'          => '4-week reset',
+            'days'          => 28,
+            'price_regular' => 45,
+            'price_today'   => 16.99,
+            'badge'         => 'Visible results in 4 weeks',
+        ],
+        'quarter' => [
+            'id'            => 'quarter',
+            'name'          => '12-week transformation',
+            'days'          => 84,
+            'price_regular' => 129,
+            'price_today'   => 49,
+            'most_popular'  => true,
+            'badge'         => 'Best value',
+        ],
+    ],
+    'default_plan'   => 'quarter',
     'price_regular'  => 129,
     'price_today'    => 49,
     'currency'       => 'usd',

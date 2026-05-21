@@ -35,25 +35,30 @@ function stripe_request($method, $endpoint, $params = []) {
     return $data;
 }
 
-function stripe_create_checkout_session($user, $answers) {
-    $price = (int) cfg('price_today');
+function stripe_create_checkout_session($user, $answers, $plan = null) {
+    if (!$plan) {
+        $plans = cfg('plans');
+        $plan  = $plans[cfg('default_plan')];
+    }
+    $amountCents = (int) round(((float) $plan['price_today']) * 100);
     $params = [
-        'mode'                  => 'subscription',
+        'mode'                  => 'payment',
         'success_url'           => cfg('stripe.success_url'),
         'cancel_url'            => cfg('stripe.cancel_url'),
         'customer_email'        => $user['email'] ?? '',
         'allow_promotion_codes' => 'true',
         'line_items[0][quantity]' => 1,
-        'line_items[0][price_data][currency]'      => cfg('currency'),
-        'line_items[0][price_data][unit_amount]'   => $price * 100,
-        'line_items[0][price_data][recurring][interval]' => 'month',
-        'line_items[0][price_data][product_data][name]'        => cfg('stripe.product_name'),
-        'line_items[0][price_data][product_data][description]' => 'Personalized diabetes-aware coaching, nutrition PDF, Telegram access to coaches & doctors.',
-        'metadata[first_name]' => $user['firstName'] ?? '',
-        'metadata[phone]'      => $user['phone'] ?? '',
-        'metadata[diabetes_type]' => $answers['diabetes_type'] ?? '',
-        'metadata[location]'      => $answers['location'] ?? '',
-        'metadata[days_per_week]' => $answers['days_per_week'] ?? '',
+        'line_items[0][price_data][currency]'    => cfg('currency'),
+        'line_items[0][price_data][unit_amount]' => $amountCents,
+        'line_items[0][price_data][product_data][name]'        => 'DiaFitus — ' . $plan['name'],
+        'line_items[0][price_data][product_data][description]' => 'Personalized diabetes-aware coaching, nutrition PDF, 24/7 coach access. ' . (int) $plan['days'] . '-day plan.',
+        'metadata[plan_id]'         => $plan['id'],
+        'metadata[plan_days]'       => (int) $plan['days'],
+        'metadata[first_name]'      => $user['firstName'] ?? '',
+        'metadata[phone]'           => $user['phone'] ?? '',
+        'metadata[diabetes_type]'   => $answers['diabetes_type'] ?? '',
+        'metadata[location]'        => $answers['location'] ?? '',
+        'metadata[days_per_week]'   => $answers['days_per_week'] ?? '',
         'metadata[minutes_per_day]' => $answers['minutes_per_day'] ?? '',
     ];
     return stripe_request('POST', 'checkout/sessions', $params);

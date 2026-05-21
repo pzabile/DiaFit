@@ -3,9 +3,18 @@ $pageTitle = 'Create your DiaFitus account';
 $bodyClass = 'signup-page';
 require __DIR__ . '/includes/header.php';
 
-$priceReg = (int) cfg('price_regular');
-$priceNow = (int) cfg('price_today');
+$plans = cfg('plans');
+$default = cfg('default_plan');
+$planKey = $_GET['plan'] ?? ($_SESSION['plan'] ?? $default);
+if (!isset($plans[$planKey])) $planKey = $default;
+$_SESSION['plan'] = $planKey;
+$plan = $plans[$planKey];
+
+$priceReg = (float) $plan['price_regular'];
+$priceNow = (float) $plan['price_today'];
 $savings  = $priceReg - $priceNow;
+$pct      = $priceReg > 0 ? (int) round(($savings / $priceReg) * 100) : 0;
+
 $answers  = answers();
 $prefillEmail = $answers['email'] ?? '';
 ?>
@@ -16,7 +25,7 @@ $prefillEmail = $answers['email'] ?? '';
     </a>
     <div class="timer-pill">
       <span class="dot pulse"></span>
-      <span>50% off ends in <strong id="timer">15:00</strong></span>
+      <span><?= (int) $pct ?>% off ends in <strong id="timer">15:00</strong></span>
     </div>
   </header>
 
@@ -26,7 +35,18 @@ $prefillEmail = $answers['email'] ?? '';
       <h1>Last step: connect to your dashboard</h1>
       <p class="sub">You'll get your nutrition PDF, exercise program and Telegram invite at the email below. Your private logging dashboard lives at <strong>my.diafitus.com</strong>.</p>
 
-      <form id="signupForm" class="form" action="create_checkout" method="post">
+      <div class="plan-pick">
+        <p class="kicker">Selected plan</p>
+        <strong><?= e($plan['name']) ?></strong>
+        <p class="muted">Switch:
+          <?php foreach ($plans as $k => $p): if ($k === $planKey) continue; ?>
+            <a href="/signup?plan=<?= e($k) ?>"><?= e($p['name']) ?> — $<?= number_format($p['price_today'], 2) ?></a>
+          <?php endforeach; ?>
+        </p>
+      </div>
+
+      <form id="signupForm" class="form" action="/create_checkout" method="post">
+        <input type="hidden" name="plan" value="<?= e($planKey) ?>" />
         <label>
           First name
           <input type="text" name="firstName" required placeholder="Alex" />
@@ -41,9 +61,9 @@ $prefillEmail = $answers['email'] ?? '';
         </label>
 
         <div class="order-box">
-          <div class="row"><span>DiaFitus Coaching</span><span>$<?= e($priceReg) ?>.00</span></div>
-          <div class="row discount"><span>Launch discount</span><span>−$<?= e($savings) ?>.00</span></div>
-          <div class="row total"><span>Today's total</span><span><strong>$<?= e($priceNow) ?>.00</strong>/month</span></div>
+          <div class="row"><span><?= e($plan['name']) ?></span><span>$<?= number_format($priceReg, 2) ?></span></div>
+          <div class="row discount"><span>Launch discount (<?= (int) $pct ?>%)</span><span>−$<?= number_format($savings, 2) ?></span></div>
+          <div class="row total"><span>Today's total</span><span><strong>$<?= number_format($priceNow, 2) ?></strong></span></div>
         </div>
 
         <label class="check">
@@ -52,17 +72,17 @@ $prefillEmail = $answers['email'] ?? '';
         </label>
 
         <button type="submit" class="btn btn-primary btn-xl">Continue to secure checkout →</button>
-        <p class="micro">You'll be redirected to Stripe to complete payment. Cancel anytime.</p>
+        <p class="micro">You'll be redirected to Stripe to complete payment. 14-day money-back guarantee.</p>
       </form>
     </div>
 
     <aside class="signup-side">
       <h3>What happens next</h3>
       <ol class="next-steps">
-        <li>You pay securely via Stripe ($<?= e($priceNow) ?>/month)</li>
-        <li>Your account is created on <strong>my.diafitus.com</strong></li>
-        <li>You receive a welcome email immediately</li>
-        <li>Our coaches &amp; doctors build your program and reach out within 24 hours</li>
+        <li>You pay securely via Stripe ($<?= number_format($priceNow, 2) ?>)</li>
+        <li>You receive a welcome email with a link to set your password</li>
+        <li>You sign in at <strong>diafitus.com/login</strong></li>
+        <li>Our team builds your personalized program and reaches out within 24 hours</li>
       </ol>
       <div class="trust">
         <div>🔒 Bank-level encryption (Stripe)</div>

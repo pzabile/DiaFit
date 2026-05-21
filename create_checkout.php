@@ -20,11 +20,17 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     header('Location: signup'); exit;
 }
 
+$plans = cfg('plans');
+$planKey = $_POST['plan'] ?? ($_SESSION['plan'] ?? cfg('default_plan'));
+if (!isset($plans[$planKey])) $planKey = cfg('default_plan');
+$_SESSION['plan'] = $planKey;
+$plan = $plans[$planKey];
+
 $user = ['firstName' => $firstName, 'email' => $email, 'phone' => $phone];
 $_SESSION['user'] = $user;
 
 try {
-    $session = stripe_create_checkout_session($user, answers());
+    $session = stripe_create_checkout_session($user, answers(), $plan);
     if (empty($session['url'])) {
         throw new RuntimeException('Stripe did not return a checkout URL.');
     }
