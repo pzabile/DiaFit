@@ -2110,3 +2110,158 @@ body.dashboard.premium .card.big {
 .plan-pick strong  { display: block; font-size: 1.1rem; margin: .15rem 0 .35rem; }
 .plan-pick p       { margin: 0; font-size: .85rem; }
 .plan-pick a       { color: var(--accent-2); text-decoration: underline; margin-right: .55rem; }
+
+/* ============================================================ */
+/*  /offer v2 — radio-button plan picker (Brainway-style)        */
+/* ============================================================ */
+body.offer-v2 { background: #faf6f0; }
+.offer-v2-main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(1.25rem, 3vw, 2rem) clamp(1rem, 4vw, 2rem) 3rem;
+}
+.offer-trust-row {
+  display: flex; justify-content: center; flex-wrap: wrap;
+  gap: 1.25rem;
+  margin: 1rem 0 1.5rem;
+  color: var(--ink-soft);
+  font-size: .92rem;
+}
+.offer-trust-row span { display: inline-flex; align-items: center; gap: .35rem; }
+
+.offer-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  box-shadow: 0 16px 40px rgba(15,26,20,.05);
+}
+.offer-card h1 {
+  text-align: center;
+  font-size: clamp(1.7rem, 3.2vw, 2.4rem);
+  margin-bottom: 1.5rem;
+}
+
+/* Radio rows */
+.plan-radio {
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  background: #faf6f0;
+  border: 2px solid #e8e2d5;
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  margin-bottom: .85rem;
+  cursor: pointer;
+  transition: border-color .15s ease, background .2s ease;
+}
+.plan-radio:hover { border-color: #cbbf9d; }
+.plan-radio.selected { border-color: #ed8a6b; background: #fff; }
+.plan-radio.popular  { border-color: #ed8a6b; padding-top: 2.25rem; margin-top: 1.25rem; }
+.plan-radio.popular.selected { background: #fff; box-shadow: 0 8px 24px rgba(237,138,107,.18); }
+.plan-radio input[type="radio"] {
+  position: absolute; opacity: 0; pointer-events: none;
+}
+.radio-dot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid #cbbf9d;
+  background: #fff;
+  display: block;
+  position: relative;
+}
+.plan-radio.selected .radio-dot {
+  border-color: #ed8a6b;
+}
+.plan-radio.selected .radio-dot::after {
+  content: ''; position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: #ed8a6b;
+}
+.popular-ribbon {
+  position: absolute; top: -1px; left: -1px; right: -1px;
+  background: linear-gradient(90deg, #f4a586, #ed8a6b);
+  color: #fff;
+  padding: .4rem;
+  border-radius: 12px 12px 0 0;
+  font-size: .8rem; font-weight: 700;
+  letter-spacing: .04em;
+  text-align: center;
+}
+.plan-info strong { display: block; font-size: 1.05rem; letter-spacing: .02em; }
+.plan-money { display: flex; gap: .45rem; align-items: baseline; margin-top: .15rem; }
+.plan-money .old { color: var(--muted); text-decoration: line-through; font-size: .9rem; }
+.plan-money .new { font-weight: 700; font-size: .95rem; }
+
+/* Per-day price tag */
+.price-tag {
+  position: relative;
+  display: inline-flex; align-items: baseline; gap: 1px;
+  background: #e1d6c0;
+  color: var(--ink);
+  padding: .55rem 1.15rem .55rem 1.55rem;
+  border-radius: 10px 0 0 10px;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 110px;
+  justify-content: center;
+  clip-path: polygon(8% 0, 100% 0, 100% 100%, 8% 100%, 0 50%);
+}
+.price-tag.pop { background: #f3a987; color: #fff; }
+.price-tag .dollar { font-size: 1rem; vertical-align: top; margin-right: 1px; }
+.price-tag strong  { font-size: 2.3rem; line-height: 1; }
+.price-tag .cents  { font-size: 1rem; }
+.price-tag small   { display: block; width: 100%; font-size: .7rem; font-weight: 600; opacity: .8; text-align: center; margin-top: .25rem; letter-spacing: .04em; }
+.price-tag {
+  flex-wrap: wrap;
+}
+
+.get-plan-btn {
+  background: linear-gradient(180deg, #f3a987, #ed8a6b);
+  color: #fff !important;
+  margin: 1.25rem 0 1rem;
+  font-size: 1.1rem;
+  letter-spacing: .04em;
+  font-weight: 800;
+  border: none;
+}
+.get-plan-btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
+
+.btn-orange { background: linear-gradient(180deg, #f3a987, #ed8a6b); color: #fff; }
+.btn-orange:hover { filter: brightness(1.05); }
+
+.agree-row {
+  display: flex; align-items: flex-start; gap: .55rem;
+  font-size: .92rem;
+  margin: .5rem 0 1rem;
+  color: var(--ink-soft);
+}
+.agree-row input { margin-top: .25rem; }
+.agree-row a { color: var(--ink); text-decoration: underline; }
+
+.bill-note {
+  font-size: .8rem;
+  color: var(--ink-soft);
+  text-align: center;
+  margin: .25rem 0 1.5rem;
+  line-height: 1.55;
+}
+
+.safe-checkout { text-align: center; }
+.safe-checkout p { letter-spacing: .12em; font-size: .8rem; color: var(--ink-soft); margin: 0 0 .65rem; }
+.pay-badges {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: .5rem;
+  font-size: .75rem;
+}
+.pay-badges span {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: .25rem .55rem;
+  color: var(--ink-soft);
+  font-weight: 600;
+}

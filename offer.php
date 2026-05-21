@@ -1,21 +1,17 @@
 <?php
 require __DIR__ . '/includes/avatar.php';
 $pageTitle = 'Your DiaFitus Plan is Ready';
-$bodyClass = 'offer';
+$bodyClass = 'offer offer-v2';
 require __DIR__ . '/includes/header.php';
 
 $answers = answers();
-$locMap = ['gym' => 'at the gym', 'home' => 'at home', 'both' => 'gym + home', 'outdoors' => 'outdoors'];
-$planLoc  = isset($answers['location']) ? ($locMap[$answers['location']] ?? 'gym or home') : 'gym or home';
-$planDays = isset($answers['days_per_week'])
-    ? $answers['days_per_week'] . ' days/week, ' . ($answers['minutes_per_day'] ?? '30') . ' min/day'
-    : 'your chosen schedule';
-
 $plans = cfg('plans');
 $default = cfg('default_plan');
+$selected = $_GET['plan'] ?? $default;
+if (!isset($plans[$selected])) $selected = $default;
 
-function discount_pct($r, $t) { return $r > 0 ? (int) round((($r - $t) / $r) * 100) : 0; }
-function per_day($t, $d)      { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
+function pct($r, $t) { return $r > 0 ? (int) round((($r - $t) / $r) * 100) : 0; }
+function perDay($t, $d) { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
 ?>
   <header class="nav slim">
     <a href="/" class="brand">
@@ -28,73 +24,72 @@ function per_day($t, $d)      { return $d > 0 ? number_format($t / $d, 2) : '0.0
     </div>
   </header>
 
-  <main class="offer-main">
-    <section class="offer-hero">
-      <span class="pill green">✓ Plan ready</span>
-      <h1>Your personalized DiaFitus program is built.</h1>
-      <p class="lede">Based on your answers, we've prepared a glucose-aware training plan, a custom nutrition PDF, and 24/7 access to your coach. Choose how long you want to start with — you'll see your first wins by week 2.</p>
+  <main class="offer-v2-main">
+    <div class="offer-trust-row">
+      <span>✓ Tailored <strong>step-by-step</strong> diabetes program</span>
+      <span>✓ Based on <strong>doctor-reviewed exercise science</strong></span>
+      <span>✓ Built around your <strong>blood sugar response</strong></span>
+    </div>
 
-      <div class="summary-card">
-        <h3>What's in your plan</h3>
-        <ul class="check-list">
-          <li>Personalized training program — <?= e($planLoc) ?>, <?= e($planDays) ?></li>
-          <li>Nutrition PDF — what to eat before / during / after workouts</li>
-          <li>Glucose-safe exercise progression reviewed by our medical team</li>
-          <li>24/7 access to your coach — message us any time</li>
-          <li>Private dashboard to log workouts, meals, glucose &amp; meal photos</li>
-          <li>Weekly plan adjustments based on your check-ins</li>
-        </ul>
-      </div>
-    </section>
+    <section class="offer-card">
+      <h1>Get visible results in 4 weeks!</h1>
 
-    <section class="plan-banner">
-      <strong>🎯 Get visible results in 4 weeks.</strong>
-      <span>Members typically see their first stable blood-sugar week by day 14 and sustained energy by week 4.</span>
-    </section>
+      <form id="planForm" method="get" action="/signup">
+        <?php foreach ($plans as $key => $p):
+          $pct  = pct($p['price_regular'], $p['price_today']);
+          $perD = perDay($p['price_today'], $p['days']);
+          $isPop = !empty($p['most_popular']);
+          $isSel = $key === $selected;
+        ?>
+          <label class="plan-radio<?= $isPop ? ' popular' : '' ?><?= $isSel ? ' selected' : '' ?>">
+            <?php if ($isPop): ?>
+              <div class="popular-ribbon">👍 MOST POPULAR · <?= $pct ?>% OFF</div>
+            <?php endif; ?>
+            <input type="radio" name="plan" value="<?= e($key) ?>" <?= $isSel ? 'checked' : '' ?> />
+            <span class="radio-dot"></span>
+            <div class="plan-info">
+              <strong><?= e(strtoupper($p['name'])) ?></strong>
+              <div class="plan-money">
+                <span class="old">$<?= number_format($p['price_regular'], 2) ?></span>
+                <span class="new">$<?= number_format($p['price_today'], 2) ?></span>
+              </div>
+            </div>
+            <div class="price-tag<?= $isPop ? ' pop' : '' ?>">
+              <span class="dollar">$</span>
+              <strong><?= explode('.', $perD)[0] ?></strong>
+              <span class="cents">.<?= explode('.', $perD)[1] ?? '00' ?></span>
+              <small>per day</small>
+            </div>
+          </label>
+        <?php endforeach; ?>
 
-    <section class="plans-grid">
-      <?php foreach ($plans as $key => $p):
-        $pct  = discount_pct($p['price_regular'], $p['price_today']);
-        $perD = per_day($p['price_today'], $p['days']);
-        $popular = !empty($p['most_popular']);
-      ?>
-        <div class="plan-card<?= $popular ? ' popular' : '' ?>">
-          <?php if ($popular): ?><div class="popular-banner">⭐ Most popular · <?= $pct ?>% off</div><?php endif; ?>
-          <?php if (!empty($p['badge']) && !$popular): ?><div class="plan-badge"><?= e($p['badge']) ?></div><?php endif; ?>
-          <h3><?= e($p['name']) ?></h3>
-          <div class="plan-price">
-            <span class="old">$<?= number_format($p['price_regular'], 2) ?></span>
-            <span class="now">$<?= number_format($p['price_today'], 2) ?></span>
+        <button type="submit" class="btn btn-orange btn-xl get-plan-btn">GET MY PLAN</button>
+
+        <label class="agree-row">
+          <input type="checkbox" required />
+          <span>I agree to the <a href="/terms" target="_blank">Terms &amp; Conditions</a> and <a href="/privacy" target="_blank">Privacy Policy</a>.</span>
+        </label>
+
+        <p class="bill-note" id="billNote">
+          By clicking "GET MY PLAN", I agree to pay
+          <strong id="billPrice">$<?= number_format($plans[$selected]['price_today'], 2) ?></strong>
+          for my <span id="billPlan"><?= e($plans[$selected]['name']) ?></span> one-time.
+          After the plan period ends, I'll be invited to renew at the same price — DiaFitus will not auto-charge me again.
+          DiaFitus is fitness coaching and is not medical advice. All sales are final once digital content is delivered (see <a href="/terms" target="_blank">Terms</a>).
+        </p>
+
+        <div class="safe-checkout">
+          <p>GUARANTEED <strong>SAFE CHECKOUT</strong></p>
+          <div class="pay-badges">
+            <span>Visa</span><span>Mastercard</span><span>Amex</span><span>Discover</span><span>Apple&nbsp;Pay</span><span>Google&nbsp;Pay</span><span>Stripe</span>
           </div>
-          <div class="plan-perday">
-            <strong>$<?= $perD ?></strong><span>/day</span>
-          </div>
-          <div class="plan-discount"><?= $pct ?>% off · save $<?= number_format($p['price_regular'] - $p['price_today'], 2) ?></div>
-          <a href="/signup?plan=<?= e($key) ?>" class="btn btn-primary plan-cta">
-            Choose <?= e($p['name']) ?>
-          </a>
-          <ul class="plan-includes">
-            <li>✓ Full personalized program</li>
-            <li>✓ Nutrition PDF guide</li>
-            <li>✓ 24/7 coach access</li>
-            <li>✓ Dashboard tracking</li>
-            <?php if ($p['days'] >= 28): ?><li>✓ Weekly plan adjustments</li><?php endif; ?>
-            <?php if ($p['days'] >= 84): ?><li>✓ 12-week complete transformation</li><?php endif; ?>
-          </ul>
         </div>
-      <?php endforeach; ?>
-    </section>
-
-    <section class="micro-trust-row">
-      <span>🔒 Secure Stripe checkout</span>
-      <span>↩️ Cancel anytime</span>
-      <span>🛡️ 14-day money-back guarantee</span>
-      <span>👨‍⚕️ Doctor-reviewed</span>
+      </form>
     </section>
 
     <section class="testimonials reviews-block">
-      <h2>What members are saying</h2>
-      <p class="muted" style="margin-bottom:1.5rem">4.9 / 5 average from 3,400+ verified members. Hover the strip to pause.</p>
+      <h2 style="text-align:center">What members are saying</h2>
+      <p class="muted" style="text-align:center;margin-bottom:1.5rem">4.9 / 5 average from 3,400+ verified members. Hover the strip to pause.</p>
       <?php
       $reviews = [
         ['Marcus T.', 'Type 2',       'A1C: 8.1 → 6.4 in four months. The coaches actually understand diabetes.'],
@@ -109,9 +104,6 @@ function per_day($t, $d)      { return $d > 0 ? number_format($t / $d, 2) : '0.0
         ['Megan F.',  'Type 2',       'Energy in the afternoons came back within three weeks.'],
         ['Rajiv S.',  'Type 2',       'Home program needs zero equipment. Game-changer.'],
         ['Olivia W.', 'Type 1',       '24/7 messaging replies faster than my own clinic.'],
-        ['Sophie L.', 'Type 2',       'No more guesswork — I know exactly what to do every single day.'],
-        ['Ethan J.',  'Type 1',       'My CGM graphs have never looked this flat. Worth every cent.'],
-        ['Nadia O.',  'Pre-diabetes', 'I learned more about nutrition in a week than in years of Googling.'],
       ];
       ?>
       <div class="marquee-wrap">
@@ -135,23 +127,26 @@ function per_day($t, $d)      { return $d > 0 ? number_format($t / $d, 2) : '0.0
       </div>
     </section>
 
-    <section class="guarantee">
-      <h3>🛡️ 14-day money-back guarantee</h3>
-      <p>Try DiaFitus for two weeks. If it's not for you, email us and we'll refund every cent — no questions asked.</p>
-    </section>
-
     <section class="disclaimer">
-      <strong>Important:</strong> DiaFitus is a fitness and lifestyle coaching service. It is not medical advice
-      and is not a substitute for consultation with a licensed physician. Always talk to your doctor before starting
-      any new exercise or nutrition program, especially with diabetes. Read our
-      <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
-    </section>
-
-    <section class="final-cta">
-      <h2>Don't miss your launch discount</h2>
-      <p>The offer disappears in <strong id="timer3">15:00</strong>. Lock in 62% off across every plan.</p>
-      <a href="/signup?plan=<?= e($default) ?>" class="btn btn-primary btn-xl">Start the 12-week transformation →</a>
+      <strong>Important:</strong> DiaFitus is a fitness and lifestyle coaching service operated by Benux Corp (1317 Westminster Dr, Woodridge, Illinois 60517, USA). It is not medical advice and is not a substitute for consultation with a licensed physician. Always talk to your doctor before starting any new exercise or nutrition program, especially with diabetes. All sales are final once digital content is delivered. Read our <a href="/terms">Terms &amp; Conditions</a> and <a href="/privacy">Privacy Policy</a>.
     </section>
   </main>
 
+  <script>
+    (function () {
+      const form = document.getElementById('planForm');
+      if (!form) return;
+      const radios = form.querySelectorAll('input[name="plan"]');
+      const billPrice = document.getElementById('billPrice');
+      const billPlan  = document.getElementById('billPlan');
+      const plans = <?= json_encode(array_map(fn($p) => ['name' => $p['name'], 'price' => $p['price_today']], $plans)) ?>;
+      radios.forEach(r => r.addEventListener('change', () => {
+        form.querySelectorAll('.plan-radio').forEach(el => el.classList.remove('selected'));
+        r.closest('.plan-radio').classList.add('selected');
+        const p = plans[r.value];
+        if (p && billPrice) billPrice.textContent = '$' + Number(p.price).toFixed(2);
+        if (p && billPlan)  billPlan.textContent  = p.name;
+      }));
+    })();
+  </script>
 <?php require __DIR__ . '/includes/footer.php'; ?>

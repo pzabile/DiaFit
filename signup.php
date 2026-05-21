@@ -72,7 +72,7 @@ $prefillEmail = $answers['email'] ?? '';
         </label>
 
         <button type="submit" class="btn btn-primary btn-xl">Continue to secure checkout →</button>
-        <p class="micro">You'll be redirected to Stripe to complete payment. 14-day money-back guarantee.</p>
+        <p class="micro">You'll be redirected to Stripe to complete payment. All sales final once digital content is delivered.</p>
       </form>
     </div>
 
@@ -87,7 +87,7 @@ $prefillEmail = $answers['email'] ?? '';
       <div class="trust">
         <div>🔒 Bank-level encryption (Stripe)</div>
         <div>👨‍⚕️ Reviewed by licensed doctors</div>
-        <div>↩️ 14-day money-back guarantee</div>
+        <div>🔐 PCI-DSS compliant via Stripe</div>
       </div>
     </aside>
   </main>
