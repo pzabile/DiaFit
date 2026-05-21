@@ -14,7 +14,7 @@ $weekProgress = min(100, (int) round(($weekNumber / $programLength) * 100));
 
 $weeklyNotes = db_all('SELECT * FROM weekly_notes WHERE lead_id = ? ORDER BY week_number ASC, created_at ASC', [$me['id']]);
 $dailyLogs   = db_all('SELECT * FROM daily_logs   WHERE lead_id = ? ORDER BY created_at DESC LIMIT 5', [$me['id']]);
-$coachNotes  = db_all('SELECT * FROM coach_notes  WHERE lead_id = ? ORDER BY created_at DESC LIMIT 3', [$me['id']]);
+$coachNotes  = db_all('SELECT * FROM coach_notes  WHERE lead_id = ? AND is_private = 0 AND from_member = 0 AND parent_id IS NULL ORDER BY created_at DESC LIMIT 3', [$me['id']]);
 
 function sparkline_svg(array $values, $width = 240, $height = 60, $color = '#16a36a', $fill = '#d6f0e1') {
     $vals = array_values(array_filter($values, fn($v) => $v !== null && $v !== ''));
@@ -166,7 +166,7 @@ require __DIR__ . '/includes/member_sidebar.php';
         <article class="coach-bubble <?= e($cn['kind']) ?>">
           <header>
             <span class="kind-tag <?= e($cn['kind']) ?>"><?= e(ucfirst($cn['kind'])) ?></span>
-            <small><?= e(date('M j · g:ia', strtotime($cn['created_at']))) ?><?= $cn['week_number'] ? ' · wk ' . (int)$cn['week_number'] : '' ?></small>
+            <small><?= e(date('M j, g:ia', strtotime($cn['created_at']))) ?><?= $cn['week_number'] ? ' · Week ' . (int)$cn['week_number'] : '' ?></small>
           </header>
           <p><?= nl2br(e($cn['body'])) ?></p>
         </article>

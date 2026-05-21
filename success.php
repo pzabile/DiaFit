@@ -11,7 +11,6 @@ $sessionId = $_GET['session_id'] ?? '';
 $paid = false;
 $user = user_session();
 $answers = answers();
-$plainPwd = null;
 
 if ($sessionId) {
     try {
@@ -27,28 +26,24 @@ if ($sessionId) {
             if ($email) {
                 $res = lead_mark_paid($email, $stripeCustomer, $stripeSub, $name, $phone);
                 $leadId = $res['id'];
-                $plainPwd = $res['password'];
-
-                $_SESSION['member_id'] = $leadId;
                 $_SESSION['user'] = ['firstName' => $name, 'email' => $email, 'phone' => $phone];
 
                 if (empty($_SESSION['post_purchase_done'])) {
                     try {
+                        $token = create_account_setup_token($leadId, 168);
+                        $url = rtrim(cfg('site_url'), '/') . '/setup?token=' . $token;
                         send_email(
                             $email, $name ?: 'there',
-                            'Welcome to DiaFitus — your program is being built',
-                            welcome_email_html($name ?: 'there', $email, $plainPwd)
+                            'Welcome to DiaFitus — create your account',
+                            account_setup_email_html($name ?: 'there', $url)
                         );
-                    } catch (Throwable $ex) { error_log('welcome email: ' . $ex->getMessage()); }
+                    } catch (Throwable $ex) { error_log('setup email: ' . $ex->getMessage()); }
 
                     try {
                         $tmpPdf = sys_get_temp_dir() . '/diafitus_paid_' . time() . '_' . bin2hex(random_bytes(3)) . '.pdf';
                         build_lead_pdf($tmpPdf, $answers, ['firstName' => $name, 'email' => $email, 'phone' => $phone]);
-
                         $lines = ['<b>💸 DiaFitus — NEW PAID MEMBER</b>'];
                         $lines[] = 'Amount: $' . (int) cfg('price_today') . '/month';
-                        $lines[] = 'Stripe session: ' . $sessionId;
-                        $lines[] = '';
                         $lines[] = '<b>Name:</b> ' . htmlspecialchars($name);
                         $lines[] = '<b>Email:</b> ' . htmlspecialchars($email);
                         $lines[] = '<b>Phone:</b> ' . htmlspecialchars($phone);
@@ -86,33 +81,24 @@ require __DIR__ . '/includes/header.php';
     <div class="success-card">
       <?php if ($paid): ?>
         <div class="success-icon">✅</div>
-        <h1>You're in, <?= e($user['firstName'] ?? 'champion') ?>!</h1>
-        <p class="lede">Your DiaFitus membership is active. We've sent a welcome email to <strong><?= e($user['email'] ?? '') ?></strong>.</p>
-        <?php if ($plainPwd): ?>
-          <div class="cred-box">
-            <p><strong>Save your login</strong> — we've also emailed this to you:</p>
-            <div class="cred-row"><span>Email</span><code><?= e($user['email'] ?? '') ?></code></div>
-            <div class="cred-row"><span>Password</span><code><?= e($plainPwd) ?></code></div>
-            <p class="micro">You can change your password in your dashboard.</p>
-          </div>
-        <?php endif; ?>
+        <h1>You're in!</h1>
+        <p class="lede">Your DiaFitus membership is active. We've just emailed <strong><?= e($user['email'] ?? 'your email') ?></strong> a link to create your account.</p>
         <div class="next-card">
-          <h3>What happens next</h3>
+          <h3>Next steps</h3>
           <ul class="check-list">
-            <li>Our team is building your program <strong>right now</strong></li>
-            <li>You'll have your personalized plan and nutrition guide within <strong>24 hours</strong></li>
-            <li>You'll get 24/7 support to ask any questions</li>
-            <li>Track everything from your private dashboard</li>
+            <li>Check your inbox for the <strong>"Create your account"</strong> email from <?= e(cfg('mail.from_email')) ?></li>
+            <li>Click the link in that email to set your password</li>
+            <li>Sign in at <a href="/login">diafitus.com/login</a> with your email and the password you just chose</li>
+            <li>Our team is building your personalized program — it'll appear in your dashboard within 24 hours</li>
           </ul>
         </div>
-        <a href="/dashboard" class="btn btn-primary btn-xl">Open my dashboard →</a>
+        <p class="muted">Didn't get the email after a minute? Check spam, or email <a href="mailto:<?= e(cfg('support_email')) ?>"><?= e(cfg('support_email')) ?></a> and we'll resend.</p>
       <?php else: ?>
         <div class="success-icon">⏳</div>
         <h1>Almost there…</h1>
-        <p class="lede">We're confirming your payment. If you've been charged but don't see your dashboard within a minute, contact <a href="mailto:<?= e(cfg('support_email')) ?>"><?= e(cfg('support_email')) ?></a>.</p>
+        <p class="lede">We're confirming your payment. If you've been charged but don't get the welcome email in a minute, contact <a href="mailto:<?= e(cfg('support_email')) ?>"><?= e(cfg('support_email')) ?></a>.</p>
         <a href="/login" class="btn btn-primary btn-lg">Go to login</a>
       <?php endif; ?>
     </div>
   </main>
-
 <?php require __DIR__ . '/includes/footer.php'; ?>

@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($lead && !empty($lead['paid'])) {
                     header('Location: /dashboard'); exit;
                 }
-                $error = 'Email or password incorrect. If you just paid, please use the password from your welcome email.';
+                $error = 'Email or password incorrect. If you just paid, check your welcome email for the "Create my account" link to set your password.';
             }
         }
     }
@@ -47,14 +47,14 @@ require __DIR__ . '/includes/header.php';
     <div class="auth-card">
       <span class="pill green">Member login</span>
       <h1>Sign in to your dashboard</h1>
-      <p class="sub">Enter the email and password from your welcome message to access your program, weekly logs and support.</p>
+      <p class="sub">Enter the email you used at checkout and the password you set after payment.</p>
 
       <?php if ($error): ?><div class="alert error"><?= e($error) ?></div><?php endif; ?>
 
       <form method="post" class="form" autocomplete="on">
         <?= csrf_input() ?>
-        <label>Email or username
-          <input type="text" name="email" required autofocus value="<?= e($_POST['email'] ?? '') ?>" autocomplete="username" />
+        <label>Email
+          <input type="email" name="email" required autofocus value="<?= e($_POST['email'] ?? '') ?>" autocomplete="email" />
         </label>
         <label>Password
           <input type="password" name="password" required />

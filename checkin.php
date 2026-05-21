@@ -10,6 +10,21 @@ unset($_SESSION['flash']);
 $weekNumber  = member_week_number($me);
 $weeklyNotes = db_all('SELECT * FROM weekly_notes WHERE lead_id = ? ORDER BY week_number DESC, created_at DESC', [$me['id']]);
 
+// Inline coach comments per weekly check-in.
+$ids = array_column($weeklyNotes, 'id');
+$commentsByWeek = [];
+$repliesByParent = [];
+if ($ids) {
+    $in = implode(',', array_fill(0, count($ids), '?'));
+    $cs = db_all('SELECT * FROM coach_notes WHERE lead_id = ? AND is_private = 0 AND target_type = "weekly_note" AND target_id IN (' . $in . ') ORDER BY created_at ASC',
+        array_merge([$me['id']], $ids));
+    foreach ($cs as $c) {
+        if ($c['parent_id']) $repliesByParent[(int)$c['parent_id']][] = $c;
+        else $commentsByWeek[(int)$c['target_id']][] = $c;
+    }
+}
+$csrf = csrf_input();
+
 $pageTitle = 'Weekly check-in — DiaFitus';
 $bodyClass = 'dashboard premium member-tab';
 $activeTab = 'checkin';
@@ -81,6 +96,34 @@ require __DIR__ . '/includes/member_sidebar.php';
             <?php if ($w['wins']):      ?><p><strong>Wins.</strong> <?= nl2br(e($w['wins'])) ?></p><?php endif; ?>
             <?php if ($w['struggles']): ?><p><strong>Struggles.</strong> <?= nl2br(e($w['struggles'])) ?></p><?php endif; ?>
             <?php if ($w['content']):   ?><p class="muted"><?= nl2br(e($w['content'])) ?></p><?php endif; ?>
+            <?php $cmts = $commentsByWeek[$w['id']] ?? []; if ($cmts): ?>
+              <div class="inline-comments">
+                <?php foreach ($cmts as $c):
+                  $replies = $repliesByParent[$c['id']] ?? [];
+                ?>
+                  <div class="coach-bubble <?= e($c['kind']) ?> from-coach mini">
+                    <header>
+                      <span class="kind-tag">Coach</span>
+                      <small><?= e(date('M j, g:ia', strtotime($c['created_at']))) ?></small>
+                    </header>
+                    <p><?= nl2br(e($c['body'])) ?></p>
+                    <?php foreach ($replies as $r): ?>
+                      <div class="reply <?= $r['from_member'] ? 'from-member' : 'from-coach' ?>">
+                        <header><strong><?= $r['from_member'] ? 'You' : 'Coach' ?></strong><small><?= e(date('M j, g:ia', strtotime($r['created_at']))) ?></small></header>
+                        <p><?= nl2br(e($r['body'])) ?></p>
+                      </div>
+                    <?php endforeach; ?>
+                    <form method="post" action="/reply_note" class="reply-form">
+                      <?= $csrf ?>
+                      <input type="hidden" name="parent_id" value="<?= (int)$c['id'] ?>" />
+                      <input type="hidden" name="redirect"  value="/checkin" />
+                      <input type="text" name="body" placeholder="Reply…" maxlength="2000" required />
+                      <button class="btn btn-ghost btn-sm">Reply</button>
+                    </form>
+                  </div>
+                <?php endforeach; ?>
+              </div>
+            <?php endif; ?>
           </div>
         </article>
       <?php endforeach; ?>

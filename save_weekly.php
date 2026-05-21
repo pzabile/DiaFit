@@ -31,5 +31,22 @@ db_insert(
     [$me['id'], $week, $content, $wins, $struggles, $avgGlucose, $weightKg, $energyRating]
 );
 
+// Ping the owner so they can review and reply.
+require_once __DIR__ . '/includes/telegram.php';
+try {
+    $name = $me['first_name'] ?: $me['email'];
+    tg_send_message(
+        '<b>🗓️ Weekly check-in</b>' . "\n" .
+        '<b>From:</b> ' . htmlspecialchars($name) . ' (' . htmlspecialchars($me['email']) . ")\n" .
+        '<b>Week:</b> ' . (int) $week . "\n" .
+        ($avgGlucose   !== null ? '<b>Avg glucose:</b> ' . (int) $avgGlucose . " mg/dL\n" : '') .
+        ($weightKg     !== null ? '<b>Weight:</b> '  . $weightKg . " kg\n" : '') .
+        ($energyRating !== null ? '<b>Energy:</b> '  . (int) $energyRating . "/10\n" : '') .
+        ($wins      !== '' ? "\n<b>Wins.</b> "      . htmlspecialchars(mb_strimwidth($wins, 0, 300, '…')) : '') .
+        ($struggles !== '' ? "\n<b>Struggles.</b> " . htmlspecialchars(mb_strimwidth($struggles, 0, 300, '…')) : '') .
+        "\n\nOpen: " . rtrim(cfg('site_url'), '/') . '/admin/member?id=' . (int) $me['id']
+    );
+} catch (Throwable $ex) { error_log('weekly tg: ' . $ex->getMessage()); }
+
 $_SESSION['flash'] = "Week {$week} check-in saved. Your coach will review it.";
 header('Location: /checkin');

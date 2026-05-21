@@ -65,10 +65,11 @@ p  { margin: 0 0 1em; color: var(--ink-soft); }
 .brand { display: flex; align-items: center; gap: .55rem; }
 .brand-name { font-weight: 700; letter-spacing: -.02em; font-size: 1.15rem; }
 .logo-dot {
-  width: 14px; height: 14px; border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #34d399, var(--accent) 60%, var(--accent-2));
-  box-shadow: 0 0 0 4px var(--accent-soft);
+  width: 32px; height: 32px;
+  background: url('/assets/logo/logo-mark.svg') center/contain no-repeat;
+  flex-shrink: 0;
 }
+.brand-name { display: inline-block; }
 .sub-tag { color: var(--muted); font-size: .75rem; margin-left: .25rem; }
 
 /* ---------- LANDING HERO ---------- */
@@ -1778,3 +1779,185 @@ body.dashboard.premium .card.big {
 
 /* Big chart on /progress */
 .bigchart { width: 100%; height: auto; display: block; margin-top: 1rem; }
+
+/* ============================================================ */
+/*  Brand mark in nav contexts — make it readable next to text   */
+/* ============================================================ */
+.nav .logo-dot, .nav.slim .logo-dot,
+.side .logo-dot,
+.mobile-top .logo-dot,
+.lm-footer .logo-dot {
+  width: 36px; height: 36px;
+  box-shadow: none;
+}
+.admin-side .logo-dot { width: 32px; height: 32px; }
+
+/* ============================================================ */
+/*  Threaded notes & replies                                     */
+/* ============================================================ */
+.coach-bubble.from-member {
+  background: #eff4ff;
+  border-left-color: #2563eb;
+}
+.coach-bubble.from-member .kind-tag {
+  background: #2563eb; color: #fff;
+}
+.coach-bubble header {
+  display: flex; align-items: center; gap: .55rem; flex-wrap: wrap;
+  margin-bottom: .35rem;
+}
+.coach-bubble .inline-del {
+  margin-left: auto;
+  display: inline-flex;
+}
+.del-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: .85rem;
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s ease, color .15s ease;
+}
+.del-btn:hover { background: #fde2de; color: #a3261c; border-color: #f3b6ad; }
+
+.reply-thread {
+  margin-top: .65rem;
+  padding-left: 1rem;
+  border-left: 2px solid rgba(15,26,20,.08);
+  display: flex; flex-direction: column; gap: .5rem;
+}
+.reply {
+  background: #fff;
+  border-radius: 10px;
+  padding: .65rem .85rem;
+  border: 1px solid var(--line);
+}
+.reply.from-member { background: #eff4ff; border-color: #c7d8ff; }
+.reply header {
+  display: flex; align-items: center; gap: .5rem;
+  margin-bottom: .25rem;
+}
+.reply header strong { font-size: .8rem; }
+.reply header small  { color: var(--muted); font-size: .7rem; margin-left: auto; }
+.reply p { margin: 0; font-size: .9rem; }
+
+.reply-form {
+  display: flex; gap: .5rem;
+  margin-top: .65rem;
+}
+.reply-form input[type="text"] {
+  flex: 1;
+  padding: .55rem .85rem;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  font-size: .9rem;
+  background: #fff;
+  outline: none;
+}
+.reply-form input[type="text"]:focus { border-color: var(--accent); }
+.btn-sm { padding: .5rem 1rem; font-size: .85rem; }
+
+/* Admin-side check-in cards with inline comments */
+.checkin-card {
+  background: var(--bg-soft);
+  border-radius: 14px;
+  padding: 1rem 1.15rem;
+  margin-bottom: .9rem;
+}
+.checkin-card.small { padding: .85rem 1rem; }
+.checkin-card header {
+  display: flex; gap: .6rem; align-items: center; flex-wrap: wrap;
+  margin-bottom: .5rem;
+}
+.checkin-card header strong { font-size: 1rem; }
+.checkin-card header small  { color: var(--muted); font-size: .8rem; }
+.checkin-chips { display: flex; gap: .4rem; flex-wrap: wrap; margin-left: auto; }
+.checkin-card p { margin: .25rem 0; font-size: .92rem; }
+
+.checkin-comments, .inline-comments {
+  margin-top: .85rem;
+  padding-top: .65rem;
+  border-top: 1px solid rgba(15,26,20,.08);
+  display: flex; flex-direction: column; gap: .55rem;
+}
+.coach-bubble.mini { padding: .65rem .85rem; }
+.coach-bubble.mini p { font-size: .9rem; }
+
+.comment-form {
+  display: flex; gap: .5rem;
+  margin-top: .65rem;
+}
+.comment-form input[type="text"] {
+  flex: 1;
+  padding: .55rem .85rem;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  font-size: .9rem;
+  background: #fff;
+  outline: none;
+}
+.comment-form input[type="text"]:focus { border-color: var(--accent); }
+
+/* Private admin notes (timeline) */
+.private-notes {
+  display: flex; flex-direction: column; gap: .65rem;
+  margin-top: 1rem;
+}
+.private-note {
+  background: #fff5e5;
+  border-left: 4px solid #f0a830;
+  border-radius: 12px;
+  padding: .85rem 1.1rem;
+}
+.private-note header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: .35rem;
+}
+.private-note small { color: #a3530a; font-size: .8rem; font-weight: 600; }
+.private-note p { margin: 0; font-size: .95rem; }
+
+/* Activity feed on /admin/ */
+.activity-feed {
+  display: flex; flex-direction: column;
+  margin-top: 1rem;
+}
+.activity-row {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: .85rem;
+  padding: .75rem .85rem;
+  border-radius: 12px;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  transition: background .15s ease;
+}
+.activity-row:hover { background: var(--bg-soft); }
+.activity-row:last-child { border-bottom: none; }
+.a-icon { font-size: 1.3rem; }
+.a-body { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.a-body strong { font-size: .92rem; }
+.a-body span  { color: var(--ink-soft); font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.activity-row small { color: var(--muted); font-size: .75rem; white-space: nowrap; }
+
+/* Improved logs UX — collapsed form by default on mobile */
+.checkin-form-card details { padding: 0; }
+.checkin-form-card details > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex; align-items: center; gap: .55rem; flex-wrap: wrap;
+  font-size: 1rem;
+}
+.checkin-form-card details > summary::-webkit-details-marker { display: none; }
+.checkin-form-card details[open] > summary { margin-bottom: 1rem; }
+.checkin-form-card details > summary::after {
+  content: '▾';
+  margin-left: auto;
+  color: var(--muted);
+  transition: transform .2s ease;
+}
+.checkin-form-card details[open] > summary::after { transform: rotate(180deg); }

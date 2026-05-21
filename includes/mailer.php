@@ -61,6 +61,43 @@ function password_reset_email_html($firstName, $resetUrl) {
 HTML;
 }
 
+function account_setup_email_html($firstName, $setupUrl) {
+    $brand   = cfg('brand_name');
+    $support = cfg('support_email');
+    $fn      = htmlspecialchars($firstName ?: 'there', ENT_QUOTES, 'UTF-8');
+    $brandE  = htmlspecialchars($brand, ENT_QUOTES, 'UTF-8');
+    $urlE    = htmlspecialchars($setupUrl, ENT_QUOTES, 'UTF-8');
+    $sup     = htmlspecialchars($support, ENT_QUOTES, 'UTF-8');
+    $price   = (int)cfg('price_today');
+    return <<<HTML
+<!doctype html>
+<html><body style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f7f5f0;margin:0;padding:24px;color:#0f1a14;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:16px;padding:32px;border:1px solid #e3e0d6;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <img src="https://diafitus.com/assets/logo/logo-mark.svg" width="64" height="64" alt="{$brandE}" style="display:inline-block;" />
+      <h1 style="font-size:22px;margin:12px 0 4px;">Welcome to {$brandE}, {$fn} 👋</h1>
+    </div>
+    <p style="line-height:1.55;color:#4a5651;">Your payment of <strong>\${$price}/month</strong> went through and your membership is active. To finish setting up your account and access your dashboard, click below to create your password.</p>
+    <p style="text-align:center;margin:28px 0;">
+      <a href="{$urlE}" style="background:#0f1a14;color:#fff;padding:16px 28px;border-radius:999px;text-decoration:none;font-weight:700;display:inline-block;">Create my account →</a>
+    </p>
+    <p style="font-size:13px;color:#8a8f8b;line-height:1.55;text-align:center;">This link expires in 7 days. If the button doesn't work, paste this into your browser:<br><span style="word-break:break-all;color:#0d7d4f;">{$urlE}</span></p>
+    <h2 style="font-size:16px;margin:28px 0 8px;">What happens next</h2>
+    <ul style="line-height:1.7;color:#4a5651;padding-left:20px;">
+      <li>Our team is reviewing your assessment <strong>right now</strong>.</li>
+      <li>Within <strong>24 hours</strong> we'll upload your personalized 12-week program and nutrition guide to your dashboard.</li>
+      <li>You'll have 24/7 access to message us with anything.</li>
+    </ul>
+    <hr style="border:none;border-top:1px solid #e3e0d6;margin:24px 0;" />
+    <p style="font-size:12px;color:#8a8f8b;line-height:1.6;text-align:center;">
+      Questions: <a href="mailto:{$sup}" style="color:#0d7d4f;">{$sup}</a><br>
+      {$brandE} provides general fitness and lifestyle suggestions only. It is not medical advice. Always consult your physician.
+    </p>
+  </div>
+</body></html>
+HTML;
+}
+
 function welcome_email_html($firstName, $email = '', $password = '') {
     $brand   = cfg('brand_name');
     $support = cfg('support_email');

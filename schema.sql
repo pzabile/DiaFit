@@ -79,14 +79,21 @@ CREATE TABLE IF NOT EXISTS `meal_photos` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `coach_notes` (
-  `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `lead_id`    BIGINT UNSIGNED NOT NULL,
+  `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `lead_id`     BIGINT UNSIGNED NOT NULL,
   `week_number` SMALLINT UNSIGNED NULL,
-  `body`       LONGTEXT        NOT NULL,
-  `kind`       VARCHAR(40)     NOT NULL DEFAULT 'note',
-  `created_at` DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `body`        LONGTEXT        NOT NULL,
+  `kind`        VARCHAR(40)     NOT NULL DEFAULT 'note',
+  `is_private`  TINYINT(1)      NOT NULL DEFAULT 0,
+  `from_member` TINYINT(1)      NOT NULL DEFAULT 0,
+  `target_type` VARCHAR(20)     NULL,
+  `target_id`   BIGINT UNSIGNED NULL,
+  `parent_id`   BIGINT UNSIGNED NULL,
+  `created_at`  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_lead` (`lead_id`),
+  KEY `idx_target` (`target_type`, `target_id`),
+  KEY `idx_parent` (`parent_id`),
   CONSTRAINT `fk_cnote_lead` FOREIGN KEY (`lead_id`) REFERENCES `leads`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

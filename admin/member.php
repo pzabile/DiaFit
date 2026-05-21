@@ -11,23 +11,8 @@ if (!$lead) { http_response_code(404); echo 'Not found'; exit; }
 
 $flash = $_SESSION['flash'] ?? ''; unset($_SESSION['flash']);
 
-// --- Handle POST actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
-    $action = $_POST['action'] ?? '';
-    if ($action === 'note') {
-        $body = trim($_POST['body'] ?? '');
-        $kind = substr(trim($_POST['kind'] ?? 'note'), 0, 40);
-        $week = ($_POST['week'] ?? '') !== '' ? (int) $_POST['week'] : null;
-        if ($body !== '') {
-            db_insert('INSERT INTO coach_notes (lead_id, week_number, body, kind) VALUES (?, ?, ?, ?)',
-                [$id, $week, $body, $kind ?: 'note']);
-            $_SESSION['flash'] = 'Note added.';
-        }
-    } elseif ($action === 'admin_notes') {
-        db_exec('UPDATE leads SET admin_notes = ?, updated_at = NOW() WHERE id = ?',
-            [trim($_POST['admin_notes'] ?? ''), $id]);
-        $_SESSION['flash'] = 'Admin notes saved.';
-    } elseif ($action === 'program') {
+    if (($_POST['action'] ?? '') === 'program') {
         try {
             $path = save_admin_program_pdf($_FILES['program'] ?? [], $id);
             db_exec('UPDATE leads SET program_path = ?, updated_at = NOW() WHERE id = ?', [$path, $id]);
@@ -35,21 +20,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
         } catch (Throwable $ex) {
             $_SESSION['flash'] = 'Upload failed: ' . $ex->getMessage();
         }
+        header('Location: /admin/member?id=' . $id); exit;
     }
-    header('Location: /admin/member?id=' . $id); exit;
 }
 
-$answers = json_decode($lead['answers_json'] ?? '{}', true) ?: [];
-$weeks   = db_all('SELECT * FROM weekly_notes WHERE lead_id = ? ORDER BY week_number DESC, created_at DESC', [$id]);
-$logs    = db_all('SELECT * FROM daily_logs WHERE lead_id = ? ORDER BY log_date DESC LIMIT 60', [$id]);
-$meals   = db_all('SELECT * FROM meal_photos WHERE lead_id = ? ORDER BY created_at DESC LIMIT 40', [$id]);
-$notes   = db_all('SELECT * FROM coach_notes WHERE lead_id = ? ORDER BY created_at DESC', [$id]);
+$answers       = json_decode($lead['answers_json'] ?? '{}', true) ?: [];
+$weeks         = db_all('SELECT * FROM weekly_notes WHERE lead_id = ? ORDER BY week_number DESC, created_at DESC', [$id]);
+$logs          = db_all('SELECT * FROM daily_logs WHERE lead_id = ? ORDER BY log_date DESC, created_at DESC LIMIT 90', [$id]);
+$meals         = db_all('SELECT * FROM meal_photos WHERE lead_id = ? ORDER BY created_at DESC LIMIT 60', [$id]);
+$publicNotes   = db_all('SELECT * FROM coach_notes WHERE lead_id = ? AND is_private = 0 ORDER BY created_at ASC', [$id]);
+$privateNotes  = db_all('SELECT * FROM coach_notes WHERE lead_id = ? AND is_private = 1 ORDER BY created_at DESC', [$id]);
+
+// Group public notes by target so we can render comments inline.
+$generalNotes = [];
+$targetIndex  = [];
+$replyIndex   = [];
+foreach ($publicNotes as $n) {
+    if ($n['parent_id']) { $replyIndex[(int)$n['parent_id']][] = $n; continue; }
+    if ($n['target_type'] && $n['target_id']) {
+        $targetIndex[$n['target_type']][(int)$n['target_id']][] = $n;
+    } else {
+        $generalNotes[] = $n;
+    }
+}
+
+function render_note_card($n, $replies, $csrf) {
+    $cls = $n['from_member'] ? 'from-member' : 'from-coach';
+    $kindLabel = ucfirst(str_replace('_', ' ', $n['kind']));
+    ?>
+    <article class="coach-bubble <?= e($n['kind']) ?> <?= $cls ?>">
+      <header>
+        <span class="kind-tag <?= e($n['kind']) ?>"><?= e($n['from_member'] ? 'Member' : $kindLabel) ?></span>
+        <small>
+          <?= e(date('M j, Y · g:ia', strtotime($n['created_at']))) ?>
+          <?= $n['week_number'] ? ' · Week ' . (int)$n['week_number'] : '' ?>
+        </small>
+        <form method="post" action="/admin/note_action" class="inline-del" onsubmit="return confirm('Delete this note and its replies?');">
+          <?= $csrf ?>
+          <input type="hidden" name="action" value="delete" />
+          <input type="hidden" name="lead_id" value="<?= (int)$n['lead_id'] ?>" />
+          <input type="hidden" name="note_id" value="<?= (int)$n['id'] ?>" />
+          <button type="submit" class="del-btn" title="Delete">✕</button>
+        </form>
+      </header>
+      <p><?= nl2br(e($n['body'])) ?></p>
+      <?php if ($replies): ?>
+        <div class="reply-thread">
+          <?php foreach ($replies as $r):
+            $rcls = $r['from_member'] ? 'from-member' : 'from-coach';
+          ?>
+            <div class="reply <?= $rcls ?>">
+              <header>
+                <strong><?= $r['from_member'] ? 'Member' : 'Coach' ?></strong>
+                <small><?= e(date('M j, g:ia', strtotime($r['created_at']))) ?></small>
+                <form method="post" action="/admin/note_action" class="inline-del" onsubmit="return confirm('Delete this reply?');">
+                  <?= $csrf ?>
+                  <input type="hidden" name="action" value="delete" />
+                  <input type="hidden" name="lead_id" value="<?= (int)$r['lead_id'] ?>" />
+                  <input type="hidden" name="note_id" value="<?= (int)$r['id'] ?>" />
+                  <button type="submit" class="del-btn" title="Delete">✕</button>
+                </form>
+              </header>
+              <p><?= nl2br(e($r['body'])) ?></p>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+      <form method="post" action="/admin/note_action" class="reply-form">
+        <?= $csrf ?>
+        <input type="hidden" name="action"   value="reply" />
+        <input type="hidden" name="lead_id"  value="<?= (int)$n['lead_id'] ?>" />
+        <input type="hidden" name="parent_id" value="<?= (int)$n['id'] ?>" />
+        <input type="text" name="body" placeholder="Reply to this thread…" maxlength="2000" required />
+        <button type="submit" class="btn btn-ghost btn-sm">Reply</button>
+      </form>
+    </article>
+    <?php
+}
 
 $pageTitle = 'Member · ' . ($lead['first_name'] ?: $lead['email']);
 $bodyClass = 'admin-page';
 $activeTab = $lead['paid'] ? 'members' : 'leads';
 require __DIR__ . '/../includes/header.php';
 require __DIR__ . '/_layout.php';
+$csrf = csrf_input();
 ?>
   <main class="admin-main">
     <?php if ($flash): ?><div class="alert success"><?= e($flash) ?></div><?php endif; ?>
@@ -58,7 +112,12 @@ require __DIR__ . '/_layout.php';
       <div>
         <p class="kicker"><?= $lead['paid'] ? 'Paid member' : 'Lead (no payment yet)' ?></p>
         <h1><?= e($lead['first_name'] ?: '—') ?> — <?= e($lead['email']) ?></h1>
-        <p class="muted">Phone <?= e($lead['phone'] ?: '—') ?> · DOB <?= e($lead['dob'] ?: '—') ?> · Started <?= e($lead['started_at'] ?: '—') ?> · Last login <?= e($lead['last_login_at'] ?: '—') ?></p>
+        <p class="muted">
+          Phone <?= e($lead['phone'] ?: '—') ?> ·
+          DOB <?= e($lead['dob'] ?: '—') ?> ·
+          Started <?= e($lead['started_at'] ?: '—') ?> ·
+          Last login <?= e($lead['last_login_at'] ?: '—') ?>
+        </p>
       </div>
       <a href="/admin/<?= $lead['paid'] ? 'members' : 'leads' ?>" class="btn btn-ghost">← Back</a>
     </header>
@@ -78,28 +137,31 @@ require __DIR__ . '/_layout.php';
 
     <?php if ($lead['paid']): ?>
     <section class="card big">
-      <h2>Upload personalized program (PDF)</h2>
+      <h2>Personalized program</h2>
       <?php if ($lead['program_path']): ?>
         <p>Current program: <a href="<?= e($lead['program_path']) ?>" target="_blank">view PDF</a></p>
       <?php else: ?>
         <p class="muted">No program uploaded yet.</p>
       <?php endif; ?>
       <form method="post" enctype="multipart/form-data" class="form inline-form">
-        <?= csrf_input() ?>
+        <?= $csrf ?>
         <input type="hidden" name="action" value="program" />
         <input type="file" name="program" accept="application/pdf" required />
-        <button class="btn btn-primary">Upload program</button>
+        <button class="btn btn-primary">Upload program PDF</button>
       </form>
     </section>
 
+    <!-- ========== Public coach notes ========== -->
     <section class="card big">
-      <h2>Leave a note for this member</h2>
-      <p class="muted">Members see these in their dashboard. Use them for motivation, weekly feedback or changes to their plan.</p>
-      <form method="post" class="form">
-        <?= csrf_input() ?>
-        <input type="hidden" name="action" value="note" />
+      <h2>Conversation with this member</h2>
+      <p class="muted">These notes are visible to the member. They can reply.</p>
+
+      <form method="post" action="/admin/note_action" class="form premium-form">
+        <?= $csrf ?>
+        <input type="hidden" name="action"  value="add_public" />
+        <input type="hidden" name="lead_id" value="<?= $id ?>" />
         <div class="grid-2">
-          <label>Type
+          <label>Kind
             <select name="kind">
               <option value="note">General note</option>
               <option value="motivation">Motivation</option>
@@ -113,46 +175,99 @@ require __DIR__ . '/_layout.php';
         <button class="btn btn-primary">Post note</button>
       </form>
 
-      <?php if ($notes): ?>
-        <h3 style="margin-top:1.5rem">Note history</h3>
+      <?php if ($generalNotes): ?>
+        <h3 style="margin-top:1.5rem">Thread</h3>
         <div class="coach-stream admin">
-          <?php foreach ($notes as $n): ?>
-            <div class="coach-bubble <?= e($n['kind']) ?>">
-              <small><?= e($n['created_at']) ?><?= $n['week_number'] ? ' · week ' . (int)$n['week_number'] : '' ?> · <?= e($n['kind']) ?></small>
-              <p><?= nl2br(e($n['body'])) ?></p>
-            </div>
-          <?php endforeach; ?>
+          <?php foreach ($generalNotes as $n): render_note_card($n, $replyIndex[$n['id']] ?? [], $csrf); endforeach; ?>
         </div>
+      <?php else: ?>
+        <p class="muted" style="margin-top:1rem">No notes yet.</p>
       <?php endif; ?>
     </section>
     <?php endif; ?>
 
-    <section class="card big">
-      <h2>Private admin notes</h2>
-      <p class="muted">Only visible to you. Members never see this.</p>
-      <form method="post" class="form">
-        <?= csrf_input() ?>
-        <input type="hidden" name="action" value="admin_notes" />
-        <textarea name="admin_notes" rows="4"><?= e($lead['admin_notes']) ?></textarea>
-        <button class="btn btn-ghost">Save admin notes</button>
-      </form>
-    </section>
-
+    <!-- ========== Weekly check-ins (with inline comments) ========== -->
     <?php if ($weeks): ?>
     <section class="card big">
       <h2>Weekly check-ins from <?= e($lead['first_name'] ?: 'member') ?></h2>
       <?php foreach ($weeks as $w): ?>
-        <details class="week-card" open>
-          <summary>
-            Week <?= (int) $w['week_number'] ?> — <?= e(substr($w['created_at'], 0, 10)) ?>
-            <?php if ($w['avg_glucose']): ?><span class="chip">glucose <?= (int)$w['avg_glucose'] ?></span><?php endif; ?>
-            <?php if ($w['weight_kg']):   ?><span class="chip"><?= e($w['weight_kg']) ?> kg</span><?php endif; ?>
-            <?php if ($w['energy_rating'] !== null): ?><span class="chip">energy <?= (int)$w['energy_rating'] ?>/10</span><?php endif; ?>
-          </summary>
-          <?php if ($w['wins']):      ?><p><strong>Wins:</strong> <?= nl2br(e($w['wins'])) ?></p><?php endif; ?>
-          <?php if ($w['struggles']): ?><p><strong>Struggles:</strong> <?= nl2br(e($w['struggles'])) ?></p><?php endif; ?>
-          <?php if ($w['content']):   ?><p><?= nl2br(e($w['content'])) ?></p><?php endif; ?>
-        </details>
+        <?php $wLb = $w['weight_kg'] ? round($w['weight_kg'] * 2.20462, 1) : null; ?>
+        <article class="checkin-card">
+          <header>
+            <strong>Week <?= (int) $w['week_number'] ?></strong>
+            <small><?= e(date('M j, Y · g:ia', strtotime($w['created_at']))) ?></small>
+            <span class="checkin-chips">
+              <?php if ($w['avg_glucose']):    ?><span class="chip">🩸 <?= (int)$w['avg_glucose'] ?> mg/dL</span><?php endif; ?>
+              <?php if ($wLb):                 ?><span class="chip">⚖️ <?= e($wLb) ?> lbs</span><?php endif; ?>
+              <?php if ($w['energy_rating'] !== null): ?><span class="chip">⚡ <?= (int)$w['energy_rating'] ?>/10</span><?php endif; ?>
+            </span>
+          </header>
+          <?php if ($w['wins']):      ?><p><strong>Wins.</strong> <?= nl2br(e($w['wins'])) ?></p><?php endif; ?>
+          <?php if ($w['struggles']): ?><p><strong>Struggles.</strong> <?= nl2br(e($w['struggles'])) ?></p><?php endif; ?>
+          <?php if ($w['content']):   ?><p class="muted"><?= nl2br(e($w['content'])) ?></p><?php endif; ?>
+
+          <?php
+            $comments = $targetIndex['weekly_note'][$w['id']] ?? [];
+            if ($comments):
+          ?>
+            <div class="checkin-comments">
+              <?php foreach ($comments as $c): render_note_card($c, $replyIndex[$c['id']] ?? [], $csrf); endforeach; ?>
+            </div>
+          <?php endif; ?>
+
+          <form method="post" action="/admin/note_action" class="comment-form">
+            <?= $csrf ?>
+            <input type="hidden" name="action"      value="comment_target" />
+            <input type="hidden" name="lead_id"     value="<?= $id ?>" />
+            <input type="hidden" name="target_type" value="weekly_note" />
+            <input type="hidden" name="target_id"   value="<?= (int)$w['id'] ?>" />
+            <input type="text" name="body" placeholder="Comment on this week's check-in (member will see)…" maxlength="2000" required />
+            <button type="submit" class="btn btn-ghost btn-sm">Comment</button>
+          </form>
+        </article>
+      <?php endforeach; ?>
+    </section>
+    <?php endif; ?>
+
+    <!-- ========== Daily logs (with inline comments) ========== -->
+    <?php if ($logs): ?>
+    <section class="card big">
+      <h2>Daily check-ins</h2>
+      <?php foreach ($logs as $l): ?>
+        <article class="checkin-card small">
+          <header>
+            <strong><?= e($l['log_date']) ?></strong>
+            <small><?= e(date('g:ia', strtotime($l['created_at']))) ?></small>
+            <span class="checkin-chips">
+              <span class="chip"><?= e($l['feeling']) ?></span>
+              <span class="chip">Trained: <?= e($l['trained']) ?><?= $l['train_where'] ? ' · ' . e($l['train_where']) : '' ?></span>
+              <?php if ($l['bs_before'] || $l['bs_after']): ?>
+                <span class="chip">Glucose <?= e($l['bs_before'] ?: '—') ?> → <?= e($l['bs_after'] ?: '—') ?></span>
+              <?php endif; ?>
+              <span class="chip">Soreness <?= (int)$l['soreness'] ?>/10</span>
+            </span>
+          </header>
+          <?php if ($l['workout']): ?><p><strong>Workout.</strong> <?= nl2br(e($l['workout'])) ?></p><?php endif; ?>
+          <?php if ($l['food_before']): ?><p><strong>Before.</strong> <?= e($l['food_before']) ?></p><?php endif; ?>
+          <?php if ($l['food_after']):  ?><p><strong>After.</strong>  <?= e($l['food_after']) ?></p><?php endif; ?>
+          <?php if ($l['notes']):  ?><p class="muted"><?= nl2br(e($l['notes'])) ?></p><?php endif; ?>
+
+          <?php $comments = $targetIndex['daily_log'][$l['id']] ?? []; if ($comments): ?>
+            <div class="checkin-comments">
+              <?php foreach ($comments as $c): render_note_card($c, $replyIndex[$c['id']] ?? [], $csrf); endforeach; ?>
+            </div>
+          <?php endif; ?>
+
+          <form method="post" action="/admin/note_action" class="comment-form">
+            <?= $csrf ?>
+            <input type="hidden" name="action"      value="comment_target" />
+            <input type="hidden" name="lead_id"     value="<?= $id ?>" />
+            <input type="hidden" name="target_type" value="daily_log" />
+            <input type="hidden" name="target_id"   value="<?= (int)$l['id'] ?>" />
+            <input type="text" name="body" placeholder="Comment on this check-in (member will see)…" maxlength="2000" required />
+            <button type="submit" class="btn btn-ghost btn-sm">Comment</button>
+          </form>
+        </article>
       <?php endforeach; ?>
     </section>
     <?php endif; ?>
@@ -175,28 +290,39 @@ require __DIR__ . '/_layout.php';
     </section>
     <?php endif; ?>
 
-    <?php if ($logs): ?>
+    <!-- ========== Private admin notes ========== -->
     <section class="card big">
-      <h2>Daily logs</h2>
-      <table class="data-table">
-        <thead><tr><th>Date</th><th>Feeling</th><th>Trained</th><th>Glucose</th><th>Soreness</th><th>Notes</th></tr></thead>
-        <tbody>
-          <?php foreach ($logs as $l): ?>
-            <tr>
-              <td><?= e($l['log_date']) ?></td>
-              <td><?= e($l['feeling']) ?></td>
-              <td><?= e($l['trained']) ?> <?= e($l['train_where'] ? '('.$l['train_where'].')' : '') ?></td>
-              <td><?= e($l['bs_before'] ?: '—') ?> → <?= e($l['bs_after'] ?: '—') ?> · <?= e($l['bs_trend']) ?></td>
-              <td><?= e($l['soreness']) ?>/10</td>
-              <td>
-                <?php if ($l['workout']): ?><div><?= e(mb_strimwidth($l['workout'], 0, 120, '…')) ?></div><?php endif; ?>
-                <?php if ($l['notes']):   ?><div class="muted"><?= e(mb_strimwidth($l['notes'], 0, 120, '…')) ?></div><?php endif; ?>
-              </td>
-            </tr>
+      <h2>Private admin notes</h2>
+      <p class="muted">Only visible to you. Members never see these.</p>
+      <form method="post" action="/admin/note_action" class="form premium-form">
+        <?= $csrf ?>
+        <input type="hidden" name="action"  value="add_private" />
+        <input type="hidden" name="lead_id" value="<?= $id ?>" />
+        <label>New private note<textarea name="body" required placeholder="Add a private note for yourself…"></textarea></label>
+        <button class="btn btn-ghost">Add private note</button>
+      </form>
+
+      <?php if ($privateNotes): ?>
+        <div class="private-notes">
+          <?php foreach ($privateNotes as $n): ?>
+            <div class="private-note">
+              <header>
+                <small><?= e(date('M j, Y · g:ia', strtotime($n['created_at']))) ?></small>
+                <form method="post" action="/admin/note_action" class="inline-del" onsubmit="return confirm('Delete this private note?');">
+                  <?= $csrf ?>
+                  <input type="hidden" name="action" value="delete" />
+                  <input type="hidden" name="lead_id" value="<?= $id ?>" />
+                  <input type="hidden" name="note_id" value="<?= (int)$n['id'] ?>" />
+                  <button type="submit" class="del-btn" title="Delete">✕</button>
+                </form>
+              </header>
+              <p><?= nl2br(e($n['body'])) ?></p>
+            </div>
           <?php endforeach; ?>
-        </tbody>
-      </table>
+        </div>
+      <?php else: ?>
+        <p class="muted" style="margin-top:.5rem">No private notes yet.</p>
+      <?php endif; ?>
     </section>
-    <?php endif; ?>
   </main>
 <?php require __DIR__ . '/../includes/footer.php'; ?>

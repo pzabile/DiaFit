@@ -40,13 +40,6 @@ function lead_upsert_from_assessment($email, $phone, $firstName, array $answers)
 function lead_mark_paid($email, $stripeCustomer, $stripeSub, $firstName = null, $phone = null) {
     $email = strtolower(trim($email));
     $lead = lead_find_by_email($email);
-    $plainPassword = null;
-    $hash = null;
-    if (!$lead || empty($lead['password_hash'])) {
-        $plainPassword = generate_password();
-        $hash = password_hash($plainPassword, PASSWORD_BCRYPT);
-    }
-
     if ($lead) {
         db_exec(
             'UPDATE leads SET paid = 1,
@@ -54,32 +47,42 @@ function lead_mark_paid($email, $stripeCustomer, $stripeSub, $firstName = null, 
               stripe_sub      = COALESCE(NULLIF(?, ""), stripe_sub),
               first_name      = COALESCE(NULLIF(?, ""), first_name),
               phone           = COALESCE(NULLIF(?, ""), phone),
-              password_hash   = COALESCE(password_hash, ?),
               started_at      = COALESCE(started_at, CURDATE()),
               updated_at = NOW()
              WHERE id = ?',
-            [$stripeCustomer, $stripeSub, $firstName, $phone, $hash, $lead['id']]
+            [$stripeCustomer, $stripeSub, $firstName, $phone, $lead['id']]
         );
         $id = (int) $lead['id'];
     } else {
         $id = db_insert(
-            'INSERT INTO leads (email, phone, first_name, paid, stripe_customer, stripe_sub, password_hash, started_at)
-             VALUES (?, ?, ?, 1, ?, ?, ?, CURDATE())',
-            [$email, $phone, $firstName, $stripeCustomer, $stripeSub, $hash]
+            'INSERT INTO leads (email, phone, first_name, paid, stripe_customer, stripe_sub, started_at)
+             VALUES (?, ?, ?, 1, ?, ?, CURDATE())',
+            [$email, $phone, $firstName, $stripeCustomer, $stripeSub]
         );
     }
-    return ['id' => $id, 'password' => $plainPassword];
+    return ['id' => $id];
 }
 
-function login_lead($identifier, $password) {
-    $identifier = trim((string) $identifier);
-    $lead = null;
-    if (strpos($identifier, '@') !== false) {
-        $lead = lead_find_by_email($identifier);
-    } else {
-        // Fallback: allow username-style logins (matches first_name exactly).
-        $lead = db_get('SELECT * FROM leads WHERE LOWER(first_name) = LOWER(?) LIMIT 1', [$identifier]);
-    }
+/**
+ * Generate a one-time token the member uses to set their initial password.
+ * Reuses the password_reset columns but with a longer expiry (7 days).
+ * Returns the plain token (only stored in DB as a sha256 hash).
+ */
+function create_account_setup_token($leadId, $hours = 168) {
+    $plain   = bin2hex(random_bytes(32));
+    $hash    = hash('sha256', $plain);
+    $expires = (new DateTime('+' . (int)$hours . ' hours'))->format('Y-m-d H:i:s');
+    db_exec(
+        'UPDATE leads SET password_reset_hash = ?, password_reset_expires = ? WHERE id = ?',
+        [$hash, $expires, (int) $leadId]
+    );
+    return $plain;
+}
+
+function login_lead($email, $password) {
+    $email = trim((string) $email);
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return false;
+    $lead = lead_find_by_email($email);
     if (!$lead || empty($lead['password_hash'])) return false;
     if (!password_verify($password, $lead['password_hash'])) return false;
     $_SESSION['member_id'] = (int) $lead['id'];

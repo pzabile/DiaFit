@@ -23,6 +23,17 @@ try {
         ]
     );
     $_SESSION['flash'] = 'Meal photo uploaded.';
+    require_once __DIR__ . '/includes/telegram.php';
+    try {
+        $name = $me['first_name'] ?: $me['email'];
+        tg_send_message(
+            '<b>🍽️ Meal photo uploaded</b>' . "\n" .
+            '<b>From:</b> ' . htmlspecialchars($name) . " (" . htmlspecialchars($me['email']) . ")\n" .
+            '<b>Meal:</b> ' . htmlspecialchars($_POST['meal_type'] ?? '') . "\n" .
+            '<b>Caption:</b> ' . htmlspecialchars($_POST['caption'] ?? '') . "\n\n" .
+            'Open: ' . rtrim(cfg('site_url'), '/') . '/admin/member?id=' . (int) $me['id']
+        );
+    } catch (Throwable $ex) { error_log('meal tg: ' . $ex->getMessage()); }
 } catch (Throwable $ex) {
     $_SESSION['flash'] = 'Could not upload photo: ' . $ex->getMessage();
 }

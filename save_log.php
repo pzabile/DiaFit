@@ -36,5 +36,20 @@ db_insert(
     ]
 );
 
+require_once __DIR__ . '/includes/telegram.php';
+try {
+    $name = $me['first_name'] ?: $me['email'];
+    tg_send_message(
+        '<b>📓 Daily check-in</b>' . "\n" .
+        '<b>From:</b> ' . htmlspecialchars($name) . " (" . htmlspecialchars($me['email']) . ")\n" .
+        '<b>Date:</b> ' . htmlspecialchars($date) . "\n" .
+        '<b>Felt:</b> ' . htmlspecialchars($_POST['feeling'] ?? '') . ' · ' .
+        '<b>Trained:</b> ' . htmlspecialchars($_POST['trained'] ?? '') . "\n" .
+        ($bsBefore !== null || $bsAfter !== null
+            ? '<b>Glucose:</b> ' . ($bsBefore ?? '—') . ' → ' . ($bsAfter ?? '—') . "\n" : '') .
+        "\nOpen: " . rtrim(cfg('site_url'), '/') . '/admin/member?id=' . (int) $me['id']
+    );
+} catch (Throwable $ex) { error_log('log tg: ' . $ex->getMessage()); }
+
 $_SESSION['flash'] = 'Check-in saved.';
 header('Location: /logs');
