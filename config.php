@@ -10,7 +10,7 @@
 return [
     // Brand --------------------------------------------------------------
     'brand_name'     => 'DiaFitus',
-    'company_name'   => 'Benux Corp',
+    'company_name'   => 'Benux Corp DBA OTR Express Group',
     'company_email'  => 'hello@diafitus.com',
     'support_email'  => 'support@diafitus.com',
     'site_url'       => 'https://diafitus.com',

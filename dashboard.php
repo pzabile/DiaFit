@@ -8,9 +8,11 @@ $me = require_member();
 $flash = $_SESSION['flash'] ?? '';
 unset($_SESSION['flash']);
 
-$weekNumber = member_week_number($me);
-$programLength = 12;
-$weekProgress = min(100, (int) round(($weekNumber / $programLength) * 100));
+$prog          = member_program_info($me);
+$weekNumber    = $prog['current'];
+$programLength = $prog['total'];
+$unitLabel     = $prog['label'];
+$weekProgress  = $prog['pct'];
 
 $weeklyNotes = db_all('SELECT * FROM weekly_notes WHERE lead_id = ? ORDER BY week_number ASC, created_at ASC', [$me['id']]);
 $dailyLogs   = db_all('SELECT * FROM daily_logs   WHERE lead_id = ? ORDER BY created_at DESC LIMIT 5', [$me['id']]);
@@ -63,11 +65,14 @@ require __DIR__ . '/includes/member_sidebar.php';
   <section class="hero-card">
     <div class="hero-text">
       <p class="kicker">Welcome back</p>
-      <h1>Hi <?= e($me['first_name'] ?: 'there') ?> — week <span class="accent"><?= (int) $weekNumber ?></span> of your journey.</h1>
-      <p class="lede">You're <?= $weekProgress ?>% through your <?= $programLength ?>-week program. Keep showing up — your future self is watching.</p>
+      <h1>Hi <?= e($me['first_name'] ?: 'there') ?> — <?= $unitLabel ?> <span class="accent"><?= (int) $weekNumber ?></span> of your journey.</h1>
+      <p class="lede">You're <?= $weekProgress ?>% through your <?= $programLength ?>-<?= $unitLabel ?> program. Keep showing up — your future self is watching.</p>
       <div class="hero-progress">
         <div class="progress-track"><div class="progress-bar" style="width: <?= $weekProgress ?>%"></div></div>
-        <div class="progress-marks"><span>Week 1</span><span>Week <?= $programLength ?></span></div>
+        <div class="progress-marks">
+          <span><?= ucfirst($unitLabel) ?> 1</span>
+          <span><?= ucfirst($unitLabel) ?> <?= $programLength ?></span>
+        </div>
       </div>
     </div>
     <div class="hero-ring">

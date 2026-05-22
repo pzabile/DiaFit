@@ -24,7 +24,8 @@ if ($sessionId) {
             $stripeSub      = $sess['subscription'] ?? '';
 
             if ($email) {
-                $res = lead_mark_paid($email, $stripeCustomer, $stripeSub, $name, $phone);
+                $planDays = (int) ($sess['metadata']['plan_days'] ?? 84);
+                $res = lead_mark_paid($email, $stripeCustomer, $stripeSub, $name, $phone, $planDays);
                 $leadId = $res['id'];
                 $_SESSION['user'] = ['firstName' => $name, 'email' => $email, 'phone' => $phone];
 

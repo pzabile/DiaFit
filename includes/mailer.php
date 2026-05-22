@@ -147,16 +147,25 @@ function welcome_email_html($firstName, $email = '', $password = '') {
       <strong style="font-size:18px;letter-spacing:-.01em;">{$brandE}</strong>
     </div>
     <h1 style="font-size:26px;font-weight:700;margin:0 0 10px;letter-spacing:-.02em;">Welcome to {$brandE}, {$fn}! 👋</h1>
-    <p style="font-size:15px;line-height:1.6;color:#4a5651;margin:0 0 20px;">Your payment went through and your membership is <strong style="color:#16a36a;">active</strong>. Our team is already reviewing your assessment.</p>
+    <p style="font-size:15px;line-height:1.6;color:#4a5651;margin:0 0 20px;">Your payment went through and your membership is <strong style="color:#16a36a;">active</strong>. We are already reviewing your assessment and building your program.</p>
     {$creds}
+
+    <!-- Personal note from the founder -->
+    <div style="background:#f3faf6;border-left:3px solid #16a36a;border-radius:0 12px 12px 0;padding:16px 18px;margin:0 0 24px;">
+      <p style="font-size:14px;line-height:1.7;color:#2d4a3a;margin:0 0 10px;"><strong>A personal note from the founder —</strong></p>
+      <p style="font-size:14px;line-height:1.7;color:#2d4a3a;margin:0 0 10px;">I was diagnosed with diabetes when I was 3 years old. Two very strong antibiotics prescribed by a doctor — and that was the start of a lifelong journey I never asked for.</p>
+      <p style="font-size:14px;line-height:1.7;color:#2d4a3a;margin:0 0 10px;">Through the good, the bad, and the ugly — the low days, the confusion, the moments of doubt — I still find a way to live with a smile and be genuinely happy for this life. And more than anything, I want to help people around me do the same.</p>
+      <p style="font-size:14px;line-height:1.7;color:#2d4a3a;margin:0;">That is exactly why {$brandE} exists. You are not alone in this. I have been where you are, and I built this program because I know what actually works — not just in theory, but in real life, with real blood sugar.</p>
+    </div>
+
     <p style="font-size:15px;line-height:1.6;color:#4a5651;margin:0 0 14px;"><strong>What happens in the next 24 hours:</strong></p>
     <table style="border-collapse:collapse;width:100%;margin:0 0 24px;">
       <tr><td style="padding:7px 0;vertical-align:top;font-size:18px;width:32px;">🩸</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;">Your <strong>blood-sugar-aware workout plan</strong> is uploaded to your private dashboard.</td></tr>
-      <tr><td style="padding:7px 0;vertical-align:top;font-size:18px;">🥗</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;">Your <strong>personalized nutrition guide PDF</strong> — built around your diabetes type — is ready to download.</td></tr>
-      <tr><td style="padding:7px 0;vertical-align:top;font-size:18px;">💬</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;">Your coach sends you a <strong>first message</strong> with your Week 1 focus.</td></tr>
+      <tr><td style="padding:7px 0;vertical-align:top;font-size:18px;">🥗</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;">Your <strong>personalized nutrition guide PDF</strong> — built around your diabetes type and goals — is ready to download.</td></tr>
+      <tr><td style="padding:7px 0;vertical-align:top;font-size:18px;">💬</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;">Your coach sends you a <strong>first message</strong> with your focus for the days ahead.</td></tr>
     </table>
-    <p style="font-size:14px;line-height:1.6;color:#4a5651;margin:0 0 24px;">You have <strong>24/7 access</strong> to message your coach directly from your dashboard — ask anything about glucose, fueling, workouts, or scheduling.</p>
-    <p style="font-size:14px;color:#4a5651;margin:0 0 24px;">Questions? Just reply to this email or reach us at <a href="mailto:{$sup}" style="color:#0d7d4f;">{$sup}</a> — we respond quickly.</p>
+    <p style="font-size:14px;line-height:1.6;color:#4a5651;margin:0 0 24px;">You have <strong>24/7 access</strong> to message your coach from your dashboard — glucose questions, fueling, schedule changes, anything. We respond fast.</p>
+    <p style="font-size:14px;color:#4a5651;margin:0 0 24px;">Questions? Reply directly to this email or write to <a href="mailto:{$sup}" style="color:#0d7d4f;">{$sup}</a>.</p>
     <hr style="border:none;border-top:1px solid #e3e0d6;margin:0 0 16px;" />
     <p style="font-size:12px;color:#8a8f8b;line-height:1.6;margin:0;text-align:center;">
       {$brandE} provides general fitness and lifestyle guidance only. Not medical advice. Always consult your physician — especially with diabetes.

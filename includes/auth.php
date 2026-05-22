@@ -37,8 +37,9 @@ function lead_upsert_from_assessment($email, $phone, $firstName, array $answers)
     );
 }
 
-function lead_mark_paid($email, $stripeCustomer, $stripeSub, $firstName = null, $phone = null) {
-    $email = strtolower(trim($email));
+function lead_mark_paid($email, $stripeCustomer, $stripeSub, $firstName = null, $phone = null, $planDays = 84) {
+    $email    = strtolower(trim($email));
+    $planDays = max(1, (int) $planDays);
     $lead = lead_find_by_email($email);
     if ($lead) {
         db_exec(
@@ -47,17 +48,18 @@ function lead_mark_paid($email, $stripeCustomer, $stripeSub, $firstName = null, 
               stripe_sub      = COALESCE(NULLIF(?, ""), stripe_sub),
               first_name      = COALESCE(NULLIF(?, ""), first_name),
               phone           = COALESCE(NULLIF(?, ""), phone),
+              plan_days       = ?,
               started_at      = COALESCE(started_at, CURDATE()),
-              updated_at = NOW()
+              updated_at      = NOW()
              WHERE id = ?',
-            [$stripeCustomer, $stripeSub, $firstName, $phone, $lead['id']]
+            [$stripeCustomer, $stripeSub, $firstName, $phone, $planDays, $lead['id']]
         );
         $id = (int) $lead['id'];
     } else {
         $id = db_insert(
-            'INSERT INTO leads (email, phone, first_name, paid, stripe_customer, stripe_sub, started_at)
-             VALUES (?, ?, ?, 1, ?, ?, CURDATE())',
-            [$email, $phone, $firstName, $stripeCustomer, $stripeSub]
+            'INSERT INTO leads (email, phone, first_name, paid, stripe_customer, stripe_sub, plan_days, started_at)
+             VALUES (?, ?, ?, 1, ?, ?, ?, CURDATE())',
+            [$email, $phone, $firstName, $stripeCustomer, $stripeSub, $planDays]
         );
     }
     return ['id' => $id];
@@ -111,11 +113,38 @@ function logout_member() {
 }
 
 function member_week_number($lead) {
-    if (empty($lead['started_at'])) return 1;
-    $start = new DateTime($lead['started_at']);
-    $now   = new DateTime('today');
-    $days  = (int) $start->diff($now)->days;
-    return max(1, (int) floor($days / 7) + 1);
+    return member_program_info($lead)['current'];
+}
+
+function member_program_info($lead) {
+    $planDays = max(1, (int) ($lead['plan_days'] ?? 84));
+    $elapsed  = 0;
+    if (!empty($lead['started_at'])) {
+        $elapsed = (int) (new DateTime($lead['started_at']))->diff(new DateTime('today'))->days;
+    }
+    $elapsed = max(0, min($planDays - 1, $elapsed));
+    $pct     = min(100, (int) round((($elapsed + 1) / $planDays) * 100));
+
+    if ($planDays <= 7) {
+        return [
+            'current'      => $elapsed + 1,
+            'total'        => $planDays,
+            'label'        => 'day',
+            'label_plural' => 'days',
+            'pct'          => $pct,
+            'plan_days'    => $planDays,
+        ];
+    }
+    $weeksTotal   = (int) ceil($planDays / 7);
+    $currentWeek  = min($weeksTotal, (int) floor($elapsed / 7) + 1);
+    return [
+        'current'      => $currentWeek,
+        'total'        => $weeksTotal,
+        'label'        => 'week',
+        'label_plural' => 'weeks',
+        'pct'          => $pct,
+        'plan_days'    => $planDays,
+    ];
 }
 
 // ---------- Admin auth ----------
