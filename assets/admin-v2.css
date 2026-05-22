@@ -382,3 +382,16 @@ body.admin-page {
 .link:hover { color: var(--sage-3); }
 .chip.green { background: var(--sage-tint); color: var(--sage-2); border-color: var(--sage-tint); }
 
+/* ============ HEADING + LAYOUT UTILITIES ============ */
+.h1 { font-family: "Instrument Serif", serif; font-size: 42px; line-height: 1.05; letter-spacing: -.02em; margin: 6px 0; font-weight: 400; }
+.h1 em { font-style: italic; color: var(--sage-2); }
+.h2 { font-family: "Instrument Serif", serif; font-size: 26px; line-height: 1.1; letter-spacing: -.015em; margin: 0; font-weight: 400; }
+.row { display: flex; align-items: center; gap: 12px; }
+.grow { flex: 1; min-width: 0; }
+.mono { font-family: "JetBrains Mono", monospace; }
+.eyebrow.plum { color: var(--plum); }
+.search-box { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px 6px 32px; font-size: 13px; color: var(--muted); min-width: 240px; position: relative; }
+.search-box::before { content: ""; position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 13px; height: 13px; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%237A8278" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>') no-repeat center/contain; }
+.search-box input { flex: 1; border: 0; background: transparent; outline: none; font-size: 13px; color: var(--ink); }
+.search-box .k { font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--muted); background: var(--bg-2); padding: 2px 6px; border-radius: 5px; }
+

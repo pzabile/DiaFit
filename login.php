@@ -54,7 +54,6 @@ body.login-v3-page{
 body.login-v3-page button{font:inherit;color:inherit;cursor:pointer;border:0;background:transparent}
 body.login-v3-page input{font:inherit;color:inherit}
 body.login-v3-page a{color:inherit;text-decoration:none}
-.serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400;letter-spacing:-.01em}
 
 .v3-shell{
   min-height:100vh;display:grid;grid-template-columns:1.05fr 1fr;
@@ -84,28 +83,6 @@ body.login-v3-page a{color:inherit;text-decoration:none}
 .v3-h1{font-family:"Instrument Serif",serif;font-size:44px;line-height:1.05;letter-spacing:-.02em;margin:10px 0 10px;font-weight:400}
 .v3-h1 em{font-style:italic;color:var(--sage-2)}
 .v3-lede{color:var(--muted);margin:0 0 28px;max-width:42ch;font-size:14px}
-
-/* role toggle */
-.v3-role-toggle{
-  display:inline-flex;background:var(--bg-2);border:1px solid var(--line);
-  border-radius:999px;padding:4px;gap:2px;margin-bottom:20px;
-}
-.v3-role-toggle button{
-  padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600;color:var(--ink-2);
-  display:inline-flex;align-items:center;gap:6px;
-}
-.v3-role-toggle button.on{background:var(--ink);color:#F4F1E9}
-.v3-pip{width:6px;height:6px;border-radius:50%;background:var(--muted);display:inline-block}
-.v3-role-toggle button.on .v3-pip{background:#9CC9A8}
-
-.v3-admin-banner{
-  display:none;background:#F5E9D2;border:1px dashed #E2C68B;border-radius:11px;
-  padding:10px 12px 10px 38px;font-size:12px;color:#7C5215;margin-bottom:18px;position:relative;
-}
-.v3-admin-banner::before{content:"";position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;background:var(--amber)}
-.v3-admin-banner::after{content:"!";position:absolute;left:18px;top:50%;transform:translateY(-50%);color:#fff;font-weight:700;font-size:12px;line-height:1}
-body[data-role="admin"] .v3-admin-banner{display:block}
-body[data-role="admin"] .v3-h1 em{color:var(--amber)}
 
 /* error */
 .v3-error{
@@ -148,29 +125,6 @@ label.v3-lbl{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);m
 .v3-submit:active{transform:none}
 .v3-submit .v3-k{font-family:"JetBrains Mono",monospace;font-size:11px;background:rgba(244,241,233,.18);padding:3px 6px;border-radius:5px}
 
-.v3-admin-btn{
-  display:none;width:100%;background:var(--ink);color:#F4F1E9;border-radius:12px;padding:14px;
-  font-weight:600;font-size:14.5px;align-items:center;justify-content:center;gap:10px;
-  box-shadow:0 1px 0 rgba(0,0,0,.1),0 14px 24px -14px rgba(0,0,0,.4);
-  transition:background .15s,transform .1s;
-}
-.v3-admin-btn:hover{background:var(--sage-3);transform:translateY(-1px)}
-body[data-role="admin"] .v3-member-form{display:none}
-body[data-role="admin"] .v3-admin-btn{display:flex}
-body[data-role="admin"] .v3-sso-section{display:none}
-body[data-role="admin"] #v3-signup-line{display:none}
-
-.v3-divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--muted);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
-.v3-divider::before,.v3-divider::after{content:"";flex:1;height:1px;background:var(--line)}
-
-.v3-sso{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.v3-sso button{
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  border:1px solid var(--line);background:#fff;border-radius:11px;padding:11px;
-  font-weight:600;font-size:13.5px;color:var(--ink-2);
-}
-.v3-sso button:hover{border-color:var(--line-2)}
-
 .v3-bottom-note{color:var(--muted);font-size:12.5px;text-align:center;margin-top:24px}
 .v3-bottom-note a{color:var(--sage-2);font-weight:600}
 
@@ -208,7 +162,7 @@ body[data-role="admin"] #v3-signup-line{display:none}
 .v3-v-stats .sub{font-size:11.5px;color:#B5C7BC;margin-top:4px}
 </style>
 
-<div class="v3-shell" id="v3-shell">
+<div class="v3-shell">
 
   <!-- ============ FORM SIDE ============ -->
   <div class="v3-form-side">
@@ -226,16 +180,9 @@ body[data-role="admin"] #v3-signup-line{display:none}
     <div class="v3-form-wrap">
       <div class="v3-form">
 
-        <div class="v3-role-toggle" id="v3RoleToggle" role="tablist" aria-label="Sign in as">
-          <button type="button" class="on" data-role="member"><span class="v3-pip"></span> Member</button>
-          <button type="button" data-role="admin"><span class="v3-pip"></span> Coach / Admin</button>
-        </div>
-
-        <div class="v3-admin-banner">Admin access · this area is restricted to coaches and operations staff.</div>
-
-        <div class="v3-eyebrow" id="v3Eyebrow">Welcome back</div>
-        <h1 class="v3-h1" id="v3Title">Sign in to <em id="v3Brand">your plan</em>.</h1>
-        <p class="v3-lede" id="v3Lede">Pick up where you left off — today's check-in is one tap away. We saved your streak.</p>
+        <div class="v3-eyebrow">Welcome back</div>
+        <h1 class="v3-h1">Sign in to <em>your plan</em>.</h1>
+        <p class="v3-lede">Pick up where you left off — today's check-in is one tap away. We saved your streak.</p>
 
         <?php if ($error): ?>
         <div class="v3-error">
@@ -244,8 +191,7 @@ body[data-role="admin"] #v3-signup-line{display:none}
         </div>
         <?php endif; ?>
 
-        <!-- Member login form -->
-        <form method="post" class="v3-member-form" autocomplete="on">
+        <form method="post" autocomplete="on">
           <?= csrf_input() ?>
 
           <label class="v3-lbl" for="v3Email">Email</label>
@@ -253,7 +199,7 @@ body[data-role="admin"] #v3-signup-line{display:none}
             <span class="v3-ic">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
             </span>
-            <input class="v3-inp" id="v3Email" type="email" name="email" placeholder="you@diafitus.com" autocomplete="email" required
+            <input class="v3-inp" id="v3Email" type="email" name="email" placeholder="you@example.com" autocomplete="email" required
               value="<?= e($_POST['email'] ?? '') ?>" autofocus />
           </div>
 
@@ -276,32 +222,12 @@ body[data-role="admin"] #v3-signup-line{display:none}
           </button>
         </form>
 
-        <!-- Admin redirect button (shown when role = admin) -->
-        <button class="v3-admin-btn" onclick="location.href='/admin/'">
-          Open admin console →
-        </button>
-
-        <!-- SSO (UI only) -->
-        <div class="v3-sso-section">
-          <div class="v3-divider">or continue with</div>
-          <div class="v3-sso">
-            <button type="button">
-              <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.6 12.2c0-.7-.1-1.4-.2-2.1H12v4h6c-.3 1.4-1.1 2.6-2.4 3.4v2.8h3.9c2.3-2.1 3.1-5.2 3.1-8.1z"/><path fill="#34A853" d="M12 23c3.2 0 5.9-1 7.8-2.9l-3.9-2.8c-1 .7-2.3 1.1-3.9 1.1-3 0-5.6-2-6.5-4.7H1.4v2.9C3.4 20.4 7.4 23 12 23z"/><path fill="#FBBC04" d="M5.5 13.7c-.2-.7-.4-1.4-.4-2.2s.1-1.5.4-2.2V6.4H1.4C.5 8.1 0 10 0 12s.5 3.9 1.4 5.6l4.1-3.9z"/><path fill="#EA4335" d="M12 4.7c1.7 0 3.3.6 4.5 1.7L20 3c-2.1-2-4.8-3-8-3-4.6 0-8.6 2.6-10.6 6.4l4.1 2.9c.9-2.7 3.5-4.6 6.5-4.6z"/></svg>
-              Google
-            </button>
-            <button type="button">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.3 12.6c0-2.8 2.3-4.1 2.4-4.2-1.3-1.9-3.4-2.2-4.1-2.2-1.7-.2-3.4 1-4.3 1-.9 0-2.3-1-3.8-1-2 .1-3.8 1.1-4.8 2.9-2.1 3.6-.5 8.9 1.5 11.8 1 1.4 2.2 3 3.7 2.9 1.5-.1 2-1 3.8-1s2.3 1 3.8.9c1.6 0 2.6-1.4 3.6-2.8 1.1-1.6 1.5-3.1 1.6-3.2-.1 0-3.1-1.2-3.4-4.1zM14.4 4.4c.8-1 1.4-2.4 1.2-3.8-1.2.1-2.6.8-3.4 1.8-.7.9-1.4 2.3-1.2 3.6 1.4.2 2.7-.6 3.4-1.6z"/></svg>
-              Apple
-            </button>
-          </div>
-        </div>
-
-        <div class="v3-bottom-note" id="v3-signup-line">
+        <div class="v3-bottom-note">
           New to diafitus? <a href="/questionnaire">Take the assessment →</a>
         </div>
 
         <div class="v3-legal">
-          By signing in you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy</a>.
+          By signing in you agree to our <a href="/terms">Terms</a> &amp; <a href="/privacy">Privacy</a>.
         </div>
       </div>
     </div>
@@ -345,38 +271,11 @@ body[data-role="admin"] #v3-signup-line{display:none}
 </div>
 
 <script>
-(function(){
-  var body = document.body;
-  var toggle = document.getElementById('v3RoleToggle');
-  var title = document.getElementById('v3Title');
-  var lede = document.getElementById('v3Lede');
-  var eyebrow = document.getElementById('v3Eyebrow');
-  var signup = document.getElementById('v3-signup-line');
-  var brand = document.getElementById('v3Brand');
-
-  toggle.addEventListener('click', function(e){
-    var b = e.target.closest('button'); if (!b) return;
-    [].forEach.call(toggle.children, function(x){ x.classList.remove('on'); });
-    b.classList.add('on');
-    var r = b.dataset.role;
-    body.setAttribute('data-role', r);
-    if (r === 'admin'){
-      eyebrow.textContent = 'Restricted access';
-      title.innerHTML = 'Coach <em>console</em>.';
-      lede.textContent = 'Members, inbox, programs and trends — everything you need to run the day.';
-    } else {
-      eyebrow.textContent = 'Welcome back';
-      title.innerHTML = 'Sign in to <em id="v3Brand">your plan</em>.';
-      lede.textContent = "Pick up where you left off — today's check-in is one tap away. We saved your streak.";
-    }
-  });
-
-  window.v3TogglePw = function(){
-    var pw = document.getElementById('v3Pw');
-    var btn = document.querySelector('.v3-show-pw');
-    if (pw.type === 'password'){ pw.type='text'; btn.textContent='Hide'; }
-    else { pw.type='password'; btn.textContent='Show'; }
-  };
-})();
+window.v3TogglePw = function(){
+  var pw = document.getElementById('v3Pw');
+  var btn = document.querySelector('.v3-show-pw');
+  if (pw.type === 'password'){ pw.type='text'; btn.textContent='Hide'; }
+  else { pw.type='password'; btn.textContent='Show'; }
+};
 </script>
 <?php require __DIR__ . '/includes/footer.php'; ?>

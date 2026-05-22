@@ -33,6 +33,26 @@ if ($q !== '') {
 }
 $rows = db_all("SELECT id, first_name, email, phone, answers_json, created_at FROM leads WHERE {$where} ORDER BY id DESC LIMIT 500", $params);
 
+/* ── CSV export ── */
+if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="leads-' . date('Y-m-d') . '.csv"');
+    $out = fopen('php://output', 'w');
+    fputcsv($out, ['ID','Email','Name','Phone','Diabetes type','Goals','Submitted','Heat']);
+    foreach ($rows as $r) {
+        $a = json_decode($r['answers_json']??'{}', true) ?: [];
+        [$heatCls, $heatLbl] = lead_heat($r['created_at']);
+        fputcsv($out, [
+            $r['id'], $r['email'], $r['first_name']??'', $r['phone']??'',
+            $a['diabetes_type']??'',
+            is_array($a['goals']??null) ? implode(', ', $a['goals']) : '',
+            $r['created_at'], $heatLbl,
+        ]);
+    }
+    fclose($out);
+    exit;
+}
+
 /* Sidebar badge counts */
 $waitingCount = (int)db_get("
     SELECT COUNT(DISTINCT l.id) c FROM leads l
@@ -60,27 +80,42 @@ require __DIR__ . '/../includes/header.php';
     </header>
 
     <div class="view">
+
+      <!-- Header -->
+      <div class="row" style="justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;margin-bottom:18px">
+        <div>
+          <div class="eyebrow" style="color:var(--plum)">Assessments without payment</div>
+          <h1 class="h1">Warm <em>leads</em>.</h1>
+          <p class="muted" style="margin:0;max-width:60ch">Took the assessment but haven't subscribed yet. Reach out within 24 hours — that's when conversion peaks.</p>
+        </div>
+        <div class="row" style="gap:10px">
+          <a href="/admin/leads?<?= $q ? 'q='.urlencode($q).'&' : '' ?>export=csv" class="btn">Export CSV</a>
+          <button class="btn pri" onclick="location.href='/admin/leads'">+ Send follow-ups</button>
+        </div>
+      </div>
+
       <div class="table-toolbar">
         <div class="left">
-          <form method="get">
+          <form method="get" style="display:contents">
             <div class="toolbar-search">
-              <input type="text" name="q" value="<?= e($q) ?>" placeholder="Search name, email, phone…" autocomplete="off">
+              <input type="text" name="q" value="<?= e($q) ?>" placeholder="Search leads…" autocomplete="off">
             </div>
           </form>
           <?php if ($q): ?>
             <a href="/admin/leads" class="chip">✕ Clear</a>
           <?php endif; ?>
-          <div class="filter-pills">
-            <span class="chip coral">🔥 Hot (&lt;12h)</span>
-            <span class="chip amber">🌤 Warm (&lt;48h)</span>
-            <span class="chip">Cool</span>
+          <div class="filter-pills" id="leadFilter">
+            <button class="chip ink" onclick="filterLeads('all',this)">All · <?= count($rows) ?></button>
+            <button class="chip coral" onclick="filterLeads('hot',this)">Hot (&lt;12h)</button>
+            <button class="chip amber" onclick="filterLeads('warm',this)">Warm (&lt;48h)</button>
+            <button class="chip" onclick="filterLeads('cool',this)">Cool</button>
           </div>
         </div>
-        <span class="muted" style="font-size:12.5px"><?= count($rows) ?> lead<?= count($rows) !== 1 ? 's' : '' ?></span>
+        <span class="muted" style="font-size:12px">Sorted by · most recent submission</span>
       </div>
 
       <div class="card" style="overflow:hidden">
-        <table class="tbl">
+        <table class="tbl" id="leadTbl">
           <thead>
             <tr>
               <th>Lead</th>
@@ -106,8 +141,9 @@ require __DIR__ . '/../includes/header.php';
               $diabType  = $a['diabetes_type'] ?? '—';
               $goals     = is_array($a['goals']??null) ? implode(', ', array_slice($a['goals'],0,2)) : '—';
               $submittedAt = date('M j, Y · g:ia', strtotime($r['created_at']));
+              $heatFilter  = strtolower($heatLbl);
             ?>
-              <tr>
+              <tr data-heat="<?= $heatFilter ?>">
                 <td>
                   <div class="name">
                     <div class="av <?= $avColor ?>"><?= e($initials) ?></div>
@@ -136,4 +172,13 @@ require __DIR__ . '/../includes/header.php';
     </div>
   </main>
 </div>
+<script>
+function filterLeads(f, btn) {
+  document.querySelectorAll('#leadFilter .chip').forEach(function(b){ b.classList.remove('ink'); });
+  btn.classList.add('ink');
+  document.querySelectorAll('#leadTbl tbody tr[data-heat]').forEach(function(row){
+    row.style.display = (f === 'all' || row.dataset.heat === f) ? '' : 'none';
+  });
+}
+</script>
 <?php require __DIR__ . '/../includes/footer.php'; ?>
