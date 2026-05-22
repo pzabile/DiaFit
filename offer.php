@@ -87,6 +87,159 @@ function perDay($t, $d) { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
       </form>
     </section>
 
+    <!-- BEFORE / AFTER -->
+    <section class="before-after-section">
+      <h2 class="ba-title">Your transformation, step by step</h2>
+      <p class="ba-sub">Based on answers from members with a similar profile</p>
+      <div class="ba-cards">
+        <div class="ba-card ba-now">
+          <div class="ba-label ba-label-now">Now</div>
+          <div class="ba-stats">
+            <div class="ba-stat">
+              <span class="ba-stat-label">Blood sugar</span>
+              <strong>Elevated</strong>
+            </div>
+            <div class="ba-stat">
+              <span class="ba-stat-label">Energy levels</span>
+              <strong>Low</strong>
+            </div>
+            <div class="ba-stat">
+              <span class="ba-stat-label">Fitness level</span>
+              <div class="ba-dots">
+                <span class="ba-dot ba-dot-on"></span>
+                <span class="ba-dot"></span>
+                <span class="ba-dot"></span>
+              </div>
+            </div>
+            <div class="ba-stat">
+              <span class="ba-stat-label">A1C control</span>
+              <strong>Needs work</strong>
+            </div>
+          </div>
+        </div>
+        <div class="ba-arrow">&#187;</div>
+        <div class="ba-card ba-goal">
+          <div class="ba-label ba-label-goal">After 28 Days</div>
+          <div class="ba-stats">
+            <div class="ba-stat">
+              <span class="ba-stat-label">Blood sugar</span>
+              <strong class="ba-green">More stable</strong>
+            </div>
+            <div class="ba-stat">
+              <span class="ba-stat-label">Energy levels</span>
+              <strong class="ba-green">Noticeably higher</strong>
+            </div>
+            <div class="ba-stat">
+              <span class="ba-stat-label">Fitness level</span>
+              <div class="ba-dots">
+                <span class="ba-dot ba-dot-goal"></span>
+                <span class="ba-dot ba-dot-goal"></span>
+                <span class="ba-dot ba-dot-goal"></span>
+              </div>
+            </div>
+            <div class="ba-stat">
+              <span class="ba-stat-label">A1C control</span>
+              <strong class="ba-green">Trending down</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="ba-disclaimer">Individual results vary. Based on member-reported outcomes.</p>
+    </section>
+
+    <!-- WHAT YOU GET -->
+    <section class="what-you-get">
+      <h2>Everything included in your plan</h2>
+      <div class="wyg-grid">
+        <div class="wyg-item">
+          <div class="wyg-icon">🩸</div>
+          <div>
+            <strong>Blood-sugar-aware workouts</strong>
+            <p>Every exercise is chosen to help stabilize glucose — safe for Type&nbsp;1, Type&nbsp;2 &amp; pre-diabetes.</p>
+          </div>
+        </div>
+        <div class="wyg-item">
+          <div class="wyg-icon">🥗</div>
+          <div>
+            <strong>Personalized meal guide</strong>
+            <p>Eat the foods you love with a nutrition plan built around your blood sugar response, not a generic diet.</p>
+          </div>
+        </div>
+        <div class="wyg-item">
+          <div class="wyg-icon">💬</div>
+          <div>
+            <strong>24/7 coach messaging</strong>
+            <p>Message your coach any time — questions about your glucose, your workout, or your next meal are answered fast.</p>
+          </div>
+        </div>
+        <div class="wyg-item">
+          <div class="wyg-icon">📊</div>
+          <div>
+            <strong>Progress &amp; glucose tracker</strong>
+            <p>Log weight, steps, and readings in one place. See your trends and celebrate every milestone.</p>
+          </div>
+        </div>
+        <div class="wyg-item">
+          <div class="wyg-icon">🏠</div>
+          <div>
+            <strong>100+ home-friendly exercises</strong>
+            <p>No gym, no equipment needed. Short, effective sessions you can fit around your day.</p>
+          </div>
+        </div>
+        <div class="wyg-item">
+          <div class="wyg-icon">📅</div>
+          <div>
+            <strong>Weekly check-ins</strong>
+            <p>Your coach reviews your week and adjusts the plan so you're always moving in the right direction.</p>
+          </div>
+        </div>
+      </div>
+      <a href="#planForm" class="btn btn-orange btn-xl wyg-cta">GET MY PLAN</a>
+    </section>
+
+    <!-- HIGHLIGHTS -->
+    <section class="highlights-section">
+      <h2>Why DiaFitus works for diabetics</h2>
+      <div class="hl-list">
+        <div class="hl-item">
+          <div class="hl-icon">🎯</div>
+          <div>
+            <strong>Built specifically for diabetes</strong>
+            <p>Every workout, meal tip, and check-in is designed with blood sugar management at its core — not adapted from a generic fitness app.</p>
+          </div>
+        </div>
+        <div class="hl-item">
+          <div class="hl-icon">🔬</div>
+          <div>
+            <strong>Doctor-reviewed exercise science</strong>
+            <p>Our protocols are based on clinical research on exercise and glucose metabolism, reviewed by licensed physicians.</p>
+          </div>
+        </div>
+        <div class="hl-item">
+          <div class="hl-icon">⚡</div>
+          <div>
+            <strong>Feel results in the first week</strong>
+            <p>Members report steadier energy and fewer spikes within days of starting — not months.</p>
+          </div>
+        </div>
+        <div class="hl-item">
+          <div class="hl-icon">🏆</div>
+          <div>
+            <strong>3,400+ members, 4.9-star rating</strong>
+            <p>Real people with Type 1, Type 2, pre-diabetes and gestational diabetes — all seeing real results.</p>
+          </div>
+        </div>
+        <div class="hl-item">
+          <div class="hl-icon">🔒</div>
+          <div>
+            <strong>Safe &amp; private — no auto-billing</strong>
+            <p>One-time payment, no recurring charges. Your data stays private and you stay in full control.</p>
+          </div>
+        </div>
+      </div>
+      <a href="#planForm" class="btn btn-orange btn-xl wyg-cta">GET MY PLAN →</a>
+    </section>
+
     <section class="testimonials reviews-block">
       <h2 style="text-align:center">What members are saying</h2>
       <p class="muted" style="text-align:center;margin-bottom:1.5rem">4.9 / 5 average from 3,400+ verified members. Hover the strip to pause.</p>
@@ -128,7 +281,7 @@ function perDay($t, $d) { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
     </section>
 
     <section class="disclaimer">
-      <strong>Important:</strong> DiaFitus is a fitness and lifestyle coaching service operated by Benux Corp (1317 Westminster Dr, Woodridge, Illinois 60517, USA). It is not medical advice and is not a substitute for consultation with a licensed physician. Always talk to your doctor before starting any new exercise or nutrition program, especially with diabetes. All sales are final once digital content is delivered. Read our <a href="/terms">Terms &amp; Conditions</a> and <a href="/privacy">Privacy Policy</a>.
+      <strong>Important:</strong> DiaFitus is a fitness and lifestyle coaching service. It is not medical advice and is not a substitute for consultation with a licensed physician. Always talk to your doctor before starting any new exercise or nutrition program, especially with diabetes. All sales are final once digital content is delivered. Read our <a href="/terms">Terms &amp; Conditions</a> and <a href="/privacy">Privacy Policy</a>.
     </section>
   </main>
 
