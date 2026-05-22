@@ -171,6 +171,81 @@ function account_setup_email_html($firstName, $setupUrl, $memberEmail = '') {
 HTML;
 }
 
+function plan_changed_email_html($firstName, $planDays, $startedAt = '', $email = '') {
+    $brand   = cfg('brand_name');
+    $support = cfg('support_email');
+    $site    = cfg('site_url');
+    $fn      = htmlspecialchars($firstName ?: 'there', ENT_QUOTES, 'UTF-8');
+    $brandE  = htmlspecialchars($brand, ENT_QUOTES, 'UTF-8');
+    $sup     = htmlspecialchars($support, ENT_QUOTES, 'UTF-8');
+    $siteE   = htmlspecialchars($site, ENT_QUOTES, 'UTF-8');
+    $emailE  = htmlspecialchars($email ?: '', ENT_QUOTES, 'UTF-8');
+
+    $days = (int) $planDays;
+    if ($days <= 7) {
+        $planName = '7-Day Jump-Start';
+        $duration = '7 days';
+    } elseif ($days <= 28) {
+        $planName = '28-Day (4-Week) Reset';
+        $duration = '4 weeks';
+    } else {
+        $planName = '84-Day (12-Week) Transformation';
+        $duration = '12 weeks';
+    }
+
+    $endLine = '';
+    $startLine = '';
+    if ($startedAt) {
+        try {
+            $startDt = new DateTime($startedAt);
+            $endDt   = clone $startDt;
+            $endDt->modify('+' . $days . ' days');
+            $startLine = '<tr><td style="padding:4px 0;color:#4a5651;font-size:14px;">Starts</td><td style="padding:4px 0;font-size:14px;font-weight:600;">' . htmlspecialchars($startDt->format('F j, Y'), ENT_QUOTES, 'UTF-8') . '</td></tr>';
+            $endLine   = '<tr><td style="padding:4px 0;color:#4a5651;font-size:14px;">Ends</td><td style="padding:4px 0;font-size:14px;font-weight:600;">' . htmlspecialchars($endDt->format('F j, Y'), ENT_QUOTES, 'UTF-8') . '</td></tr>';
+        } catch (Exception $ignored) {}
+    }
+
+    return <<<HTML
+<!doctype html>
+<html><body style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f7f5f0;margin:0;padding:24px;color:#0f1a14;">
+  <div style="max-width:580px;margin:0 auto;background:#fff;border-radius:18px;padding:40px 36px;border:1px solid #e3e0d6;box-shadow:0 4px 24px rgba(15,26,20,.06);">
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">
+      <span style="width:16px;height:16px;border-radius:50%;background:#16a36a;display:inline-block;flex-shrink:0;"></span>
+      <strong style="font-size:18px;letter-spacing:-.01em;">{$brandE}</strong>
+    </div>
+
+    <h1 style="font-size:24px;font-weight:700;margin:0 0 10px;letter-spacing:-.02em;">Your plan has been updated, {$fn}!</h1>
+    <p style="font-size:15px;line-height:1.6;color:#4a5651;margin:0 0 24px;">Your coach has made a change to your program. Here's what's new:</p>
+
+    <div style="background:#f3faf6;border-radius:14px;padding:20px 22px;margin:0 0 24px;">
+      <p style="font-size:13px;font-weight:700;color:#16a36a;letter-spacing:.06em;text-transform:uppercase;margin:0 0 12px;">New program</p>
+      <table style="border-collapse:collapse;width:100%;">
+        <tr><td style="padding:4px 0;color:#4a5651;font-size:14px;">Plan</td><td style="padding:4px 0;font-size:14px;font-weight:600;">{$planName}</td></tr>
+        <tr><td style="padding:4px 0;color:#4a5651;font-size:14px;">Duration</td><td style="padding:4px 0;font-size:14px;font-weight:600;">{$duration}</td></tr>
+        {$startLine}
+        {$endLine}
+      </table>
+    </div>
+
+    <p style="font-size:14px;line-height:1.6;color:#4a5651;margin:0 0 20px;">Your dashboard has already been updated to reflect this change — your progress bar and week count now match your new program length.</p>
+
+    <div style="text-align:center;margin:0 0 24px;">
+      <a href="{$siteE}/dashboard" style="background:#16a36a;color:#fff;padding:14px 28px;border-radius:999px;text-decoration:none;font-weight:700;font-size:15px;display:inline-block;">View my dashboard →</a>
+    </div>
+
+    <div style="background:#f7f5f0;border-radius:12px;padding:14px 16px;margin:0 0 24px;">
+      <p style="font-size:14px;line-height:1.65;color:#4a5651;margin:0;">Sign in at <a href="{$siteE}/login" style="color:#0d7d4f;font-weight:600;">{$siteE}/login</a> using <strong>{$emailE}</strong>. Questions? Write to <a href="mailto:{$sup}" style="color:#0d7d4f;">{$sup}</a> — we're here.</p>
+    </div>
+
+    <p style="font-size:14px;line-height:1.6;color:#4a5651;margin:0 0 24px;text-align:center;">Keep going — we believe in you.<br><br><strong>The {$brandE} Team</strong></p>
+    <hr style="border:none;border-top:1px solid #e3e0d6;margin:0 0 14px;" />
+    <p style="font-size:11px;color:#8a8f8b;line-height:1.6;margin:0;text-align:center;">Not medical advice. Always consult your doctor — especially with diabetes.</p>
+  </div>
+</body></html>
+HTML;
+}
+
 function welcome_email_html($firstName, $email = '', $password = '') {
     $brand   = cfg('brand_name');
     $support = cfg('support_email');

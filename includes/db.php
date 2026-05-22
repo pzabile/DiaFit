@@ -21,6 +21,12 @@ function db() {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES   => false,
     ]);
+
+    // Auto-add plan_days column if missing (migration 003 may not have been run manually)
+    try {
+        $pdo->exec("ALTER TABLE `leads` ADD COLUMN IF NOT EXISTS `plan_days` SMALLINT UNSIGNED NOT NULL DEFAULT 84 AFTER `started_at`");
+    } catch (PDOException $ignored) {}
+
     return $pdo;
 }
 

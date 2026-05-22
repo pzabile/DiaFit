@@ -53,13 +53,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
         try {
             if ($resetDate) {
                 db_exec('UPDATE leads SET plan_days = ?, started_at = CURDATE(), updated_at = NOW() WHERE id = ?', [$planDays, $id]);
+                $effectiveStart = date('Y-m-d');
             } else {
                 db_exec('UPDATE leads SET plan_days = ?, updated_at = NOW() WHERE id = ?', [$planDays, $id]);
+                $effectiveStart = $lead['started_at'] ?: '';
             }
-            $_SESSION['flash'] = 'Plan updated to ' . $planDays . ' days' . ($resetDate ? ' — start date reset to today.' : '.');
+
+            $emailNote = '';
+            try {
+                send_email(
+                    $lead['email'],
+                    $lead['first_name'] ?: 'there',
+                    'Your DiaFitus plan has been updated',
+                    plan_changed_email_html($lead['first_name'] ?: 'there', $planDays, $effectiveStart, $lead['email'])
+                );
+                $emailNote = ' Notification email sent.';
+            } catch (Throwable $emailEx) {
+                error_log('plan change email: ' . $emailEx->getMessage());
+                $emailNote = ' (Email notification failed.)';
+            }
+
+            $_SESSION['flash'] = 'Plan updated to ' . $planDays . ' days' . ($resetDate ? ' — start date reset to today.' : '.') . $emailNote;
         } catch (Throwable $ex) {
-            // Most likely the plan_days column doesn't exist yet — remind admin to run migration 003
-            $_SESSION['flash'] = 'Could not update plan: ' . $ex->getMessage() . ' — Make sure you have run migrations/003_plan_days.sql in phpMyAdmin.';
+            $_SESSION['flash'] = 'Could not update plan: ' . $ex->getMessage();
         }
         header('Location: /admin/member?id=' . $id); exit;
     }
