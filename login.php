@@ -25,7 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($lead && !empty($lead['paid'])) {
                     header('Location: /dashboard'); exit;
                 }
-                $error = 'Email or password incorrect. If you just paid, check your welcome email for the "Create my account" link to set your password.';
+                if ($lead && empty($lead['paid'])) {
+                    $error = 'Your account exists but has not been activated yet. If you recently paid, email <a href="mailto:' . e(cfg('support_email')) . '" style="color:inherit;font-weight:600;">' . e(cfg('support_email')) . '</a> and we\'ll activate it right away.';
+                } else {
+                    $error = 'Email or password incorrect. If you just paid, check your welcome email for the "Create my account" link to set your password.';
+                }
             }
         }
     }
@@ -49,7 +53,7 @@ require __DIR__ . '/includes/header.php';
       <h1>Sign in to your dashboard</h1>
       <p class="sub">Enter the email you used at checkout and the password you set after payment.</p>
 
-      <?php if ($error): ?><div class="alert error"><?= e($error) ?></div><?php endif; ?>
+      <?php if ($error): ?><div class="alert error"><?= $error ?></div><?php endif; ?>
 
       <form method="post" class="form" autocomplete="on">
         <?= csrf_input() ?>

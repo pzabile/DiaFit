@@ -45,7 +45,13 @@ if ($type === 'checkout.session.completed') {
 
     try {
         if ($email) {
-            send_email($email, $name, 'Welcome to DiaFitus — your program is being built', welcome_email_html($name));
+            send_email(
+                $email, $name,
+                'Welcome to DiaFitus — you\'re in 🎉',
+                welcome_email_html($name, $email),
+                null,
+                nutrition_guide_attachment()
+            );
         }
     } catch (Throwable $ex) { error_log('webhook welcome email: ' . $ex->getMessage()); }
 

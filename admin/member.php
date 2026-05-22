@@ -50,12 +50,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
         $resetDate = !empty($_POST['reset_start']) ? 1 : 0;
         $allowed   = [7, 28, 84];
         if (!in_array($planDays, $allowed, true)) $planDays = 84;
-        if ($resetDate) {
-            db_exec('UPDATE leads SET plan_days = ?, started_at = CURDATE(), updated_at = NOW() WHERE id = ?', [$planDays, $id]);
-        } else {
-            db_exec('UPDATE leads SET plan_days = ?, updated_at = NOW() WHERE id = ?', [$planDays, $id]);
+        try {
+            if ($resetDate) {
+                db_exec('UPDATE leads SET plan_days = ?, started_at = CURDATE(), updated_at = NOW() WHERE id = ?', [$planDays, $id]);
+            } else {
+                db_exec('UPDATE leads SET plan_days = ?, updated_at = NOW() WHERE id = ?', [$planDays, $id]);
+            }
+            $_SESSION['flash'] = 'Plan updated to ' . $planDays . ' days' . ($resetDate ? ' — start date reset to today.' : '.');
+        } catch (Throwable $ex) {
+            // Most likely the plan_days column doesn't exist yet — remind admin to run migration 003
+            $_SESSION['flash'] = 'Could not update plan: ' . $ex->getMessage() . ' — Make sure you have run migrations/003_plan_days.sql in phpMyAdmin.';
         }
-        $_SESSION['flash'] = 'Plan updated to ' . $planDays . ' days' . ($resetDate ? ' and start date reset to today.' : '.');
         header('Location: /admin/member?id=' . $id); exit;
     }
 }

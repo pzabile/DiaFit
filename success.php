@@ -35,8 +35,10 @@ if ($sessionId) {
                         $url = rtrim(cfg('site_url'), '/') . '/setup?token=' . $token;
                         send_email(
                             $email, $name ?: 'there',
-                            'Welcome to DiaFitus — create your account',
-                            account_setup_email_html($name ?: 'there', $url)
+                            'Welcome to DiaFitus — you\'re in 🎉',
+                            account_setup_email_html($name ?: 'there', $url, $email),
+                            null,
+                            nutrition_guide_attachment()
                         );
                     } catch (Throwable $ex) { error_log('setup email: ' . $ex->getMessage()); }
 
