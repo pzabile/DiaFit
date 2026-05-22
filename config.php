@@ -88,7 +88,7 @@ return [
     // Mail ---------------------------------------------------------------
     'mail' => [
         'from_name'  => 'DiaFitus Team',
-        'from_email' => 'no-reply@diafitus.com',
+        'from_email' => 'support@diafitus.com',
         'reply_to'   => 'support@diafitus.com',
     ],
 

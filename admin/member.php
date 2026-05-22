@@ -139,7 +139,16 @@ $csrf = csrf_input();
     <section class="card big">
       <h2>Personalized program</h2>
       <?php if ($lead['program_path']): ?>
-        <p>Current program: <a href="<?= e($lead['program_path']) ?>" target="_blank">view PDF</a></p>
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;">
+          <span>Current program:</span>
+          <a href="<?= e($lead['program_path']) ?>" target="_blank" class="btn btn-ghost btn-sm">⤓ Open / Download PDF</a>
+        </div>
+        <div class="pdf-viewer">
+          <object data="<?= e($lead['program_path']) ?>#view=FitH&toolbar=1" type="application/pdf" class="pdf-frame">
+            <iframe src="<?= e($lead['program_path']) ?>" class="pdf-frame" title="Member program PDF"></iframe>
+            <p class="muted" style="padding:1rem">Browser cannot display inline. <a href="<?= e($lead['program_path']) ?>" target="_blank">Open in new tab</a>.</p>
+          </object>
+        </div>
       <?php else: ?>
         <p class="muted">No program uploaded yet.</p>
       <?php endif; ?>

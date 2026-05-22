@@ -64,34 +64,61 @@ HTML;
 function account_setup_email_html($firstName, $setupUrl) {
     $brand   = cfg('brand_name');
     $support = cfg('support_email');
+    $site    = cfg('site_url');
     $fn      = htmlspecialchars($firstName ?: 'there', ENT_QUOTES, 'UTF-8');
     $brandE  = htmlspecialchars($brand, ENT_QUOTES, 'UTF-8');
     $urlE    = htmlspecialchars($setupUrl, ENT_QUOTES, 'UTF-8');
     $sup     = htmlspecialchars($support, ENT_QUOTES, 'UTF-8');
-    $price   = (int)cfg('price_today');
+    $siteE   = htmlspecialchars($site, ENT_QUOTES, 'UTF-8');
     return <<<HTML
 <!doctype html>
 <html><body style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f7f5f0;margin:0;padding:24px;color:#0f1a14;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:16px;padding:32px;border:1px solid #e3e0d6;">
-    <div style="text-align:center;margin-bottom:24px;">
-      <img src="https://diafitus.com/assets/logo/logo-mark.svg" width="64" height="64" alt="{$brandE}" style="display:inline-block;" />
-      <h1 style="font-size:22px;margin:12px 0 4px;">Welcome to {$brandE}, {$fn} 👋</h1>
+  <div style="max-width:580px;margin:0 auto;background:#fff;border-radius:18px;padding:40px 36px;border:1px solid #e3e0d6;box-shadow:0 4px 24px rgba(15,26,20,.06);">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">
+      <span style="width:16px;height:16px;border-radius:50%;background:#16a36a;display:inline-block;flex-shrink:0;"></span>
+      <strong style="font-size:18px;letter-spacing:-.01em;">{$brandE}</strong>
     </div>
-    <p style="line-height:1.55;color:#4a5651;">Your payment of <strong>\${$price}/month</strong> went through and your membership is active. To finish setting up your account and access your dashboard, click below to create your password.</p>
-    <p style="text-align:center;margin:28px 0;">
-      <a href="{$urlE}" style="background:#0f1a14;color:#fff;padding:16px 28px;border-radius:999px;text-decoration:none;font-weight:700;display:inline-block;">Create my account →</a>
-    </p>
-    <p style="font-size:13px;color:#8a8f8b;line-height:1.55;text-align:center;">This link expires in 7 days. If the button doesn't work, paste this into your browser:<br><span style="word-break:break-all;color:#0d7d4f;">{$urlE}</span></p>
-    <h2 style="font-size:16px;margin:28px 0 8px;">What happens next</h2>
-    <ul style="line-height:1.7;color:#4a5651;padding-left:20px;">
-      <li>Our team is reviewing your assessment <strong>right now</strong>.</li>
-      <li>Within <strong>24 hours</strong> we'll upload your personalized 12-week program and nutrition guide to your dashboard.</li>
-      <li>You'll have 24/7 access to message us with anything.</li>
-    </ul>
+
+    <h1 style="font-size:26px;font-weight:700;margin:0 0 10px;letter-spacing:-.02em;">Welcome to {$brandE}, {$fn}! 👋</h1>
+    <p style="font-size:16px;line-height:1.6;color:#4a5651;margin:0 0 24px;">Your payment went through and your membership is <strong style="color:#16a36a;">active</strong>. One last step — click the button below to create your password and access your private dashboard.</p>
+
+    <!-- CTA -->
+    <div style="text-align:center;margin:28px 0;">
+      <a href="{$urlE}" style="background:#16a36a;color:#fff;padding:16px 32px;border-radius:999px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block;letter-spacing:.01em;">Create my account →</a>
+    </div>
+    <p style="font-size:13px;color:#8a8f8b;text-align:center;margin:0 0 28px;">Link expires in 7 days. If the button doesn't work, copy and paste this URL:<br><span style="word-break:break-all;color:#0d7d4f;">{$urlE}</span></p>
+
+    <hr style="border:none;border-top:1px solid #e3e0d6;margin:0 0 24px;" />
+
+    <!-- What's included -->
+    <h2 style="font-size:17px;font-weight:700;margin:0 0 14px;">What's waiting for you inside</h2>
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><td style="padding:7px 0;vertical-align:top;font-size:20px;width:32px;">🩸</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;"><strong style="color:#0f1a14;">Blood-sugar-aware workout plan</strong><br>Every session is designed to help stabilize your glucose safely.</td></tr>
+      <tr><td style="padding:7px 0;vertical-align:top;font-size:20px;">🥗</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;"><strong style="color:#0f1a14;">Personalized nutrition guide</strong><br>Eat the foods you love — built around your diabetes type, not a generic diet.</td></tr>
+      <tr><td style="padding:7px 0;vertical-align:top;font-size:20px;">💬</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;"><strong style="color:#0f1a14;">24/7 coach messaging</strong><br>Ask anything — glucose, fueling, schedule changes — we reply fast.</td></tr>
+      <tr><td style="padding:7px 0;vertical-align:top;font-size:20px;">📊</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;"><strong style="color:#0f1a14;">Progress &amp; glucose tracker</strong><br>Log weight, steps and readings in one private dashboard.</td></tr>
+      <tr><td style="padding:7px 0;vertical-align:top;font-size:20px;">📅</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;"><strong style="color:#0f1a14;">Weekly coach check-ins</strong><br>Your coach reviews your week and adjusts the plan — every single week.</td></tr>
+    </table>
+
     <hr style="border:none;border-top:1px solid #e3e0d6;margin:24px 0;" />
-    <p style="font-size:12px;color:#8a8f8b;line-height:1.6;text-align:center;">
-      Questions: <a href="mailto:{$sup}" style="color:#0d7d4f;">{$sup}</a><br>
-      {$brandE} provides general fitness and lifestyle suggestions only. It is not medical advice. Always consult your physician.
+
+    <!-- Timeline -->
+    <h2 style="font-size:17px;font-weight:700;margin:0 0 10px;">What happens next</h2>
+    <p style="font-size:14px;color:#4a5651;line-height:1.6;margin:0 0 6px;">✅ <strong>Right now</strong> — Our team is reviewing your assessment and building your personalized program.</p>
+    <p style="font-size:14px;color:#4a5651;line-height:1.6;margin:0 0 6px;">⏰ <strong>Within 24 hours</strong> — Your program PDF and nutrition guide will appear in your dashboard.</p>
+    <p style="font-size:14px;color:#4a5651;line-height:1.6;margin:0 0 24px;">💬 <strong>Any time</strong> — Message your coach directly from your dashboard with any question.</p>
+
+    <div style="text-align:center;margin:0 0 24px;">
+      <a href="{$urlE}" style="background:#0f1a14;color:#fff;padding:14px 28px;border-radius:999px;text-decoration:none;font-weight:700;font-size:15px;display:inline-block;">Set up my account now</a>
+    </div>
+
+    <hr style="border:none;border-top:1px solid #e3e0d6;margin:0 0 16px;" />
+    <p style="font-size:12px;color:#8a8f8b;line-height:1.6;margin:0;text-align:center;">
+      Questions? Reply to this email or write to <a href="mailto:{$sup}" style="color:#0d7d4f;">{$sup}</a><br>
+      Sign in any time at <a href="{$siteE}/login" style="color:#0d7d4f;">{$siteE}/login</a><br><br>
+      {$brandE} provides general fitness and lifestyle guidance only. Not medical advice. Always consult your physician — especially with diabetes.
     </p>
   </div>
 </body></html>
@@ -102,36 +129,37 @@ function welcome_email_html($firstName, $email = '', $password = '') {
     $brand   = cfg('brand_name');
     $support = cfg('support_email');
     $site    = cfg('site_url');
-    $fn      = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
+    $fn      = htmlspecialchars($firstName ?: 'there', ENT_QUOTES, 'UTF-8');
     $brandE  = htmlspecialchars($brand, ENT_QUOTES, 'UTF-8');
     $emailE  = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
     $pwE     = htmlspecialchars($password, ENT_QUOTES, 'UTF-8');
-    $price   = (int)cfg('price_today');
-    $creds   = $password ? "<p style=\"line-height:1.55;color:#4a5651;\"><strong>Your login:</strong></p>
-      <table style=\"border-collapse:collapse;margin:0 0 16px 0;\"><tr><td style=\"padding:4px 12px 4px 0;color:#8a8f8b;\">Email</td><td style=\"padding:4px 0;font-family:monospace;\">{$emailE}</td></tr><tr><td style=\"padding:4px 12px 4px 0;color:#8a8f8b;\">Password</td><td style=\"padding:4px 0;font-family:monospace;\">{$pwE}</td></tr></table>
-      <p style=\"line-height:1.55;color:#4a5651;\">Sign in at <a href=\"{$site}/login\" style=\"color:#0d7d4f;\">{$site}/login</a>. You can change your password from your dashboard.</p>" : '';
+    $sup     = htmlspecialchars($support, ENT_QUOTES, 'UTF-8');
+    $siteE   = htmlspecialchars($site, ENT_QUOTES, 'UTF-8');
+    $creds   = $password ? "<p style=\"line-height:1.55;color:#4a5651;margin:0 0 6px;\"><strong>Your login details:</strong></p>
+      <table style=\"border-collapse:collapse;margin:0 0 20px;background:#f7f5f0;border-radius:10px;padding:12px;width:100%;\"><tr><td style=\"padding:5px 14px 5px 0;color:#8a8f8b;font-size:14px;\">Email</td><td style=\"padding:5px 0;font-family:monospace;font-size:14px;\">{$emailE}</td></tr><tr><td style=\"padding:5px 14px 5px 0;color:#8a8f8b;font-size:14px;\">Password</td><td style=\"padding:5px 0;font-family:monospace;font-size:14px;\">{$pwE}</td></tr></table>
+      <p style=\"line-height:1.55;color:#4a5651;font-size:14px;\">Sign in at <a href=\"{$siteE}/login\" style=\"color:#0d7d4f;\">{$siteE}/login</a>. You can change your password from your dashboard at any time.</p>" : '';
     return <<<HTML
 <!doctype html>
 <html><body style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f7f5f0;margin:0;padding:24px;color:#0f1a14;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:16px;padding:32px;border:1px solid #e3e0d6;">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
-      <span style="width:14px;height:14px;border-radius:50%;background:#16a36a;display:inline-block;"></span>
-      <strong style="font-size:18px;">{$brandE}</strong>
+  <div style="max-width:580px;margin:0 auto;background:#fff;border-radius:18px;padding:40px 36px;border:1px solid #e3e0d6;box-shadow:0 4px 24px rgba(15,26,20,.06);">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">
+      <span style="width:16px;height:16px;border-radius:50%;background:#16a36a;display:inline-block;flex-shrink:0;"></span>
+      <strong style="font-size:18px;letter-spacing:-.01em;">{$brandE}</strong>
     </div>
-    <h1 style="font-size:24px;margin:0 0 12px;">Welcome to {$brandE}, {$fn} 👋</h1>
-    <p style="line-height:1.55;color:#4a5651;">Thanks for joining. Your payment of <strong>\${$price}/month</strong> went through and your membership is active.</p>
+    <h1 style="font-size:26px;font-weight:700;margin:0 0 10px;letter-spacing:-.02em;">Welcome to {$brandE}, {$fn}! 👋</h1>
+    <p style="font-size:15px;line-height:1.6;color:#4a5651;margin:0 0 20px;">Your payment went through and your membership is <strong style="color:#16a36a;">active</strong>. Our team is already reviewing your assessment.</p>
     {$creds}
-    <p style="line-height:1.55;color:#4a5651;"><strong>What happens next:</strong> our team is reviewing your assessment right now and <strong>building your personalized program</strong>. We'll reach out within the next <strong>24 hours</strong> with:</p>
-    <ul style="line-height:1.7;color:#4a5651;">
-      <li>Your personalized exercise program</li>
-      <li>Your nutrition PDF guide</li>
-      <li>24/7 access to support whenever you need a hand</li>
-      <li>Full access to your private dashboard</li>
-    </ul>
-    <p style="line-height:1.55;color:#4a5651;">If you need anything in the meantime, just reply to this email or write to <a href="mailto:{$support}" style="color:#0d7d4f;">{$support}</a>.</p>
-    <hr style="border:none;border-top:1px solid #e3e0d6;margin:24px 0;" />
-    <p style="font-size:12px;color:#8a8f8b;line-height:1.6;">
-      {$brandE} provides general fitness and lifestyle suggestions only. It is not medical advice and is not a substitute for consulting your physician. Always check with your doctor before starting any new exercise or nutrition program — especially if you have diabetes or any other medical condition.
+    <p style="font-size:15px;line-height:1.6;color:#4a5651;margin:0 0 14px;"><strong>What happens in the next 24 hours:</strong></p>
+    <table style="border-collapse:collapse;width:100%;margin:0 0 24px;">
+      <tr><td style="padding:7px 0;vertical-align:top;font-size:18px;width:32px;">🩸</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;">Your <strong>blood-sugar-aware workout plan</strong> is uploaded to your private dashboard.</td></tr>
+      <tr><td style="padding:7px 0;vertical-align:top;font-size:18px;">🥗</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;">Your <strong>personalized nutrition guide PDF</strong> — built around your diabetes type — is ready to download.</td></tr>
+      <tr><td style="padding:7px 0;vertical-align:top;font-size:18px;">💬</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;">Your coach sends you a <strong>first message</strong> with your Week 1 focus.</td></tr>
+    </table>
+    <p style="font-size:14px;line-height:1.6;color:#4a5651;margin:0 0 24px;">You have <strong>24/7 access</strong> to message your coach directly from your dashboard — ask anything about glucose, fueling, workouts, or scheduling.</p>
+    <p style="font-size:14px;color:#4a5651;margin:0 0 24px;">Questions? Just reply to this email or reach us at <a href="mailto:{$sup}" style="color:#0d7d4f;">{$sup}</a> — we respond quickly.</p>
+    <hr style="border:none;border-top:1px solid #e3e0d6;margin:0 0 16px;" />
+    <p style="font-size:12px;color:#8a8f8b;line-height:1.6;margin:0;text-align:center;">
+      {$brandE} provides general fitness and lifestyle guidance only. Not medical advice. Always consult your physician — especially with diabetes.
     </p>
   </div>
 </body></html>

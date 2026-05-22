@@ -1698,7 +1698,8 @@ body.dashboard.premium .card.big {
 }
 
 /* PDF viewer */
-.pdf-card .pdf-viewer {
+.pdf-card .pdf-viewer,
+.pdf-viewer {
   margin-top: 1rem;
   border-radius: 14px;
   overflow: hidden;

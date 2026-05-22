@@ -43,7 +43,7 @@ if ($sessionId) {
                         $tmpPdf = sys_get_temp_dir() . '/diafitus_paid_' . time() . '_' . bin2hex(random_bytes(3)) . '.pdf';
                         build_lead_pdf($tmpPdf, $answers, ['firstName' => $name, 'email' => $email, 'phone' => $phone]);
                         $lines = ['<b>💸 DiaFitus — NEW PAID MEMBER</b>'];
-                        $lines[] = 'Amount: $' . (int) cfg('price_today') . '/month';
+                        $lines[] = 'Amount: $' . number_format((float)($sess['amount_total'] ?? cfg('price_today') * 100) / 100, 2) . ' (one-time)';
                         $lines[] = '<b>Name:</b> ' . htmlspecialchars($name);
                         $lines[] = '<b>Email:</b> ' . htmlspecialchars($email);
                         $lines[] = '<b>Phone:</b> ' . htmlspecialchars($phone);
