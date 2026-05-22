@@ -9,5 +9,6 @@
 <link rel="icon" href="/assets/logo/logo-mark.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="/assets/logo/logo-mark.svg" />
 <link rel="stylesheet" href="/styles.css" />
+<?php if (!empty($extraHead)) echo $extraHead; ?>
 </head>
 <body class="<?= e($bodyClass ?? '') ?>">
