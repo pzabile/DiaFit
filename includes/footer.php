@@ -1,4 +1,4 @@
-<?php if (($bodyClass ?? '') !== 'admin-page'): ?>
+<?php if (($bodyClass ?? '') !== 'admin-page' && ($bodyClass ?? '') !== 'portal-page'): ?>
   <footer class="site-footer">
     <div class="brand"><span class="logo-dot"></span><span class="brand-name"><?= e(cfg('brand_name')) ?></span></div>
     <div class="footer-links">
