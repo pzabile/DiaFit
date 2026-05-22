@@ -1,3 +1,4 @@
+<?php if (($bodyClass ?? '') !== 'admin-page'): ?>
   <footer class="site-footer">
     <div class="brand"><span class="logo-dot"></span><span class="brand-name"><?= e(cfg('brand_name')) ?></span></div>
     <div class="footer-links">
@@ -8,6 +9,7 @@
     </div>
     <p class="footer-legal">© <?= date('Y') ?> <?= e(cfg('company_name')) ?>. <?= e(cfg('brand_name')) ?> provides general fitness and lifestyle suggestions and is not a substitute for medical advice. Always consult your physician.</p>
   </footer>
+<?php endif; ?>
   <script src="/script.js"></script>
 </body>
 </html>

@@ -161,10 +161,15 @@ $pageTitle = 'Member · ' . ($lead['first_name'] ?: $lead['email']);
 $bodyClass = 'admin-page';
 $activeTab = $lead['paid'] ? 'members' : 'leads';
 require __DIR__ . '/../includes/header.php';
-require __DIR__ . '/_layout.php';
 $csrf = csrf_input();
+$waitingCount = (int)db_get("SELECT COUNT(DISTINCT l.id) c FROM leads l JOIN coach_notes cn ON cn.id=(SELECT MAX(id) FROM coach_notes WHERE lead_id=l.id) WHERE l.paid=1 AND cn.from_member=1")['c'];
+$membersCount = (int)db_get('SELECT COUNT(*) c FROM leads WHERE paid=1')['c'];
+$leadsCount   = (int)db_get('SELECT COUNT(*) c FROM leads WHERE paid=0')['c'];
 ?>
-  <main class="admin-main">
+<div class="app">
+<?php require __DIR__ . '/_layout-v2.php'; ?>
+  <main class="main">
+  <div class="admin-main">
     <?php if ($flash): ?><div class="alert success"><?= e($flash) ?></div><?php endif; ?>
 
     <header class="admin-page-head">
@@ -431,5 +436,7 @@ $csrf = csrf_input();
         <p class="muted" style="margin-top:.5rem">No private notes yet.</p>
       <?php endif; ?>
     </section>
+  </div><!-- /admin-main -->
   </main>
+</div><!-- /app -->
 <?php require __DIR__ . '/../includes/footer.php'; ?>
