@@ -128,7 +128,7 @@ require __DIR__ . '/../includes/header.php';
         <div>
           <div class="eyebrow sage">Paid · active subscriptions</div>
           <h1 class="h1">Your <em>members</em>.</h1>
-          <p class="muted" style="margin:0;max-width:60ch">Click any row to see their profile, conversation thread and program status.</p>
+          <p class="muted" style="margin:0;max-width:60ch">Click any row to open the member profile — conversation, logs, health context and program.</p>
         </div>
         <div class="row" style="gap:10px">
           <a href="/admin/members?<?= $q ? 'q='.urlencode($q).'&' : '' ?>export=csv" class="btn">Export CSV</a>
@@ -136,7 +136,7 @@ require __DIR__ . '/../includes/header.php';
         </div>
       </div>
 
-      <!-- Toolbar: search + filter pills -->
+      <!-- Toolbar: filter pills -->
       <div class="table-toolbar">
         <div class="left">
           <div class="filter-pills" id="filterPills">
@@ -193,7 +193,7 @@ require __DIR__ . '/../includes/header.php';
               elseif ($isWaiting){ $statusLbl = 'Needs reply'; $statusCls = 'amber'; $filterStatus = 'active'; }
               else               { $statusLbl = 'On track'; $statusCls = 'sage'; $filterStatus = 'active'; }
             ?>
-              <tr onclick="location.href='/admin/member?id=<?= (int)$r['id'] ?>'" style="cursor:pointer" data-status="<?= $filterStatus ?>">
+              <tr onclick="openMemberDrawer(<?= (int)$r['id'] ?>)" style="cursor:pointer" data-status="<?= $filterStatus ?>">
                 <td>
                   <div class="name">
                     <div class="av <?= $avColor ?>"><?= e($initials) ?></div>
@@ -227,15 +227,141 @@ require __DIR__ . '/../includes/header.php';
   </main>
 </div>
 
+<!-- ===== MEMBER DRAWER ===== -->
+<div class="drawer-scrim" id="drawerScrim" onclick="closeMemberDrawer()"></div>
+<div class="drawer" id="memberDrawer" role="dialog" aria-modal="true">
+  <div class="drawer-head" id="drawerHead">
+    <div class="av" id="drawerAv">??</div>
+    <div>
+      <div class="name" id="drawerName">Loading…</div>
+      <div class="sub" id="drawerSub"></div>
+    </div>
+    <button class="close" onclick="closeMemberDrawer()" title="Close">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body" id="drawerBody">
+    <div class="dr-loading">Loading member data…</div>
+  </div>
+</div>
+
 <script>
 function filterRows(f, btn) {
-  document.querySelectorAll('#filterPills .chip').forEach(function(b){
-    b.classList.remove('ink');
-  });
+  document.querySelectorAll('#filterPills .chip').forEach(function(b){ b.classList.remove('ink'); });
   btn.classList.add('ink');
   document.querySelectorAll('#memberTbl tbody tr[data-status]').forEach(function(row){
     row.style.display = (f === 'all' || row.dataset.status === f) ? '' : 'none';
   });
+}
+
+var _drawerCache = {};
+
+function openMemberDrawer(id) {
+  document.body.classList.add('drawer-open');
+  document.getElementById('drawerName').textContent = 'Loading…';
+  document.getElementById('drawerSub').textContent = '';
+  document.getElementById('drawerAv').textContent = '??';
+  document.getElementById('drawerAv').className = 'av';
+  document.getElementById('drawerBody').innerHTML = '<div class="dr-loading">Loading member data…</div>';
+
+  if (_drawerCache[id]) { _populateDrawer(_drawerCache[id]); return; }
+
+  fetch('/admin/member_data?id=' + id)
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d.ok) { document.getElementById('drawerBody').innerHTML = '<div class="dr-loading" style="color:var(--coral)">Failed to load member data.</div>'; return; }
+      _drawerCache[id] = d;
+      _populateDrawer(d);
+    })
+    .catch(function(){
+      document.getElementById('drawerBody').innerHTML = '<div class="dr-loading" style="color:var(--coral)">Network error.</div>';
+    });
+}
+
+function closeMemberDrawer() {
+  document.body.classList.remove('drawer-open');
+}
+
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeMemberDrawer(); });
+
+function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _fmtTime(iso){
+  if (!iso) return '—';
+  var d = new Date(iso.replace(' ','T'));
+  var h = d.getHours(), m = d.getMinutes();
+  return (h%12||12)+':'+(m<10?'0':'')+m+(h<12?' AM':' PM');
+}
+
+function _populateDrawer(d) {
+  /* Head */
+  var av = document.getElementById('drawerAv');
+  av.textContent = d.initials;
+  av.className = 'av' + (d.av_color ? ' ' + d.av_color : '');
+  document.getElementById('drawerName').textContent = d.name;
+  document.getElementById('drawerSub').textContent = d.email + (d.phone && d.phone !== 'no phone on file' ? ' · ' + d.phone : '');
+
+  /* KPIs */
+  var weekPct = d.plan_weeks > 0 ? Math.round((d.week_num / d.plan_weeks) * 100) : 0;
+  var kpiHtml = '<div class="dr-kpi">'
+    + '<div class="it"><div class="l">Plan</div><div class="v">' + _esc(d.plan_label) + '</div><div class="s">Week ' + d.week_num + ' of ' + d.plan_weeks + '</div></div>'
+    + '<div class="it"><div class="l">Streak</div><div class="v">' + d.streak + '</div><div class="s">days logged</div></div>'
+    + '<div class="it"><div class="l">Avg glucose</div><div class="v">' + (d.avg_glucose ? d.avg_glucose : '—') + '</div><div class="s">mg/dL · 7d</div></div>'
+    + '<div class="it"><div class="l">Program</div><div class="v">' + (d.has_program ? '✓' : '—') + '</div><div class="s">' + (d.has_program ? 'Uploaded' : 'None yet') + '</div></div>'
+    + '</div>';
+
+  /* Progress bar */
+  kpiHtml += '<div style="margin-bottom:18px"><div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-bottom:5px"><span>Program progress</span><span>Week ' + d.week_num + ' / ' + d.plan_weeks + '</span></div>'
+    + '<div style="height:6px;border-radius:99px;background:var(--bg-3);overflow:hidden"><div style="height:100%;width:' + weekPct + '%;background:linear-gradient(90deg,var(--sage),#9CC9A8);border-radius:99px"></div></div></div>';
+
+  /* Conversation */
+  var convHtml = '<div class="dr-section"><h4>Recent messages</h4>';
+  if (d.messages && d.messages.length) {
+    convHtml += '<div class="dr-conv">';
+    d.messages.forEach(function(msg){
+      var cls = msg.from_member == 1 ? 'me' : 'them';
+      var body = _esc(msg.body).replace(/\n/g,'<br>');
+      convHtml += '<div class="dr-bubble ' + cls + '">' + body + '<span class="t">' + _fmtTime(msg.created_at) + '</span></div>';
+    });
+    convHtml += '</div>';
+  } else {
+    convHtml += '<div style="color:var(--muted);font-size:13px;padding:14px;background:var(--bg);border-radius:12px;border:1px solid var(--line)">No messages yet.</div>';
+  }
+  convHtml += '</div>';
+
+  /* Recent events */
+  var eventsHtml = '<div class="dr-section"><h4>Recent activity</h4><div class="dr-events">';
+  if (d.events && d.events.length) {
+    d.events.forEach(function(ev){
+      var chipCls = ev.chip_cls ? ' ' + ev.chip_cls : '';
+      eventsHtml += '<div class="dr-event">'
+        + '<div class="dt">' + _esc(ev.date || '').replace(/\d{4}-/, '').replace('-','/') + '</div>'
+        + '<div><div class="lbl"><span class="chip' + chipCls + '" style="font-size:11px;padding:2px 8px">' + _esc(ev.label || '—') + '</span></div>'
+        + (ev.notes ? '<div class="notes">' + _esc(ev.notes) + '</div>' : '')
+        + '</div>'
+        + '</div>';
+    });
+  } else {
+    eventsHtml += '<div style="color:var(--muted);font-size:13px;padding:10px 0">No logs yet.</div>';
+  }
+  eventsHtml += '</div></div>';
+
+  /* Health context */
+  var h = d.health || {};
+  var healthHtml = '<div class="dr-section"><h4>Health context</h4><div class="dr-health">'
+    + '<div class="it"><div class="l">Diabetes type</div><div class="v">' + _esc(h.diabetes_type || '—') + '</div></div>'
+    + '<div class="it"><div class="l">Last A1C</div><div class="v">' + _esc(h.a1c || '—') + '</div></div>'
+    + '<div class="it"><div class="l">Medication</div><div class="v">' + _esc(h.medication || '—') + '</div></div>'
+    + '<div class="it"><div class="l">CGM device</div><div class="v">' + _esc(h.cgm || '—') + '</div></div>'
+    + '</div></div>';
+
+  /* Actions */
+  var actionsHtml = '<div class="dr-actions">'
+    + '<a href="/admin/member?id=' + d.id + '" class="btn pri">Full profile →</a>'
+    + '<a href="/admin/inbox?member=' + d.id + '" class="btn">Open in inbox</a>'
+    + '<a href="/admin/programs?member=' + d.id + '" class="btn">Assign program</a>'
+    + '</div>';
+
+  document.getElementById('drawerBody').innerHTML = kpiHtml + convHtml + eventsHtml + healthHtml + actionsHtml;
 }
 </script>
 <?php require __DIR__ . '/../includes/footer.php'; ?>
