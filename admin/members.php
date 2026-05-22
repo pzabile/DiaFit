@@ -26,10 +26,13 @@ require __DIR__ . '/_layout.php';
         <h1>Paid members</h1>
         <p class="muted">Everyone with an active subscription.</p>
       </div>
-      <form method="get" class="search-form">
-        <input type="text" name="q" value="<?= e($q) ?>" placeholder="Search by email, name or phone…" />
-        <button class="btn btn-ghost">Search</button>
-      </form>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;">
+        <form method="get" class="search-form">
+          <input type="text" name="q" value="<?= e($q) ?>" placeholder="Search by email, name or phone…" />
+          <button class="btn btn-ghost">Search</button>
+        </form>
+        <a href="/admin/new_member" class="btn btn-primary">+ Create member</a>
+      </div>
     </header>
 
     <section class="card big">

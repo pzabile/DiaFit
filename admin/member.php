@@ -3,6 +3,7 @@ require __DIR__ . '/../includes/bootstrap.php';
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/uploads.php';
+require __DIR__ . '/../includes/mailer.php';
 require_admin();
 
 $id = (int) ($_GET['id'] ?? 0);
@@ -12,7 +13,9 @@ if (!$lead) { http_response_code(404); echo 'Not found'; exit; }
 $flash = $_SESSION['flash'] ?? ''; unset($_SESSION['flash']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
-    if (($_POST['action'] ?? '') === 'program') {
+    $action = $_POST['action'] ?? '';
+
+    if ($action === 'program') {
         try {
             $path = save_admin_program_pdf($_FILES['program'] ?? [], $id);
             db_exec('UPDATE leads SET program_path = ?, updated_at = NOW() WHERE id = ?', [$path, $id]);
@@ -22,7 +25,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
         }
         header('Location: /admin/member?id=' . $id); exit;
     }
+
+    if ($action === 'send_reset') {
+        try {
+            $res = create_password_reset_token($lead['email']);
+            if ($res) {
+                $url = rtrim(cfg('site_url'), '/') . '/reset?token=' . $res['token'];
+                send_email(
+                    $lead['email'],
+                    $lead['first_name'] ?: 'there',
+                    'DiaFitus — reset your password',
+                    password_reset_email_html($lead['first_name'], $url)
+                );
+                $_SESSION['flash'] = 'Password reset email sent to ' . $lead['email'] . '.';
+            }
+        } catch (Throwable $ex) {
+            $_SESSION['flash'] = 'Could not send reset email: ' . $ex->getMessage();
+        }
+        header('Location: /admin/member?id=' . $id); exit;
+    }
+
+    if ($action === 'change_plan') {
+        $planDays  = (int) ($_POST['plan_days'] ?? 84);
+        $resetDate = !empty($_POST['reset_start']) ? 1 : 0;
+        $allowed   = [7, 28, 84];
+        if (!in_array($planDays, $allowed, true)) $planDays = 84;
+        if ($resetDate) {
+            db_exec('UPDATE leads SET plan_days = ?, started_at = CURDATE(), updated_at = NOW() WHERE id = ?', [$planDays, $id]);
+        } else {
+            db_exec('UPDATE leads SET plan_days = ?, updated_at = NOW() WHERE id = ?', [$planDays, $id]);
+        }
+        $_SESSION['flash'] = 'Plan updated to ' . $planDays . ' days' . ($resetDate ? ' and start date reset to today.' : '.');
+        header('Location: /admin/member?id=' . $id); exit;
+    }
 }
+
+$lead = db_get('SELECT * FROM leads WHERE id = ?', [$id]); // reload after possible update
 
 $answers       = json_decode($lead['answers_json'] ?? '{}', true) ?: [];
 $weeks         = db_all('SELECT * FROM weekly_notes WHERE lead_id = ? ORDER BY week_number DESC, created_at DESC', [$id]);
@@ -121,6 +159,45 @@ $csrf = csrf_input();
       </div>
       <a href="/admin/<?= $lead['paid'] ? 'members' : 'leads' ?>" class="btn btn-ghost">← Back</a>
     </header>
+
+    <!-- ========== Admin tools ========== -->
+    <section class="card big">
+      <h2>Admin tools</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:1.5rem;align-items:flex-start;">
+
+        <!-- Send password reset -->
+        <div style="flex:1;min-width:220px;">
+          <h3 style="font-size:1rem;margin:0 0 .5rem;">Password reset</h3>
+          <p class="muted" style="font-size:.88rem;margin:0 0 .75rem;">Sends a reset link to the member's email. Valid for 1 hour.</p>
+          <form method="post" onsubmit="return confirm('Send password reset email to <?= e(addslashes($lead['email'])) ?>?');">
+            <?= $csrf ?>
+            <input type="hidden" name="action" value="send_reset" />
+            <button class="btn btn-ghost">📧 Send reset email</button>
+          </form>
+        </div>
+
+        <!-- Change plan -->
+        <div style="flex:1;min-width:220px;">
+          <h3 style="font-size:1rem;margin:0 0 .5rem;">Change plan</h3>
+          <p class="muted" style="font-size:.88rem;margin:0 0 .75rem;">Current: <strong><?= (int)($lead['plan_days'] ?? 84) ?> days</strong>. Dashboard and progress update instantly.</p>
+          <form method="post" style="display:flex;flex-direction:column;gap:.6rem;">
+            <?= $csrf ?>
+            <input type="hidden" name="action" value="change_plan" />
+            <select name="plan_days" style="padding:.6rem .8rem;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:.95rem;">
+              <option value="7"  <?= ($lead['plan_days'] ?? 84) ==  7 ? 'selected' : '' ?>>7-day jump-start</option>
+              <option value="28" <?= ($lead['plan_days'] ?? 84) == 28 ? 'selected' : '' ?>>28-day (4-week) reset</option>
+              <option value="84" <?= ($lead['plan_days'] ?? 84) == 84 ? 'selected' : '' ?>>84-day (12-week) transformation</option>
+            </select>
+            <label style="font-size:.88rem;display:flex;align-items:center;gap:.5rem;">
+              <input type="checkbox" name="reset_start" value="1" />
+              Reset start date to today
+            </label>
+            <button class="btn btn-primary btn-sm" style="align-self:flex-start;">Update plan</button>
+          </form>
+        </div>
+
+      </div>
+    </section>
 
     <section class="card big">
       <h2>Questionnaire answers</h2>
