@@ -156,6 +156,10 @@ require __DIR__ . '/../includes/header.php';
 
         <!-- CONVERSATION PANE -->
         <div class="convo" id="convoPane">
+          <a href="/admin/inbox" class="mob-back">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            All conversations
+          </a>
           <?php if ($selectedLead):
             $prog = member_program_info($selectedLead);
             $avColor = adm_av_color($selectedLead['email']);
@@ -480,6 +484,10 @@ window.addEventListener('load', () => {
   const msgs = document.getElementById('msgs');
   if (msgs) msgs.scrollTop = msgs.scrollHeight;
   startPoll();
+  // Mobile inbox: if a thread is selected, switch to convo view
+  if (currentThreadId && window.innerWidth <= 900) {
+    document.querySelector('.inbox-shell')?.classList.add('mob-convo');
+  }
 });
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { clearInterval(pollTimer); pollTimer=null; }

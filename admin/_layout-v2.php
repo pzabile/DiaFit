@@ -76,3 +76,28 @@ $leadsCount   = $leadsCount   ?? 0;
     </a>
   </div>
 </aside>
+
+<!-- Mobile bottom nav — only visible at ≤980px -->
+<nav class="mob-nav" aria-label="Admin navigation">
+  <a href="/admin/" <?= ($activeTab??'')==='home' ? 'class="active"' : '' ?>>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 001 1h4v-7h4v7h4a1 1 0 001-1V10"/></svg>
+    Overview
+  </a>
+  <a href="/admin/inbox" <?= ($activeTab??'')==='inbox' ? 'class="active"' : '' ?>>
+    <?php if ($waitingCount > 0): ?><span class="mnb"><?= $waitingCount ?></span><?php endif; ?>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 01-12.5 6.6L4 20l1.4-4.5A8 8 0 1121 12z"/></svg>
+    Inbox
+  </a>
+  <a href="/admin/members" <?= ($activeTab??'')==='members' ? 'class="active"' : '' ?>>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0114 0M17 11l2 2 4-4"/></svg>
+    Members
+  </a>
+  <a href="/admin/programs" <?= ($activeTab??'')==='programs' ? 'class="active"' : '' ?>>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>
+    Programs
+  </a>
+  <a href="/admin/settings" <?= ($activeTab??'')==='settings' ? 'class="active"' : '' ?>>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06A1.65 1.65 0 0015 19.4a1.65 1.65 0 00-1.65 1.5v.09a2 2 0 11-4 0v-.09A1.65 1.65 0 008 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.5-1.65H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001.65-1.5V3a2 2 0 114 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.5 1.65H21a2 2 0 110 4h-.09A1.65 1.65 0 0019.4 15z"/></svg>
+    Settings
+  </a>
+</nav>

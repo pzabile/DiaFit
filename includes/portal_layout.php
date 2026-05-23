@@ -100,3 +100,29 @@ $navItems = [
     </a>
   </div>
 </aside>
+
+<!-- Mobile bottom nav — only visible at ≤980px -->
+<nav class="mob-nav" aria-label="Main navigation">
+  <a href="/portal/today" <?= $activeView==='today' ? 'class="active"' : '' ?>>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 001 1h4v-7h4v7h4a1 1 0 001-1V10"/></svg>
+    Today
+  </a>
+  <a href="/portal/log" <?= $activeView==='log' ? 'class="active"' : '' ?>>
+    <?php if ($todayLogCount): ?><span class="mnb">✓</span><?php endif; ?>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
+    Log
+  </a>
+  <a href="/portal/program" <?= $activeView==='program' ? 'class="active"' : '' ?>>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>
+    Program
+  </a>
+  <a href="/portal/coach" <?= $activeView==='coach' ? 'class="active"' : '' ?>>
+    <?php if ($unreadCoach > 0): ?><span class="mnb"><?= $unreadCoach ?></span><?php endif; ?>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 01-12.5 6.6L4 20l1.4-4.5A8 8 0 1121 12z"/></svg>
+    Coach
+  </a>
+  <a href="/portal/account" <?= $activeView==='account' ? 'class="active"' : '' ?>>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>
+    Account
+  </a>
+</nav>

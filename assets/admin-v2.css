@@ -385,3 +385,45 @@ body.drawer-open .drawer{transform:translateX(0)}
 
 /* loading state */
 .dr-loading{padding:40px;text-align:center;color:var(--muted);font-size:13px}
+
+/* ====================== MOBILE NAV ====================== */
+.mob-nav{display:none}
+@media (max-width:980px){
+  .mob-nav{
+    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:200;
+    background:var(--bg);border-top:1px solid var(--line);
+    padding:6px 4px;
+    padding-bottom:max(10px,env(safe-area-inset-bottom));
+    box-shadow:0 -6px 24px -10px rgba(27,32,28,.16);
+  }
+  .mob-nav a{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:6px 2px;border-radius:10px;font-size:10px;font-weight:600;
+    color:var(--muted);text-decoration:none;position:relative;letter-spacing:.02em;transition:.12s;
+  }
+  .mob-nav a:hover{color:var(--ink-2)}
+  .mob-nav a.active{color:var(--sage-2)}
+  .mob-nav a svg{display:block;flex-shrink:0}
+  .mob-nav .mnb{
+    position:absolute;top:2px;right:calc(50% - 16px);min-width:15px;height:15px;
+    border-radius:99px;background:var(--coral);color:#fff;
+    font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;
+    padding:0 3px;line-height:1;
+  }
+  .view{padding-bottom:84px}
+  .topbar{padding-left:18px;padding-right:18px}
+  /* hide search box on mobile — takes too much space */
+  .search-box{display:none}
+  /* inbox mobile: show threads by default, convo on demand */
+  @media (max-width:900px){
+    .inbox-shell{grid-template-columns:1fr!important;height:auto!important}
+    .threads{display:flex!important;flex-direction:column}
+    .convo{display:none!important}
+    .ctx-pane{display:none!important}
+    .inbox-shell.mob-convo .threads{display:none!important}
+    .inbox-shell.mob-convo .convo{display:flex!important;flex-direction:column;min-height:calc(100vh - 140px)}
+    .mob-back{display:inline-flex!important}
+  }
+  .mob-back{display:none;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted);padding:12px 18px;border-bottom:1px solid var(--line);background:var(--bg)}
+  .mob-back:hover{color:var(--ink)}
+}

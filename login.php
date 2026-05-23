@@ -131,6 +131,29 @@ label.v3-lbl{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);m
 .v3-legal{font-size:11.5px;color:var(--muted);text-align:center;margin-top:auto;padding-top:24px}
 .v3-legal a{color:var(--muted);text-decoration:underline}
 
+/* role toggle */
+.v3-role-toggle{
+  display:inline-flex;background:var(--bg-2);border:1px solid var(--line);
+  border-radius:999px;padding:4px;gap:2px;margin-bottom:22px;
+}
+.v3-role-toggle button{
+  padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600;color:var(--ink-2);
+  display:inline-flex;align-items:center;gap:6px;transition:.12s;
+}
+.v3-role-toggle button.on{background:var(--ink);color:#F4F1E9}
+.v3-role-toggle .pip{width:6px;height:6px;border-radius:50%;background:var(--muted)}
+.v3-role-toggle button.on .pip{background:#9CC9A8}
+
+/* admin mode banner */
+.v3-admin-banner{
+  background:#F5E9D2;border:1px dashed #E2C68B;border-radius:11px;
+  padding:11px 14px 11px 40px;font-size:12.5px;color:#7C5215;margin-bottom:20px;position:relative;
+}
+.v3-admin-banner::before{content:"";position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  width:18px;height:18px;border-radius:50%;background:var(--amber)}
+.v3-admin-banner::after{content:"!";position:absolute;left:19px;top:50%;transform:translateY(-50%);
+  color:#fff;font-weight:700;font-size:12px;line-height:1}
+
 /* Visual side */
 .v3-visual{
   position:relative;background:linear-gradient(155deg,#1F3A2C 0%,#173023 60%,#102016 100%);
@@ -180,9 +203,14 @@ label.v3-lbl{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);m
     <div class="v3-form-wrap">
       <div class="v3-form">
 
-        <div class="v3-eyebrow">Welcome back</div>
-        <h1 class="v3-h1">Sign in to <em>your plan</em>.</h1>
-        <p class="v3-lede">Pick up where you left off — today's check-in is one tap away. We saved your streak.</p>
+        <div class="v3-role-toggle" id="v3RoleToggle" role="tablist" aria-label="Sign in as">
+          <button type="button" class="on" data-role="member" onclick="v3SetRole('member',this)"><span class="pip"></span> Member</button>
+          <button type="button" data-role="admin" onclick="v3SetRole('admin',this)"><span class="pip"></span> Coach / Admin</button>
+        </div>
+
+        <div class="v3-eyebrow" id="v3Eyebrow">Welcome back</div>
+        <h1 class="v3-h1" id="v3Title">Sign in to <em>your plan</em>.</h1>
+        <p class="v3-lede" id="v3Lede">Pick up where you left off — today's check-in is one tap away. We saved your streak.</p>
 
         <?php if ($error): ?>
         <div class="v3-error">
@@ -191,6 +219,17 @@ label.v3-lbl{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);m
         </div>
         <?php endif; ?>
 
+        <!-- Admin mode panel -->
+        <div id="v3AdminPanel" style="display:none">
+          <div class="v3-admin-banner">Admin access · this area is restricted to coaches and operations staff.</div>
+          <a href="/admin/" class="v3-submit" style="text-decoration:none;justify-content:center">
+            Enter coach console
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <p style="color:var(--muted);font-size:12px;text-align:center;margin:16px 0 0">Your browser will prompt for your coach credentials.</p>
+        </div>
+
+        <div id="v3MemberForm">
         <form method="post" autocomplete="on">
           <?= csrf_input() ?>
 
@@ -225,6 +264,7 @@ label.v3-lbl{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);m
         <div class="v3-bottom-note">
           New to diafitus? <a href="/questionnaire">Take the assessment →</a>
         </div>
+        </div><!-- /v3MemberForm -->
 
         <div class="v3-legal">
           By signing in you agree to our <a href="/terms">Terms</a> &amp; <a href="/privacy">Privacy</a>.
@@ -276,6 +316,25 @@ window.v3TogglePw = function(){
   var btn = document.querySelector('.v3-show-pw');
   if (pw.type === 'password'){ pw.type='text'; btn.textContent='Hide'; }
   else { pw.type='password'; btn.textContent='Show'; }
+};
+
+window.v3SetRole = function(role, btn){
+  var isAdmin = role === 'admin';
+  // toggle active tab style
+  document.querySelectorAll('#v3RoleToggle button').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  // toggle panels
+  document.getElementById('v3MemberForm').style.display = isAdmin ? 'none' : '';
+  document.getElementById('v3AdminPanel').style.display  = isAdmin ? '' : 'none';
+  // update heading + lede
+  document.getElementById('v3Eyebrow').textContent = isAdmin ? 'Restricted access' : 'Welcome back';
+  document.getElementById('v3Title').innerHTML   = isAdmin ? 'Coach <em>console</em>.' : 'Sign in to <em>your plan</em>.';
+  document.getElementById('v3Lede').textContent  = isAdmin
+    ? 'Members, inbox, programs and trends — everything you need to run the day.'
+    : "Pick up where you left off — today's check-in is one tap away. We saved your streak.";
+  // visual side label
+  var vTop = document.querySelector('.v3-v-top');
+  if (vTop) vTop.textContent = isAdmin ? 'Coach console · admin' : 'Member portal · v2';
 };
 </script>
 <?php require __DIR__ . '/includes/footer.php'; ?>
