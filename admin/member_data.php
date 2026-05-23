@@ -48,8 +48,12 @@ $gluc = db_get("SELECT AVG((bs_before+bs_after)/2) v FROM daily_logs WHERE lead_
 if ($gluc && $gluc['v']) $avgGlucose = (int)round($gluc['v']);
 
 /* Last messages */
-$msgs = db_all("SELECT id, body, from_member, created_at FROM coach_notes WHERE lead_id=? ORDER BY id DESC LIMIT 10", [$id]);
-$msgs = array_reverse($msgs);
+$rawMsgs = db_all("SELECT id, body, from_member, created_at FROM coach_notes WHERE lead_id=? ORDER BY id DESC LIMIT 10", [$id]);
+$rawMsgs = array_reverse($rawMsgs);
+$msgs = array_map(function($m) {
+    $m['time'] = date('g:i A', strtotime($m['created_at']));
+    return $m;
+}, $rawMsgs);
 
 /* Recent events (logs) */
 $events = db_all("
