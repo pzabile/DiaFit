@@ -8,13 +8,26 @@ require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require_admin();
 
+// Override the HTML exception handler with a JSON one for this API endpoint
+set_exception_handler(function(Throwable $ex) {
+    error_log('member_data error: ' . $ex->getMessage());
+    while (ob_get_level()) ob_end_clean();
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+    }
+    echo json_encode(['ok' => false, 'error' => 'server_error']);
+    exit;
+});
+ob_start();
+
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
 $id = (int)($_GET['id'] ?? 0);
 if (!$id) { http_response_code(400); echo json_encode(['ok'=>false]); exit; }
 
-$m = db_get("SELECT id, first_name, email, phone, started_at, plan_days, program_path, created_at, last_login_at, answers_json FROM leads WHERE id=? AND paid=1", [$id]);
+$m = db_get("SELECT id, first_name, email, phone, started_at, plan_days, program_path, created_at, answers_json FROM leads WHERE id=? AND paid=1", [$id]);
 if (!$m) { http_response_code(404); echo json_encode(['ok'=>false]); exit; }
 
 $answers = json_decode($m['answers_json'] ?? '{}', true) ?: [];

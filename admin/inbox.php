@@ -312,13 +312,18 @@ function startPoll() {
     if (document.hidden) return;
     try {
       const r = await fetch('/admin/inbox_api?thread=' + currentThreadId + '&since=' + lastMsgId);
+      if (!r.ok) return;
       const d = await r.json();
       if (d.ok && d.messages && d.messages.length) {
-        d.messages.forEach(m => appendMessage(m));
+        d.messages.forEach(m => {
+          // Skip messages we already rendered (our own sent messages have already been appended)
+          if (document.querySelector('.bubble[data-id="' + m.id + '"]')) return;
+          appendMessage(m);
+        });
         lastMsgId = d.last_id;
       }
-    } catch(e) {}
-  }, 8000);
+    } catch(e) { console.warn('poll error', e); }
+  }, 3000);
 }
 
 function appendMessage(m) {
@@ -326,7 +331,8 @@ function appendMessage(m) {
   if (!msgs) return;
   const div = document.createElement('div');
   div.className = 'bubble ' + (m.from_member ? 'them' : 'me');
-  div.innerHTML = escHtml(m.body).replace(/\n/g,'<br>') + '<span class="time">' + escHtml(m.time) + '</span>';
+  div.dataset.id = m.id;
+  div.innerHTML = escHtml(m.body).replace(/\n/g,'<br>') + '<span class="time">' + escHtml(m.time||'') + '</span>';
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -336,7 +342,20 @@ async function sendMessage() {
   const body = ta ? ta.value.trim() : '';
   if (!body || !currentThreadId) return;
   const btn = document.getElementById('sendBtn');
-  if (btn) btn.disabled = true;
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+  // Optimistically show the message immediately
+  const tempId = 'temp_' + Date.now();
+  const tempDiv = document.createElement('div');
+  tempDiv.className = 'bubble me';
+  tempDiv.dataset.id = tempId;
+  tempDiv.style.opacity = '0.6';
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+  tempDiv.innerHTML = escHtml(body).replace(/\n/g,'<br>') + '<span class="time">' + timeStr + '</span>';
+  const msgs = document.getElementById('msgs');
+  if (msgs) { msgs.appendChild(tempDiv); msgs.scrollTop = msgs.scrollHeight; }
+
   try {
     const r = await fetch('/admin/inbox_api', {
       method: 'POST',
@@ -344,11 +363,13 @@ async function sendMessage() {
       body: JSON.stringify({thread: currentThreadId, body: body, csrf: CSRF})
     });
     const d = await r.json();
-    if (d.ok) {
+    if (d.ok && d.message) {
+      // Replace temp bubble with confirmed one
+      if (tempDiv.parentNode) tempDiv.remove();
       ta.value = '';
+      ta.style.height = '';
       appendMessage(d.message);
       lastMsgId = d.message.id;
-      // Remove waiting chip from thread row
       const thr = document.querySelector('.thread[data-thread-id="' + currentThreadId + '"]');
       if (thr) {
         thr.classList.remove('unread');
@@ -356,9 +377,19 @@ async function sendMessage() {
         const w = thr.querySelector('.waiting');
         if (w) w.remove();
       }
+    } else {
+      // Failed — remove temp, restore text
+      if (tempDiv.parentNode) tempDiv.remove();
+      ta.value = body;
+      console.error('Send failed:', d);
     }
-  } catch(e) {} finally {
-    if (btn) btn.disabled = false;
+  } catch(e) {
+    if (tempDiv.parentNode) tempDiv.remove();
+    ta.value = body;
+    console.error('Send error:', e);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Send <span class="kbd">⌘⏎</span>'; }
+    if (ta) ta.focus();
   }
 }
 

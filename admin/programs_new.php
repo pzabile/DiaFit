@@ -13,12 +13,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_check($_POST['csrf'] ?? '')) {
         $error = 'Session expired.';
     } else {
-        $memberId = (int)($_POST['member_id'] ?? 0);
+        $memberId   = (int)($_POST['member_id'] ?? 0);
+        $weekNumber = max(1, (int)($_POST['week_number'] ?? 1));
+        $title      = trim($_POST['program_title'] ?? '');
         if (!$memberId) {
             $error = 'Please select a member.';
         } else {
             try {
                 $path = save_admin_program_pdf($_FILES['program'] ?? [], $memberId);
+                // Insert into member_programs table (may not exist yet — wrapped in try)
+                try {
+                    db_exec(
+                        'INSERT INTO member_programs (lead_id, week_number, title, file_path, created_at)
+                         VALUES (?, ?, ?, ?, NOW())
+                         ON DUPLICATE KEY UPDATE file_path=VALUES(file_path), title=VALUES(title), created_at=NOW()',
+                        [$memberId, $weekNumber, $title ?: null, $path]
+                    );
+                } catch (Throwable $ignored) {
+                    // Table not created yet — fall through to leads update
+                }
+                // Also update leads.program_path for backward compatibility
                 db_exec('UPDATE leads SET program_path = ?, updated_at = NOW() WHERE id = ?', [$path, $memberId]);
                 header('Location: /admin/programs_new?published=' . $memberId); exit;
             } catch (Throwable $ex) {
@@ -345,19 +359,31 @@ body[data-stage="done"] #stage-done { display:block }
 
         <div class="pb-upload-form">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
-            <div>
-              <label class="pb-field-lbl">Assign to member</label>
-              <div class="pb-assign" style="border-radius:9px;background:#fff;border:1px solid var(--line);padding:0">
-                <select name="member_id" id="pb-member-sel" class="pb-sel" style="border-radius:9px" required>
-                  <option value="">— Select member —</option>
-                  <?php foreach ($allMembers as $m): ?>
-                    <option value="<?= (int)$m['id'] ?>" <?= $preselectId === (int)$m['id'] ? 'selected' : '' ?>><?= e($m['first_name'] ?: $m['email']) ?> (<?= e($m['email']) ?>)</option>
-                  <?php endforeach; ?>
-                </select>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div>
+                <label class="pb-field-lbl">Assign to member</label>
+                <div class="pb-assign" style="border-radius:9px;background:#fff;border:1px solid var(--line);padding:0">
+                  <select name="member_id" id="pb-member-sel" class="pb-sel" style="border-radius:9px" required>
+                    <option value="">— Select member —</option>
+                    <?php foreach ($allMembers as $m): ?>
+                      <option value="<?= (int)$m['id'] ?>" <?= $preselectId === (int)$m['id'] ? 'selected' : '' ?>><?= e($m['first_name'] ?: $m['email']) ?> (<?= e($m['email']) ?>)</option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
               </div>
-              <div class="pb-hint-banner" style="margin-top:12px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div>
+                  <label class="pb-field-lbl">Week number</label>
+                  <input type="number" name="week_number" id="pb-week-num" class="pb-inp" min="1" max="52" value="1" required placeholder="1" />
+                </div>
+                <div>
+                  <label class="pb-field-lbl">Title <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+                  <input type="text" name="program_title" class="pb-inp" placeholder="e.g. Week 1 — Foundation" />
+                </div>
+              </div>
+              <div class="pb-hint-banner">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
-                <div>The PDF will replace any existing program for this member. They'll see it immediately in their portal.</div>
+                <div>Each week can have its own PDF. Member sees all uploaded weeks in their portal.</div>
               </div>
             </div>
 

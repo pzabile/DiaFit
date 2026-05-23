@@ -10,6 +10,18 @@ require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require_admin();
 
+set_exception_handler(function(Throwable $ex) {
+    error_log('inbox_api error: ' . $ex->getMessage());
+    while (ob_get_level()) ob_end_clean();
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+    }
+    echo json_encode(['ok' => false, 'error' => 'server_error']);
+    exit;
+});
+ob_start();
+
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 

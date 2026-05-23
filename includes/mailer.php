@@ -132,11 +132,6 @@ function account_setup_email_html($firstName, $setupUrl, $memberEmail = '') {
       <p style="font-size:14px;line-height:1.75;color:#2d4a3a;margin:0;">That is exactly why {$brandE} exists. <strong>You are not alone in this.</strong></p>
     </div>
 
-    <!-- Nutrition guide note -->
-    <div style="background:#fffbf0;border:1px solid #f0e4b0;border-radius:12px;padding:14px 16px;margin:0 0 24px;">
-      <p style="font-size:14px;line-height:1.65;color:#5a4a10;margin:0;"><strong>📎 Your nutrition guide is attached to this email.</strong><br>We've included <em>"Eating for Stable Blood Sugar"</em> as a PDF. Save it, read it at your own pace, and come back to it whenever you need it.<br><br>And one thing I'd ask throughout this journey: <strong>stay curious</strong>. Ask questions, explore what works for your body, and tell us what you find. The members who get the most out of {$brandE} are the ones who keep asking.</p>
-    </div>
-
     <!-- Create account CTA -->
     <p style="font-size:15px;font-weight:700;color:#0f1a14;margin:0 0 8px;">One last step — create your password</p>
     <p style="font-size:14px;line-height:1.6;color:#4a5651;margin:0 0 16px;">Click the button below to set your password. Everything lives in your Member Portal after that.</p>
@@ -151,7 +146,6 @@ function account_setup_email_html($firstName, $setupUrl, $memberEmail = '') {
     <p style="font-size:15px;font-weight:700;color:#0f1a14;margin:0 0 12px;">What happens in the next 24 hours</p>
     <table style="border-collapse:collapse;width:100%;margin:0 0 20px;">
       <tr><td style="padding:6px 0;vertical-align:top;font-size:18px;width:28px;">🩸</td><td style="padding:6px 0;font-size:14px;color:#4a5651;line-height:1.5;">Your <strong>blood-sugar-aware workout plan</strong> is uploaded to your account.</td></tr>
-      <tr><td style="padding:6px 0;vertical-align:top;font-size:18px;">🥗</td><td style="padding:6px 0;font-size:14px;color:#4a5651;line-height:1.5;">Your <strong>personalized nutrition guide</strong> is ready in your dashboard.</td></tr>
       <tr><td style="padding:6px 0;vertical-align:top;font-size:18px;">💬</td><td style="padding:6px 0;font-size:14px;color:#4a5651;line-height:1.5;">Your <strong>coach sends you a first message</strong> with your focus for the days ahead.</td></tr>
     </table>
 
@@ -273,14 +267,9 @@ function welcome_email_html($firstName, $email = '', $password = '') {
       <p style="font-size:14px;line-height:1.75;color:#2d4a3a;margin:0;">That is exactly why {$brandE} exists. <strong>You are not alone in this.</strong></p>
     </div>
 
-    <div style="background:#fffbf0;border:1px solid #f0e4b0;border-radius:12px;padding:14px 16px;margin:0 0 24px;">
-      <p style="font-size:14px;line-height:1.65;color:#5a4a10;margin:0;"><strong>📎 Your nutrition guide is attached.</strong><br>We've included <em>"Eating for Stable Blood Sugar"</em> as a PDF. Save it, read it at your own pace, and come back whenever you need it.<br><br>Stay curious — ask questions, explore what works for your body, and tell us what you find.</p>
-    </div>
-
     <p style="font-size:15px;font-weight:700;color:#0f1a14;margin:0 0 12px;">What happens in the next 24 hours</p>
     <table style="border-collapse:collapse;width:100%;margin:0 0 20px;">
       <tr><td style="padding:6px 0;vertical-align:top;font-size:18px;width:28px;">🩸</td><td style="padding:6px 0;font-size:14px;color:#4a5651;line-height:1.5;">Your <strong>blood-sugar-aware workout plan</strong> is uploaded to your account.</td></tr>
-      <tr><td style="padding:6px 0;vertical-align:top;font-size:18px;">🥗</td><td style="padding:6px 0;font-size:14px;color:#4a5651;line-height:1.5;">Your <strong>personalized nutrition guide</strong> is ready in your dashboard.</td></tr>
       <tr><td style="padding:6px 0;vertical-align:top;font-size:18px;">💬</td><td style="padding:6px 0;font-size:14px;color:#4a5651;line-height:1.5;">Your <strong>coach sends you a first message</strong> with your focus for the days ahead.</td></tr>
     </table>
 
