@@ -47,13 +47,17 @@ if ($glucData) {
     if ($vals) $avgGlucose7d = round(array_sum($vals) / count($vals));
 }
 
-// Streak: count consecutive days backwards from today where a log exists
+// Streak: count consecutive days backwards from today using a single query
 $streakDays = 0;
+$streakRows = db_all(
+    'SELECT log_date FROM daily_logs WHERE lead_id = ? AND log_date <= CURDATE()
+     ORDER BY log_date DESC LIMIT 365',
+    [$leadId]
+);
 $checkDate = new DateTime('today');
-for ($i = 0; $i < 365; $i++) {
-    $d = $checkDate->format('Y-m-d');
-    $exists = db_get('SELECT id FROM daily_logs WHERE lead_id = ? AND log_date = ?', [$leadId, $d]);
-    if (!$exists) break;
+foreach ($streakRows as $sRow) {
+    $d = new DateTime($sRow['log_date']);
+    if ($d->format('Y-m-d') !== $checkDate->format('Y-m-d')) break;
     $streakDays++;
     $checkDate->modify('-1 day');
 }

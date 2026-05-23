@@ -89,7 +89,7 @@ function login_lead($email, $password) {
     if (!password_verify($password, $lead['password_hash'])) return false;
     $_SESSION['member_id'] = (int) $lead['id'];
     session_regenerate_id(true);
-    db_exec('UPDATE leads SET last_login_at = NOW() WHERE id = ?', [$lead['id']]);
+    try { db_exec('UPDATE leads SET last_login_at = NOW() WHERE id = ?', [$lead['id']]); } catch (Throwable $ignored) {}
     return $lead;
 }
 

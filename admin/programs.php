@@ -60,6 +60,13 @@ $bodyClass = 'admin-page';
 $activeTab = 'programs';
 require __DIR__ . '/../includes/header.php';
 ?>
+<style>
+.prog-card .prog-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#D6C9A8,#A77F4C);color:#fff;display:grid;place-items:center;font-weight:600;font-size:12.5px;flex-shrink:0;letter-spacing:-.01em}
+.prog-card .prog-av.sage{background:linear-gradient(135deg,#9CC9A8,#3B6E54)}
+.prog-card .prog-av.plum{background:linear-gradient(135deg,#C5A8D6,#7D5A8A)}
+.prog-card .prog-av.coral{background:linear-gradient(135deg,#E8B5AA,#C66B5B)}
+.prog-card .prog-av.sky{background:linear-gradient(135deg,#A8C9E8,#5C8AA8)}
+</style>
 <div class="app">
 <?php require __DIR__ . '/_layout-v2.php'; ?>
   <main class="main">
@@ -130,7 +137,7 @@ require __DIR__ . '/../includes/header.php';
           ?>
           <a href="/admin/member?id=<?= (int)$r['id'] ?>" class="prog-card">
             <div style="display:flex;align-items:center;gap:10px">
-              <div class="tbl av <?= $avColor ?>" style="flex-shrink:0"><?= e(mb_strtoupper(mb_substr($name, 0, 2))) ?></div>
+              <div class="prog-av <?= $avColor ?>"><?= e(mb_strtoupper(mb_substr($name, 0, 2))) ?></div>
               <div>
                 <div class="ttl"><?= e($name) ?></div>
                 <div class="meta"><?= e($r['email']) ?></div>

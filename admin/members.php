@@ -42,7 +42,7 @@ if ($q !== '') {
 
 $rows = db_all("
     SELECT l.id, l.first_name, l.email, l.phone, l.started_at, l.plan_days,
-           l.program_path, l.last_login_at, l.created_at,
+           l.program_path, l.created_at,
            (SELECT COUNT(*) FROM coach_notes cn WHERE cn.lead_id=l.id AND cn.from_member=1) AS msg_count,
            (SELECT cn3.from_member FROM coach_notes cn3 WHERE cn3.id=(SELECT MAX(id) FROM coach_notes WHERE lead_id=l.id)) AS last_from_member,
            (SELECT MAX(dl.log_date) FROM daily_logs dl WHERE dl.lead_id=l.id) AS last_log_date

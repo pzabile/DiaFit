@@ -82,6 +82,11 @@ $bodyClass = 'admin-page';
 $activeTab = 'inbox';
 require __DIR__ . '/../includes/header.php';
 ?>
+<style>
+/* Ensure convo pane fills height and msgs scrolls, composer stays visible */
+.convo { overflow: hidden; }
+.msgs { min-height: 0; }
+</style>
 <div class="app">
 <?php require __DIR__ . '/_layout-v2.php'; ?>
   <main class="main">

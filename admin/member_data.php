@@ -68,18 +68,22 @@ $msgs = array_map(function($m) {
     return $m;
 }, $rawMsgs);
 
-/* Recent events (logs) */
-$events = db_all("
-    SELECT 'log' AS type, log_date AS date, created_at,
-           COALESCE(feeling,'—') AS label,
-           CONCAT_WS(' · ',
-             IF(trained='yes', CONCAT(COALESCE(workout,'Workout'),' session'), NULL),
-             IF(soreness IS NOT NULL, CONCAT('Soreness ',soreness,'/10'), NULL),
-             IF(bs_before IS NOT NULL AND bs_after IS NOT NULL, CONCAT('Δ ',IF(bs_after>bs_before,'+',''),bs_after-bs_before,' mg/dL'), NULL)
-           ) AS notes,
-           CASE feeling WHEN 'great' THEN 'sage' WHEN 'rough' THEN 'coral' ELSE '' END AS chip_cls
-    FROM daily_logs WHERE lead_id=? ORDER BY log_date DESC, created_at DESC LIMIT 5
-", [$id]);
+/* Recent events (logs) — intentionally omit non-portable columns like `workout` */
+$events = [];
+try {
+    $events = db_all("
+        SELECT 'log' AS type, log_date AS date, created_at,
+               COALESCE(feeling,'—') AS label,
+               CONCAT_WS(' · ',
+                 IF(trained='yes' OR trained='Yes', 'Training session', NULL),
+                 IF(soreness IS NOT NULL, CONCAT('Soreness ',soreness,'/10'), NULL),
+                 IF(bs_before IS NOT NULL AND bs_after IS NOT NULL,
+                    CONCAT('Δ ',IF(bs_after>bs_before,'+',''),bs_after-bs_before,' mg/dL'), NULL)
+               ) AS notes,
+               CASE feeling WHEN 'great' THEN 'sage' WHEN 'rough' THEN 'coral' ELSE '' END AS chip_cls
+        FROM daily_logs WHERE lead_id=? ORDER BY log_date DESC, created_at DESC LIMIT 5
+    ", [$id]);
+} catch (Throwable $ignored) {}
 
 /* Health context from answers */
 $health = [
