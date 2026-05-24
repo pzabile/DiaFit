@@ -63,12 +63,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
   </header>
 
-  <section class="view coach-view">
-    <div style="flex-shrink:0">
-      <div class="eyebrow">Support</div>
-      <h1 class="h1">Talk to <em>your coach</em>.</h1>
-      <p class="muted" style="margin:0 0 18px;max-width:60ch">Real humans, usually replying within a few hours &middot; 7 days a week. Not for emergencies — for urgent symptoms, call your local emergency number.</p>
-    </div>
+  <section class="view" style="padding-top:16px">
 
     <div class="coach-shell">
       <!-- Thread list -->
@@ -103,8 +98,8 @@ require __DIR__ . '/../includes/header.php';
           <div class="who">
             <div class="av">C</div>
             <div>
-              <div class="name">Your coach</div>
-              <div class="role">DiaFit coach &middot; CDE</div>
+              <div class="name">Talk to your coach</div>
+              <div class="role">Real humans &middot; 7 days a week &middot; avg reply ~38 min</div>
             </div>
           </div>
           <div style="display:flex;gap:10px;align-items:center">
