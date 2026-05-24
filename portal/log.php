@@ -504,10 +504,15 @@ async function doSave(showLoading = false) {
     });
     const json = await res.json();
     if (json.ok) {
+      // After first INSERT, remember the id so subsequent saves UPDATE (not insert again)
+      const entryIdEl = document.getElementById('entryId');
+      if (entryIdEl && entryIdEl.value === '0' && json.id) {
+        entryIdEl.value = json.id;
+      }
       lastSaved = new Date();
       savePip.style.background = 'var(--sage)';
       savePip.style.boxShadow = '0 0 0 3px var(--sage-tint)';
-      saveStatus.textContent = 'Auto-saved · just now';
+      saveStatus.textContent = 'Saved · just now';
       return json;
     }
   } catch(e) {
@@ -519,18 +524,25 @@ async function doSave(showLoading = false) {
 setInterval(() => {
   if (lastSaved) {
     const secs = Math.round((new Date() - lastSaved) / 1000);
-    if (secs < 60) saveStatus.textContent = `Auto-saved · ${secs}s ago`;
-    else saveStatus.textContent = `Auto-saved · ${Math.round(secs/60)}m ago`;
+    if (secs < 60) saveStatus.textContent = `Saved · ${secs}s ago`;
+    else saveStatus.textContent = `Saved · ${Math.round(secs/60)}m ago`;
   }
 }, 5000);
 
-// Auto-save every 30s
-setInterval(() => doSave(), 30000);
+// Auto-save every 30s — ONLY when editing an existing entry (id != 0)
+setInterval(() => {
+  if (document.getElementById('entryId').value !== '0') doSave();
+}, 30000);
 
-// Auto-save on any change
+// Track unsaved changes; auto-save only when editing an existing entry
 document.getElementById('logForm').addEventListener('input', () => {
-  clearTimeout(autoSaveTimer);
-  autoSaveTimer = setTimeout(() => doSave(true), 2000);
+  savePip.style.background = 'var(--amber)';
+  savePip.style.boxShadow = '0 0 0 3px var(--amber-tint)';
+  saveStatus.textContent = 'Unsaved changes';
+  if (document.getElementById('entryId').value !== '0') {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => doSave(true), 2000);
+  }
 });
 
 // Submit

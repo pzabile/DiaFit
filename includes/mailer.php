@@ -284,3 +284,64 @@ function welcome_email_html($firstName, $email = '', $password = '') {
 </body></html>
 HTML;
 }
+
+function sales_email_html($firstName, $answers = [], $offerUrl = '') {
+    $brand   = cfg('brand_name');
+    $support = cfg('support_email');
+    $site    = cfg('site_url');
+    $fn      = htmlspecialchars($firstName ?: 'there', ENT_QUOTES, 'UTF-8');
+    $brandE  = htmlspecialchars($brand, ENT_QUOTES, 'UTF-8');
+    $sup     = htmlspecialchars($support, ENT_QUOTES, 'UTF-8');
+    $siteE   = htmlspecialchars($site, ENT_QUOTES, 'UTF-8');
+    $offerE  = htmlspecialchars($offerUrl ?: $site . '/offer', ENT_QUOTES, 'UTF-8');
+
+    $diabType    = htmlspecialchars($answers['diabetes_type'] ?? '', ENT_QUOTES, 'UTF-8');
+    $primaryGoal = htmlspecialchars($answers['primary_goal']  ?? '', ENT_QUOTES, 'UTF-8');
+
+    $goalLine = $primaryGoal
+        ? "<p style=\"font-size:14px;line-height:1.75;color:#2d4a3a;margin:0 0 10px;\">You told us your biggest goal is <strong>{$primaryGoal}</strong>. That tells us exactly where to start — and we already have a program built for that.</p>"
+        : '';
+    $diabLine = $diabType
+        ? "<p style=\"font-size:14px;line-height:1.75;color:#2d4a3a;margin:0;\">Managing {$diabType} while staying active isn't easy. But with the right plan built around <em>your</em> glucose response, it becomes a system — not a guessing game.</p>"
+        : '';
+
+    return <<<HTML
+<!doctype html>
+<html><body style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f7f5f0;margin:0;padding:24px;color:#0f1a14;">
+  <div style="max-width:580px;margin:0 auto;background:#fff;border-radius:18px;padding:40px 36px;border:1px solid #e3e0d6;box-shadow:0 4px 24px rgba(15,26,20,.06);">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">
+      <span style="width:16px;height:16px;border-radius:50%;background:#16a36a;display:inline-block;flex-shrink:0;"></span>
+      <strong style="font-size:18px;letter-spacing:-.01em;">{$brandE}</strong>
+    </div>
+    <h1 style="font-size:26px;font-weight:700;margin:0 0 10px;letter-spacing:-.02em;">Hey {$fn} — your plan is still waiting.</h1>
+    <p style="font-size:15px;line-height:1.6;color:#4a5651;margin:0 0 20px;">You took the assessment. You did the hard part. Your spot and your offer are still reserved — we just wanted to make sure you didn't miss it.</p>
+
+    <div style="background:#f3faf6;border-left:3px solid #16a36a;border-radius:0 12px 12px 0;padding:16px 18px;margin:0 0 24px;">
+      <p style="font-size:13px;font-weight:700;color:#16a36a;letter-spacing:.06em;text-transform:uppercase;margin:0 0 8px;">A note from the founder</p>
+      <p style="font-size:14px;line-height:1.75;color:#2d4a3a;margin:0 0 10px;">I built {$brandE} because I know what it's like to live with diabetes and try to figure out exercise on your own. The advice out there is generic — and generic doesn't work when your blood sugar is involved.</p>
+      {$goalLine}
+      {$diabLine}
+    </div>
+
+    <p style="font-size:15px;font-weight:700;color:#0f1a14;margin:0 0 12px;">What you get when you join</p>
+    <table style="border-collapse:collapse;width:100%;margin:0 0 20px;">
+      <tr><td style="padding:7px 0;vertical-align:top;font-size:18px;width:28px;">🩸</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;"><strong>A blood-sugar-aware training plan</strong> — designed around your glucose response, not a template someone else uses.</td></tr>
+      <tr><td style="padding:7px 0;vertical-align:top;font-size:18px;">💬</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;"><strong>Direct access to a real coach</strong> — reply any time, 7 days a week, avg response under 40 minutes.</td></tr>
+      <tr><td style="padding:7px 0;vertical-align:top;font-size:18px;">📈</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;"><strong>Weekly adjustments based on your data</strong> — the plan evolves with you, not against you.</td></tr>
+      <tr><td style="padding:7px 0;vertical-align:top;font-size:18px;">📱</td><td style="padding:7px 0;font-size:14px;color:#4a5651;line-height:1.5;"><strong>Daily check-in tracker</strong> — log glucose, training, food, and soreness. See your patterns. Feel the difference.</td></tr>
+    </table>
+
+    <div style="background:#f0faf5;border:1.5px solid #16a36a;border-radius:14px;padding:20px 22px;margin:0 0 24px;text-align:center;">
+      <p style="font-size:13px;font-weight:700;color:#16a36a;letter-spacing:.06em;text-transform:uppercase;margin:0 0 6px;">Your offer is still active</p>
+      <p style="font-size:15px;color:#0f1a14;margin:0 0 16px;line-height:1.5;">Same pricing you saw after your assessment. No surprises — just your spot, waiting.</p>
+      <a href="{$offerE}" style="display:inline-block;background:#0f1a14;color:#f4f1e9;text-decoration:none;font-weight:700;font-size:15px;padding:14px 28px;border-radius:10px;letter-spacing:-.01em;">Claim your plan →</a>
+    </div>
+
+    <p style="font-size:14px;line-height:1.6;color:#4a5651;margin:0 0 16px;">Questions before you decide? Just reply — I personally read every email.</p>
+    <p style="font-size:14px;line-height:1.6;color:#4a5651;margin:0 0 24px;"><strong>The {$brandE} Team</strong><br><span style="color:#8a8f8b;font-size:12px;">{$sup}</span></p>
+    <hr style="border:none;border-top:1px solid #e3e0d6;margin:0 0 14px;" />
+    <p style="font-size:11px;color:#8a8f8b;line-height:1.6;margin:0;text-align:center;">Not medical advice. Always consult your doctor — especially with diabetes.</p>
+  </div>
+</body></html>
+HTML;
+}

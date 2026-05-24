@@ -2,7 +2,35 @@
 require __DIR__ . '/../includes/bootstrap.php';
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
+require __DIR__ . '/../includes/mailer.php';
 require_admin();
+
+$flash = $_SESSION['flash'] ?? ''; unset($_SESSION['flash']);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
+    if (($_POST['action'] ?? '') === 'send_email') {
+        $leadId = (int)($_POST['lead_id'] ?? 0);
+        $lead = $leadId ? db_get('SELECT * FROM leads WHERE id = ? AND paid = 0', [$leadId]) : null;
+        if ($lead) {
+            $answers = json_decode($lead['answers_json'] ?? '{}', true) ?: [];
+            $offerUrl = rtrim(cfg('site_url'), '/') . '/offer';
+            try {
+                send_email(
+                    $lead['email'],
+                    $lead['first_name'] ?: 'there',
+                    'Your ' . cfg('brand_name') . ' plan is still waiting, ' . ($lead['first_name'] ?: 'friend'),
+                    sales_email_html($lead['first_name'] ?: '', $answers, $offerUrl)
+                );
+                $_SESSION['flash'] = 'Email sent to ' . $lead['email'] . '.';
+            } catch (Throwable $ex) {
+                $_SESSION['flash'] = 'Email failed: ' . $ex->getMessage();
+            }
+        } else {
+            $_SESSION['flash'] = 'Lead not found.';
+        }
+        header('Location: /admin/leads'); exit;
+    }
+}
 
 function lead_initials(string $name, string $email): string {
     $s = trim($name);
@@ -80,6 +108,10 @@ require __DIR__ . '/../includes/header.php';
     </header>
 
     <div class="view">
+
+      <?php if ($flash): ?>
+      <div style="background:var(--sage-tint);border:1px solid var(--sage-tint-2);border-radius:12px;padding:12px 16px;margin-bottom:16px;color:var(--sage-3);font-size:13.5px"><?= e($flash) ?></div>
+      <?php endif; ?>
 
       <!-- Header -->
       <div class="row" style="justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;margin-bottom:18px">
@@ -160,7 +192,12 @@ require __DIR__ . '/../includes/header.php';
                 <td style="font-size:12px;color:var(--muted);white-space:nowrap"><?= e($submittedAt) ?></td>
                 <td>
                   <div style="display:flex;gap:6px;align-items:center">
-                    <a href="mailto:<?= e($r['email']) ?>" class="btn sm">Send email</a>
+                    <form method="post" style="display:contents">
+                      <?= csrf_input() ?>
+                      <input type="hidden" name="action" value="send_email">
+                      <input type="hidden" name="lead_id" value="<?= (int)$r['id'] ?>">
+                      <button type="submit" class="btn sm" onclick="return confirm('Send follow-up email to <?= e(addslashes($r['email'])) ?>?')">Send email</button>
+                    </form>
                     <a href="/admin/member?id=<?= (int)$r['id'] ?>" class="btn sm sage">Convert →</a>
                   </div>
                 </td>
