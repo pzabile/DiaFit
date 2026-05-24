@@ -116,8 +116,21 @@ CREATE TABLE IF NOT EXISTS `admins` (
 INSERT IGNORE INTO `admins` (`username`, `password_hash`)
 VALUES ('admin', '$2y$12$d9sW7ytmBwUcoi.GmLFyKuAwmouOMgtXQ3hls5pgiWncPbBsabdZ2');
 
+CREATE TABLE IF NOT EXISTS daily_plan_items (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  lead_id    INT NOT NULL,
+  plan_date  DATE NOT NULL,
+  item_text  VARCHAR(500) NOT NULL,
+  is_done    TINYINT(1) NOT NULL DEFAULT 0,
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_lead_date (lead_id, plan_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- ─── Migrations (run once on existing databases) ──────────────────────────────
 -- MySQL 5.7 syntax: run each line manually if column doesn't exist yet
 -- ALTER TABLE `leads` ADD COLUMN `motivation_note` TEXT NULL AFTER `admin_notes`;
 -- ALTER TABLE `leads` ADD COLUMN `program_targets` TEXT NULL AFTER `motivation_note`;
 -- ALTER TABLE `daily_logs` ADD COLUMN `workout_journal` TEXT NULL AFTER `notes`;
+-- ALTER TABLE member_programs ADD COLUMN program_targets TEXT NULL;
+-- CREATE TABLE IF NOT EXISTS daily_plan_items (...same as above...);

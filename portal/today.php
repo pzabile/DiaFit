@@ -39,6 +39,15 @@ $recentLogs = db_all(
     [$leadId]
 );
 
+// Today's plan items from admin
+$todayPlanItems = [];
+try {
+    $todayPlanItems = db_all(
+        'SELECT * FROM daily_plan_items WHERE lead_id = ? AND plan_date = CURDATE() ORDER BY sort_order ASC, id ASC',
+        [$leadId]
+    );
+} catch (Throwable $ignored) {}
+
 // 7-day avg glucose
 $avgGlucose7d = null;
 $glucData = db_all(
@@ -240,6 +249,29 @@ require __DIR__ . '/../includes/header.php';
       </div>
     </div>
 
+    <!-- Daily plan from coach -->
+    <?php if ($todayPlanItems): ?>
+    <div class="card" style="margin-top:18px">
+      <div class="head">
+        <div>
+          <div class="eyebrow sage">From your coach</div>
+          <h3 class="h3" style="margin-top:4px">Today's plan</h3>
+        </div>
+        <span class="chip"><?= count(array_filter($todayPlanItems, fn($i) => $i['is_done'])) ?> / <?= count($todayPlanItems) ?> done</span>
+      </div>
+      <div class="body" style="display:flex;flex-direction:column;gap:8px">
+        <?php foreach ($todayPlanItems as $pi): ?>
+        <div class="plan-check-item" id="pci-<?= (int)$pi['id'] ?>" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid <?= $pi['is_done'] ? 'var(--sage-tint-2)' : 'var(--line)' ?>;border-radius:11px;background:<?= $pi['is_done'] ? 'var(--sage-tint)' : 'var(--card)' ?>;cursor:pointer;transition:.15s" onclick="togglePlanItem(<?= (int)$pi['id'] ?>, <?= $pi['is_done'] ? 0 : 1 ?>)">
+          <div style="width:22px;height:22px;border-radius:50%;border:1.5px solid <?= $pi['is_done'] ? 'var(--sage)' : 'var(--line-2)' ?>;background:<?= $pi['is_done'] ? 'var(--sage)' : '#fff' ?>;display:grid;place-items:center;flex-shrink:0;color:#fff;font-size:11px">
+            <?php if ($pi['is_done']): ?><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg><?php endif; ?>
+          </div>
+          <span style="font-size:13.5px;font-weight:500;<?= $pi['is_done'] ? 'text-decoration:line-through;color:var(--muted)' : '' ?>"><?= e($pi['item_text']) ?></span>
+        </div>
+        <?php endforeach; ?>
+      </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Today grid -->
     <div class="today-grid">
       <!-- Left: Today's plan / log status -->
@@ -395,4 +427,22 @@ require __DIR__ . '/../includes/header.php';
   </section>
 </main>
 </div>
+<script>
+const PLAN_CSRF = <?= json_encode(csrf_token()) ?>;
+async function togglePlanItem(id, done) {
+  var el = document.getElementById('pci-' + id);
+  try {
+    var res = await fetch('/api/plan_toggle', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','X-CSRF-Token':PLAN_CSRF},
+      body: JSON.stringify({id: id, done: done, csrf: PLAN_CSRF})
+    });
+    var data = await res.json();
+    if (data.ok) {
+      // Reload to show updated state
+      location.reload();
+    }
+  } catch(e) {}
+}
+</script>
 <?php require __DIR__ . '/../includes/footer.php'; ?>

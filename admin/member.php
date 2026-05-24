@@ -15,6 +15,33 @@ $flash = $_SESSION['flash'] ?? ''; unset($_SESSION['flash']);
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
     $action = $_POST['action'] ?? '';
 
+    if ($action === 'add_plan_item') {
+        $planDate = $_POST['plan_date'] ?? date('Y-m-d');
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $planDate)) $planDate = date('Y-m-d');
+        $itemText = trim($_POST['item_text'] ?? '');
+        if ($itemText) {
+            try {
+                db_insert('INSERT INTO daily_plan_items (lead_id, plan_date, item_text, sort_order, created_at) VALUES (?, ?, ?, 0, NOW())',
+                    [$id, $planDate, $itemText]);
+                $_SESSION['flash'] = 'Plan item added.';
+            } catch (Throwable $ex) {
+                $_SESSION['flash'] = 'Could not add plan item: ' . $ex->getMessage();
+            }
+        }
+        header('Location: /admin/member?id=' . $id . '&plan_date=' . $planDate); exit;
+    }
+
+    if ($action === 'delete_plan_item') {
+        $itemId = (int)($_POST['item_id'] ?? 0);
+        if ($itemId) {
+            try {
+                db_exec('DELETE FROM daily_plan_items WHERE id = ? AND lead_id = ?', [$itemId, $id]);
+            } catch (Throwable $ignored) {}
+        }
+        $planDate = $_POST['plan_date'] ?? date('Y-m-d');
+        header('Location: /admin/member?id=' . $id . '&plan_date=' . $planDate); exit;
+    }
+
     if ($action === 'program') {
         $weekNum = max(1, (int) ($_POST['week_num'] ?? 1));
         $title   = trim($_POST['program_title'] ?? '') ?: null;
@@ -103,13 +130,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
 
     if ($action === 'set_program_targets') {
         $targets = trim($_POST['targets'] ?? '');
+        $targetWeek = max(1, (int)($_POST['target_week'] ?? 1));
         try {
-            db_exec('UPDATE leads SET program_targets = ?, updated_at = NOW() WHERE id = ?', [$targets ?: null, $id]);
-            $_SESSION['flash'] = 'Program targets saved.';
+            $mpRow = db_get('SELECT id FROM member_programs WHERE lead_id = ? AND week_number = ?', [$id, $targetWeek]);
+            if ($mpRow) {
+                db_exec('UPDATE member_programs SET program_targets = ? WHERE id = ?', [$targets ?: null, (int)$mpRow['id']]);
+            } else {
+                // Create a placeholder row for this week if it doesn't exist
+                db_insert('INSERT INTO member_programs (lead_id, week_number, program_targets, created_at) VALUES (?, ?, ?, NOW())', [$id, $targetWeek, $targets ?: null]);
+            }
+            $_SESSION['flash'] = "Week {$targetWeek} targets saved.";
         } catch (Throwable $ex) {
             $_SESSION['flash'] = 'Could not save targets: ' . $ex->getMessage();
         }
-        header('Location: /admin/member?id=' . $id); exit;
+        header('Location: /admin/member?id=' . $id . '&targets_week=' . $targetWeek); exit;
     }
 
     if ($action === 'add_private') {
@@ -139,6 +173,14 @@ $privateNotes = db_all('SELECT * FROM coach_notes WHERE lead_id = ? AND is_priva
 $memberPrograms = [];
 try {
     $memberPrograms = db_all('SELECT * FROM member_programs WHERE lead_id = ? ORDER BY week_number ASC', [$id]);
+} catch (Throwable $ignored) {}
+
+// Daily plan items
+$planDate = $_GET['plan_date'] ?? date('Y-m-d');
+if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $planDate)) $planDate = date('Y-m-d');
+$planItems = [];
+try {
+    $planItems = db_all('SELECT * FROM daily_plan_items WHERE lead_id = ? AND plan_date = ? ORDER BY sort_order ASC, id ASC', [$id, $planDate]);
 } catch (Throwable $ignored) {}
 
 // Member program info
@@ -392,6 +434,55 @@ $csrf = csrf_input();
           </div>
         </div>
 
+        <!-- Today's plan card (admin sets tasks for the member) -->
+        <div class="card">
+          <div class="head">
+            <div>
+              <div class="eyebrow" style="margin-bottom:3px">Daily</div>
+              <h3 class="h3">Today's plan for <?= e($lead['first_name'] ?: 'member') ?></h3>
+            </div>
+          </div>
+          <div class="body" style="padding:14px 20px">
+            <!-- Date picker -->
+            <form method="get" style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+              <input type="hidden" name="id" value="<?= $id ?>" />
+              <input type="date" name="plan_date" value="<?= e($planDate) ?>" class="field-inp" style="width:auto" onchange="this.form.submit()" />
+              <span style="font-size:12.5px;color:var(--muted)"><?= date('l', strtotime($planDate)) ?></span>
+            </form>
+            <!-- Existing plan items -->
+            <?php if ($planItems): ?>
+              <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
+                <?php foreach ($planItems as $pi): ?>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:<?= $pi['is_done'] ? 'var(--sage-tint)' : 'var(--card)' ?>">
+                  <span style="font-size:13px;<?= $pi['is_done'] ? 'text-decoration:line-through;color:var(--muted)' : '' ?>"><?= e($pi['item_text']) ?></span>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <?php if ($pi['is_done']): ?><span class="chip sage" style="font-size:10.5px">Done ✓</span><?php endif; ?>
+                    <form method="post" action="" style="display:inline">
+                      <?= $csrf ?>
+                      <input type="hidden" name="action" value="delete_plan_item" />
+                      <input type="hidden" name="lead_id" value="<?= $id ?>" />
+                      <input type="hidden" name="item_id" value="<?= (int)$pi['id'] ?>" />
+                      <input type="hidden" name="plan_date" value="<?= e($planDate) ?>" />
+                      <button type="submit" style="font-size:11px;color:var(--coral);padding:2px 6px;border-radius:5px" onclick="return confirm('Delete this item?')">✕</button>
+                    </form>
+                  </div>
+                </div>
+                <?php endforeach; ?>
+              </div>
+            <?php else: ?>
+              <div style="color:var(--muted);font-size:13px;margin-bottom:12px">No plan items for this date. Add some below.</div>
+            <?php endif; ?>
+            <!-- Add new item -->
+            <form method="post" action="" style="display:flex;gap:8px;align-items:center">
+              <?= $csrf ?>
+              <input type="hidden" name="action" value="add_plan_item" />
+              <input type="hidden" name="plan_date" value="<?= e($planDate) ?>" />
+              <input type="text" name="item_text" class="field-inp" placeholder="e.g. 30 min walk · Log glucose before dinner · Take Metformin" required style="flex:1" />
+              <button class="btn pri sm">Add</button>
+            </form>
+          </div>
+        </div>
+
         <!-- Program PDF -->
         <?php if ($lead['paid']): ?>
         <div class="card">
@@ -433,13 +524,29 @@ $csrf = csrf_input();
                 <button class="btn pri">Upload PDF</button>
               </div>
             </form>
-            <form method="post" style="margin-top:14px;border-top:1px dashed var(--line);padding-top:14px">
-              <?= $csrf ?>
-              <input type="hidden" name="action" value="set_program_targets" />
-              <label class="field-lbl" style="margin-bottom:6px;display:block">Weekly targets / notes (shown on member's Program page)</label>
-              <textarea name="targets" class="field-inp" rows="3" placeholder="e.g. ≥80% time in range · 5 sessions · glucose before meals: aim 90–120 mg/dL" style="resize:vertical;width:100%;margin-bottom:8px"><?= e($lead['program_targets'] ?? '') ?></textarea>
-              <button class="btn sm">Save targets</button>
-            </form>
+            <?php
+$targetsWeek = max(1, min($prog['total'], (int)($_GET['targets_week'] ?? 1)));
+$targetsRow = null;
+try {
+    $targetsRow = db_get('SELECT program_targets FROM member_programs WHERE lead_id = ? AND week_number = ?', [$id, $targetsWeek]);
+} catch (Throwable $ignored) {}
+$targetsText = $targetsRow['program_targets'] ?? '';
+?>
+<div style="margin-top:14px;border-top:1px dashed var(--line);padding-top:14px">
+  <label class="field-lbl" style="margin-bottom:6px;display:block">Weekly targets / notes (shown on member's Program page)</label>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+    <?php for ($w = 1; $w <= $prog['total']; $w++): ?>
+    <a href="?id=<?= $id ?>&targets_week=<?= $w ?>" class="chip<?= $w === $targetsWeek ? ' ink' : '' ?>" style="font-size:11.5px;cursor:pointer">Week <?= $w ?></a>
+    <?php endfor; ?>
+  </div>
+  <form method="post">
+    <?= $csrf ?>
+    <input type="hidden" name="action" value="set_program_targets" />
+    <input type="hidden" name="target_week" value="<?= $targetsWeek ?>" />
+    <textarea name="targets" class="field-inp" rows="3" placeholder="e.g. ≥80% time in range · 5 sessions · glucose before meals: aim 90–120 mg/dL" style="resize:vertical;width:100%;margin-bottom:8px"><?= e($targetsText) ?></textarea>
+    <button class="btn sm">Save Week <?= $targetsWeek ?> targets</button>
+  </form>
+</div>
           </div>
         </div>
         <?php endif; ?>

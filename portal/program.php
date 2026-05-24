@@ -11,7 +11,7 @@ $prog   = member_program_info($me);
 $programs = [];
 try {
     $programs = db_all(
-        'SELECT id, week_number, title, file_path, created_at
+        'SELECT id, week_number, title, file_path, program_targets, created_at
          FROM member_programs WHERE lead_id = ? ORDER BY week_number ASC',
         [$leadId]
     );
@@ -20,23 +20,16 @@ try {
 // Fallback: if table doesn't exist yet or empty, use leads.program_path as week 1
 if (!$programs && !empty($me['program_path'])) {
     $programs = [[
-        'id'          => 0,
-        'week_number' => 1,
-        'title'       => null,
-        'file_path'   => $me['program_path'],
-        'created_at'  => $me['started_at'] ?? '',
+        'id'              => 0,
+        'week_number'     => 1,
+        'title'           => null,
+        'file_path'       => $me['program_path'],
+        'program_targets' => null,
+        'created_at'      => $me['started_at'] ?? '',
     ]];
 }
 
 $hasProgram = !empty($programs);
-
-// Coach's custom targets note for this member
-$programTargets = null;
-try {
-    $ptRow = db_get('SELECT program_targets FROM leads WHERE id = ?', [$leadId]);
-    $programTargets = $ptRow['program_targets'] ?? null;
-    if (!$programTargets) $programTargets = null;
-} catch (Throwable $ignored) {}
 
 // Sessions this week from daily_logs
 $weekStart = date('Y-m-d', strtotime('monday this week'));
@@ -151,7 +144,7 @@ require __DIR__ . '/../includes/header.php';
         <a href="/<?= e($p['file_path']) ?>" target="_blank" class="btn sm">Open PDF →</a>
       </div>
       <div class="body" style="padding:0">
-        <embed src="/<?= e($p['file_path']) ?>" type="application/pdf" width="100%" height="680px" style="border-radius:0 0 var(--r-lg) var(--r-lg)" />
+        <iframe src="/<?= e($p['file_path']) ?>#view=FitH" width="100%" height="680px" style="border-radius:0 0 var(--r-lg) var(--r-lg);border:0;display:block" title="Week <?= $wNum ?> program PDF"></iframe>
       </div>
     </div>
     <?php endforeach; ?>
@@ -204,17 +197,18 @@ require __DIR__ . '/../includes/header.php';
             </div>
           </div>
           <div class="body">
-            <?php if ($programTargets): ?>
-              <div style="white-space:pre-wrap;font-size:14px;line-height:1.6;color:var(--ink)"><?= e($programTargets) ?></div>
+            <?php $weekTargets = $activeProgram['program_targets'] ?? null; ?>
+            <?php if ($weekTargets): ?>
+              <div style="white-space:pre-wrap;font-size:14px;line-height:1.6;color:var(--ink)"><?= e($weekTargets) ?></div>
               <?php if (!empty($answers['primary_goal'])): ?>
               <div class="goal-row" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
                 <div><div class="lbl">Primary goal</div></div>
                 <div style="text-align:right"><div class="val" style="font-size:14px"><?= e($answers['primary_goal']) ?></div></div>
               </div>
               <?php endif; ?>
-            <?php else: ?>
+            <?php else: // $weekTargets is null ?>
             <div class="goal-row">
-              <div><div class="lbl">Time in range (70–140)</div><div class="meta">Pre/post sessions</div></div>
+              <div><div class="lbl">Time in range (70–180)</div><div class="meta">Pre/post sessions</div></div>
               <div style="text-align:right"><div class="val">&ge; 80%</div></div>
             </div>
             <div class="goal-row">

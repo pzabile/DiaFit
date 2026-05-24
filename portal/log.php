@@ -10,9 +10,15 @@ $logDate = isset($_GET['date']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['da
     ? $_GET['date']
     : date('Y-m-d');
 
-// Load today's log if exists
-$existing = db_get(
-    'SELECT * FROM daily_logs WHERE lead_id = ? AND log_date = ?',
+// Load a specific entry if ?id=X is in URL, otherwise new entry
+$editId = (int)($_GET['id'] ?? 0);
+$existing = $editId
+    ? db_get('SELECT * FROM daily_logs WHERE id = ? AND lead_id = ?', [$editId, $leadId])
+    : null;
+
+// All entries for this date
+$dateEntries = db_all(
+    'SELECT * FROM daily_logs WHERE lead_id = ? AND log_date = ? ORDER BY created_at ASC',
     [$leadId, $logDate]
 );
 
@@ -55,6 +61,10 @@ require __DIR__ . '/../includes/header.php';
   </header>
 
   <section class="view">
+    <div id="logSuccessBanner" style="display:none;background:var(--sage-tint);border:1px solid var(--sage-tint-2);border-radius:14px;padding:12px 18px;margin-bottom:16px;align-items:center;gap:10px;color:var(--sage-3)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+      <span><strong>Saved!</strong> Your check-in was logged. You can log another entry or go back to <a href="/portal/today" style="color:var(--sage-2);font-weight:600">Today →</a></span>
+    </div>
     <div class="eyebrow"><?= date('l, M j', strtotime($logDate)) ?> &middot; daily check-in</div>
     <h1 class="h1" style="max-width:18ch">How did <em>today</em> treat you?</h1>
     <p class="muted" style="margin:0 0 20px;max-width:60ch">Takes about 90 seconds. Everything is optional — log what you have.</p>
@@ -63,9 +73,16 @@ require __DIR__ . '/../includes/header.php';
       <!-- Main form card -->
       <div class="card">
         <div class="body" style="padding:6px 24px 18px">
+          <?php if ($editId && $existing): ?>
+          <div style="background:var(--amber-tint);border:1px solid #E8D4AC;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#7C5215;display:flex;justify-content:space-between;align-items:center">
+            <span>Editing entry saved at <?= date('g:i A', strtotime($existing['created_at'])) ?></span>
+            <a href="/portal/log?date=<?= e($logDate) ?>" class="btn sm">New entry</a>
+          </div>
+          <?php endif; ?>
           <form id="logForm" autocomplete="off">
             <?= csrf_input() ?>
             <input type="hidden" name="log_date" value="<?= e($logDate) ?>">
+            <input type="hidden" name="id" id="entryId" value="<?= $editId ?: 0 ?>">
 
             <!-- 01 Feeling -->
             <div class="section">
@@ -328,6 +345,32 @@ require __DIR__ . '/../includes/header.php';
         <?php endif; ?>
       </div>
     </div>
+
+    <!-- Past entries for this date -->
+    <div style="margin-top:28px">
+      <div class="eyebrow" style="margin-bottom:10px">Saved check-ins · <?= date('M j', strtotime($logDate)) ?></div>
+      <div id="entriesList">
+        <?php if ($dateEntries): ?>
+          <?php foreach ($dateEntries as $ent): ?>
+            <?php
+            $badges = [];
+            if ($ent['feeling']) $badges[] = '<span class="chip sage" style="font-size:11px">' . e($ent['feeling']) . '</span>';
+            if ($ent['trained']) $badges[] = '<span class="chip" style="font-size:11px">' . ($ent['trained']==='Yes'?'Trained':'Rest') . '</span>';
+            if ($ent['bs_before']) $badges[] = '<span class="chip" style="font-size:11px">' . (int)$ent['bs_before'] . ' mg/dL</span>';
+            ?>
+            <div style="border:1px solid var(--line);border-radius:12px;padding:12px 16px;background:var(--card);display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px<?= $ent['id'] == $editId ? ';border-color:var(--sage);background:var(--sage-tint)' : '' ?>">
+              <div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px"><?= $badges ? implode('', $badges) : '<span style="color:var(--muted);font-size:12px">No details</span>' ?></div>
+                <div style="font-size:11.5px;color:var(--muted)">Saved at <?= date('g:i A', strtotime($ent['created_at'])) ?><?= $ent['notes'] ? ' · has notes' : '' ?></div>
+              </div>
+              <a href="/portal/log?date=<?= e($logDate) ?>&id=<?= (int)$ent['id'] ?>" class="btn sm">Edit →</a>
+            </div>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">No entries yet for this date.</div>
+        <?php endif; ?>
+      </div>
+    </div>
   </section>
 </main>
 </div>
@@ -494,8 +537,78 @@ document.getElementById('logForm').addEventListener('input', () => {
 async function submitLog() {
   const result = await doSave(true);
   if (result && result.ok) {
-    window.location.href = '/portal/today?logged=1';
+    // Show success banner
+    const banner = document.getElementById('logSuccessBanner');
+    if (banner) { banner.style.display = 'flex'; setTimeout(() => { banner.style.display = 'none'; }, 4000); }
+    // Reset form to defaults
+    resetLogForm();
+    // Reload entries list
+    refreshEntries(result.id);
   }
+}
+
+function resetLogForm() {
+  // Reset feeling
+  document.querySelectorAll('.mood').forEach(m => m.setAttribute('aria-pressed','false'));
+  document.getElementById('feelingInput').value = '';
+  // Reset trained to Yes
+  setTrained('Yes');
+  // Reset location to Gym
+  document.querySelectorAll('#locChips .chip').forEach((c,i) => c.setAttribute('aria-pressed', i===0?'true':'false'));
+  document.getElementById('trainWhereInput').value = 'Gym';
+  // Reset workout textarea
+  const ta = document.getElementById('exercise');
+  if (ta) ta.value = '';
+  // Reset soreness
+  setSore(0);
+  // Reset glucose
+  const gb = document.getElementById('gBefore'), ga = document.getElementById('gAfter');
+  if (gb) gb.value = ''; if (ga) ga.value = '';
+  document.getElementById('deltaVal').textContent = '—';
+  // Reset trend chips
+  document.querySelectorAll('.trend-chip').forEach((c,i) => c.setAttribute('aria-pressed', i===0?'true':'false'));
+  document.getElementById('bsTrendInput').value = 'Stable';
+  // Reset all textareas
+  document.querySelectorAll('#logForm textarea').forEach(ta => {
+    if (ta.name !== 'workout') ta.value = '';
+  });
+  // Clear the hidden id and workout textarea
+  document.getElementById('exercise').value = '';
+  document.querySelectorAll('#logForm textarea').forEach(ta => { ta.value = ''; });
+  // Reset entry id to 0 (new entry)
+  document.getElementById('entryId').value = '0';
+  // Update save status
+  document.getElementById('savePip').style.background = 'var(--line-2)';
+  document.getElementById('savePip').style.boxShadow = '0 0 0 3px var(--bg-2)';
+  document.getElementById('saveStatus').textContent = 'Not saved yet';
+  lastSaved = null;
+}
+
+function refreshEntries(newId) {
+  fetch('/api/log_entries?date=' + encodeURIComponent(LOG_DATE))
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok && data.entries) renderEntries(data.entries);
+    });
+}
+
+function renderEntries(entries) {
+  var list = document.getElementById('entriesList');
+  if (!list) return;
+  if (!entries.length) { list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">No entries yet for this date.</div>'; return; }
+  list.innerHTML = entries.map(function(e) {
+    var dt = new Date(e.created_at.replace(' ','T'));
+    var time = dt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    var badges = [];
+    if (e.feeling) badges.push('<span class="chip sage" style="font-size:11px">' + e.feeling + '</span>');
+    if (e.trained) badges.push('<span class="chip" style="font-size:11px">' + (e.trained==='Yes'?'Trained':'Rest') + '</span>');
+    if (e.bs_before) badges.push('<span class="chip" style="font-size:11px">' + e.bs_before + ' mg/dL</span>');
+    return '<div style="border:1px solid var(--line);border-radius:12px;padding:12px 16px;background:var(--card);display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px">'
+      + '<div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">' + (badges.join('') || '<span style="color:var(--muted);font-size:12px">No details</span>') + '</div>'
+      + '<div style="font-size:11.5px;color:var(--muted)">Saved at ' + time + (e.notes ? ' · has notes' : '') + '</div></div>'
+      + '<a href="/portal/log?date=' + e.log_date + '&id=' + e.id + '" class="btn sm">Edit →</a>'
+      + '</div>';
+  }).join('');
 }
 
 // Keyboard shortcut

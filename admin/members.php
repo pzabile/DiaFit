@@ -320,7 +320,7 @@ function _populateDrawer(d) {
     d.messages.forEach(function(msg){
       var cls = msg.from_member == 1 ? 'me' : 'them';
       var body = _esc(msg.body).replace(/\n/g,'<br>');
-      convHtml += '<div class="dr-bubble ' + cls + '">' + body + '<span class="t">' + _fmtTime(msg.created_at) + '</span></div>';
+      convHtml += '<div class="bubble ' + cls + '">' + body + '<span class="time">' + _fmtTime(msg.created_at) + '</span></div>';
     });
     convHtml += '</div>';
   } else {

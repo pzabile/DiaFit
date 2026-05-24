@@ -58,36 +58,39 @@ $foodAfter  = nullable($data['food_after']  ?? '');
 $notes          = nullable($data['notes']           ?? '');
 $workoutJournal = nullable($data['workout_journal'] ?? '');
 
-// Try to find existing log
-$existing = db_get(
-    'SELECT id FROM daily_logs WHERE lead_id = ? AND log_date = ?',
-    [$leadId, $logDate]
-);
+$entryId = (int)($data['id'] ?? 0);
 
-if ($existing) {
-    // UPDATE
-    db_exec(
-        'UPDATE daily_logs SET
-            feeling = COALESCE(?, feeling),
-            trained = COALESCE(?, trained),
-            train_where = COALESCE(?, train_where),
-            workout = COALESCE(?, workout),
-            soreness = COALESCE(?, soreness),
-            bs_before = COALESCE(?, bs_before),
-            bs_after = COALESCE(?, bs_after),
-            bs_trend = COALESCE(?, bs_trend),
-            food_before = COALESCE(?, food_before),
-            food_after = COALESCE(?, food_after),
-            notes = COALESCE(?, notes),
-            workout_journal = COALESCE(?, workout_journal)
-         WHERE id = ?',
-        [$feeling, $trained, $trainWhere, $workout, $soreness,
-         $bsBefore, $bsAfter, $bsTrend, $foodBefore, $foodAfter,
-         $notes, $workoutJournal, (int)$existing['id']]
-    );
-    $id = (int)$existing['id'];
+if ($entryId > 0) {
+    // Edit existing entry (verify it belongs to this member)
+    $existing = db_get('SELECT id FROM daily_logs WHERE id = ? AND lead_id = ?', [$entryId, $leadId]);
+    if ($existing) {
+        db_exec(
+            'UPDATE daily_logs SET
+                feeling = COALESCE(?, feeling),
+                trained = COALESCE(?, trained),
+                train_where = COALESCE(?, train_where),
+                workout = COALESCE(?, workout),
+                soreness = COALESCE(?, soreness),
+                bs_before = COALESCE(?, bs_before),
+                bs_after = COALESCE(?, bs_after),
+                bs_trend = COALESCE(?, bs_trend),
+                food_before = COALESCE(?, food_before),
+                food_after = COALESCE(?, food_after),
+                notes = COALESCE(?, notes),
+                workout_journal = COALESCE(?, workout_journal)
+             WHERE id = ?',
+            [$feeling, $trained, $trainWhere, $workout, $soreness,
+             $bsBefore, $bsAfter, $bsTrend, $foodBefore, $foodAfter,
+             $notes, $workoutJournal, $entryId]
+        );
+        $id = $entryId;
+    } else {
+        http_response_code(403);
+        echo json_encode(['ok'=>false,'error'=>'not_found']);
+        exit;
+    }
 } else {
-    // INSERT
+    // New entry — always INSERT (multiple per day allowed)
     $id = db_insert(
         'INSERT INTO daily_logs
             (lead_id, log_date, feeling, trained, train_where, workout, soreness,

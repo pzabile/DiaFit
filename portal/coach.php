@@ -63,10 +63,12 @@ require __DIR__ . '/../includes/header.php';
     </div>
   </header>
 
-  <section class="view">
-    <div class="eyebrow">Support</div>
-    <h1 class="h1">Talk to <em>your coach</em>.</h1>
-    <p class="muted" style="margin:0 0 18px;max-width:60ch">Real humans, usually replying within a few hours &middot; 7 days a week. Not for emergencies — for urgent symptoms, call your local emergency number.</p>
+  <section class="view coach-view">
+    <div style="flex-shrink:0">
+      <div class="eyebrow">Support</div>
+      <h1 class="h1">Talk to <em>your coach</em>.</h1>
+      <p class="muted" style="margin:0 0 18px;max-width:60ch">Real humans, usually replying within a few hours &middot; 7 days a week. Not for emergencies — for urgent symptoms, call your local emergency number.</p>
+    </div>
 
     <div class="coach-shell">
       <!-- Thread list -->
