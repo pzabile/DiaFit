@@ -22,7 +22,7 @@ $latestWeekly = db_get(
 
 // Latest coach note (from coach)
 $latestCoach = db_get(
-    'SELECT * FROM coach_notes WHERE lead_id = ? AND from_member = 0 ORDER BY created_at DESC LIMIT 1',
+    'SELECT * FROM coach_notes WHERE lead_id = ? AND from_member = 0 AND is_private = 0 ORDER BY created_at DESC LIMIT 1',
     [$leadId]
 );
 
@@ -141,7 +141,7 @@ require __DIR__ . '/../includes/header.php';
         <div>
           <div class="eyebrow" style="color:#9CC9A8">Welcome back</div>
           <h1>Good <?= e($timeOfDay) ?>, <em><?= e($me['first_name']) ?></em>.</h1>
-          <p>Week <?= $prog['current'] ?> of your <?= $prog['total'] ?>-week plan.
+          <p>Day <?= $prog['current_day'] ?> of your <?= $prog['total_days'] ?>-day plan.
           <?php if ($avgGlucose7d): ?>
             Your 7-day average glucose is <?= $avgGlucose7d ?> mg/dL — keep logging to see your patterns.
           <?php else: ?>
@@ -161,15 +161,15 @@ require __DIR__ . '/../includes/header.php';
                       stroke-dasharray="<?= $dashArray ?>" />
             </svg>
             <div class="label">
-              <div class="num"><?= $prog['current'] ?><span style="font-size:18px;color:#9CC9A8">/<?= $prog['total'] ?></span></div>
-              <div class="sub">Week</div>
+              <div class="num"><?= $prog['current_day'] ?><span style="font-size:18px;color:#9CC9A8">/<?= $prog['total_days'] ?></span></div>
+              <div class="sub">Day</div>
             </div>
           </div>
           <div class="ring-stat">
             <div><strong><?= $prog['pct'] ?>%</strong> through</div>
             <div>Your program</div>
             <?php if ($prog['current'] < $prog['total']): ?>
-            <div style="color:#fff;font-weight:600">Week <?= min($prog['total'], $prog['current'] + 3) ?> · re-test</div>
+            <div style="color:#fff;font-weight:600">Day <?= min($prog['total_days'], $prog['current_day'] + 21) ?> · re-test</div>
             <?php else: ?>
             <div style="color:#9CC9A8;font-weight:600">Final week!</div>
             <?php endif; ?>
@@ -247,7 +247,7 @@ require __DIR__ . '/../includes/header.php';
         <div class="head">
           <div>
             <div class="eyebrow sage">Today's plan</div>
-            <h2 class="h2" style="margin-top:4px"><?= date('l') ?> &middot; Week <?= $prog['current'] ?></h2>
+            <h2 class="h2" style="margin-top:4px"><?= date('l') ?> &middot; Day <?= $prog['current_day'] ?></h2>
           </div>
           <a href="/portal/log" class="btn sm">Log check-in</a>
         </div>

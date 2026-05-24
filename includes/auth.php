@@ -120,23 +120,28 @@ function member_program_info($lead) {
     $planDays = max(1, (int) ($lead['plan_days'] ?? 84));
     $elapsed  = 0;
     if (!empty($lead['started_at'])) {
-        $elapsed = (int) (new DateTime($lead['started_at']))->diff(new DateTime('today'))->days;
+        $tz = new DateTimeZone('America/New_York');
+        $todayEt = (new DateTime('now', $tz))->format('Y-m-d');
+        $elapsed = (int) (new DateTime($lead['started_at']))->diff(new DateTime($todayEt))->days;
     }
-    $elapsed = max(0, min($planDays - 1, $elapsed));
-    $pct     = min(100, (int) round((($elapsed + 1) / $planDays) * 100));
+    $elapsed    = max(0, min($planDays - 1, $elapsed));
+    $pct        = min(100, (int) round((($elapsed + 1) / $planDays) * 100));
+    $currentDay = $elapsed + 1;
 
     if ($planDays <= 7) {
         return [
-            'current'      => $elapsed + 1,
+            'current'      => $currentDay,
             'total'        => $planDays,
             'label'        => 'day',
             'label_plural' => 'days',
             'pct'          => $pct,
             'plan_days'    => $planDays,
+            'current_day'  => $currentDay,
+            'total_days'   => $planDays,
         ];
     }
-    $weeksTotal   = (int) ceil($planDays / 7);
-    $currentWeek  = min($weeksTotal, (int) floor($elapsed / 7) + 1);
+    $weeksTotal  = (int) ceil($planDays / 7);
+    $currentWeek = min($weeksTotal, (int) floor($elapsed / 7) + 1);
     return [
         'current'      => $currentWeek,
         'total'        => $weeksTotal,
@@ -144,6 +149,8 @@ function member_program_info($lead) {
         'label_plural' => 'weeks',
         'pct'          => $pct,
         'plan_days'    => $planDays,
+        'current_day'  => $currentDay,
+        'total_days'   => $planDays,
     ];
 }
 

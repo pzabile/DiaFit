@@ -32,7 +32,7 @@ foreach ($glucLogs as $r) {
             $v = (int)$r[$col];
             $allReadings[] = $v;
             if ($v < 70) $low++;
-            elseif ($v > 140) $high++;
+            elseif ($v > 180) $high++;
             else $inRange++;
         }
     }
@@ -185,7 +185,7 @@ if ($totalDays > 0) {
 }
 if ($tirPct > 0) {
     $tirType = $tirPct >= 80 ? 'sage' : ($tirPct >= 60 ? 'amber' : 'coral');
-    $insights[] = ['icon'=>'%','type'=>$tirType,'ttl'=>"{$tirPct}% of readings in range (70–140 mg/dL)",'sub'=>"{$inRange} in range · {$low} low · {$high} high out of {$totalReadings} readings."];
+    $insights[] = ['icon'=>'%','type'=>$tirType,'ttl'=>"{$tirPct}% of readings in range (70–180 mg/dL)",'sub'=>"{$inRange} in range · {$low} low · {$high} high out of {$totalReadings} readings."];
 }
 
 $pageTitle  = 'Trends — DiaFit';
@@ -233,7 +233,7 @@ require __DIR__ . '/../includes/header.php';
             <span style="width:8px;height:8px;border-radius:50%;background:var(--sage);display:inline-block"></span>
             Glucose
           </h3>
-          <div class="ch-sub">Time in range 70–140 mg/dL &middot; last <?= $days ?> days</div>
+          <div class="ch-sub">Time in range 70–180 mg/dL &middot; last <?= $days ?> days</div>
           <div class="ch-stats">
             <span class="ch-num"><?= $avgGlucose ?? '—' ?></span>
             <?php if ($avgGlucose): ?><span class="kpi-unit">mg/dL avg</span><?php endif; ?>
@@ -246,9 +246,9 @@ require __DIR__ . '/../includes/header.php';
 
       <?php if ($chartPoints): ?>
       <svg class="chart" viewBox="0 0 800 240" preserveAspectRatio="none">
-        <!-- Target band 70–140: y=glucoseToY(70)=..glucoseToY(140) -->
-        <rect x="40" y="<?= glucoseToY(140) ?>" width="740" height="<?= glucoseToY(70) - glucoseToY(140) ?>" fill="#E6EFE6" opacity=".55"/>
-        <line x1="40" y1="<?= glucoseToY(140) ?>" x2="780" y2="<?= glucoseToY(140) ?>" stroke="#9CC9A8" stroke-dasharray="3 4" stroke-width="1"/>
+        <!-- Target band 70–180: y=glucoseToY(70)=..glucoseToY(180) -->
+        <rect x="40" y="<?= glucoseToY(180) ?>" width="740" height="<?= glucoseToY(70) - glucoseToY(180) ?>" fill="#E6EFE6" opacity=".55"/>
+        <line x1="40" y1="<?= glucoseToY(180) ?>" x2="780" y2="<?= glucoseToY(180) ?>" stroke="#9CC9A8" stroke-dasharray="3 4" stroke-width="1"/>
         <line x1="40" y1="<?= glucoseToY(70)  ?>" x2="780" y2="<?= glucoseToY(70)  ?>" stroke="#9CC9A8" stroke-dasharray="3 4" stroke-width="1"/>
         <!-- Gridlines -->
         <g stroke="#E2DCCD" stroke-width="1">
@@ -261,7 +261,7 @@ require __DIR__ . '/../includes/header.php';
         <g font-family="JetBrains Mono" font-size="10" fill="#9AA197">
           <text x="2" y="<?= glucoseToY(200)+4 ?>">200</text>
           <text x="2" y="<?= glucoseToY(160)+4 ?>">160</text>
-          <text x="2" y="<?= glucoseToY(140)+4 ?>">140</text>
+          <text x="2" y="<?= glucoseToY(180)+4 ?>">180</text>
           <text x="2" y="<?= glucoseToY(80)+4 ?>">80</text>
         </g>
         <!-- X labels -->
@@ -278,11 +278,11 @@ require __DIR__ . '/../includes/header.php';
         <!-- Data points -->
         <?php foreach ($chartPoints as $i => $pt): ?>
           <?php $isLast = $i === count($chartPoints)-1; ?>
-          <circle cx="<?= $pt['x'] ?>" cy="<?= $pt['y'] ?>" r="<?= $isLast ? '5' : '3' ?>" fill="<?= ($pt['val'] < 70 || $pt['val'] > 140) ? '#C66B5B' : '#4A8A68' ?>"/>
+          <circle cx="<?= $pt['x'] ?>" cy="<?= $pt['y'] ?>" r="<?= $isLast ? '5' : '3' ?>" fill="<?= ($pt['val'] < 70 || $pt['val'] > 180) ? '#C66B5B' : '#4A8A68' ?>"/>
         <?php endforeach; ?>
       </svg>
       <div style="display:flex;gap:18px;justify-content:flex-start;font-size:11.5px;color:var(--muted);margin-top:8px;flex-wrap:wrap">
-        <span><span style="display:inline-block;width:14px;height:6px;background:#E6EFE6;vertical-align:middle;margin-right:6px;border-radius:2px"></span>Target band (70–140)</span>
+        <span><span style="display:inline-block;width:14px;height:6px;background:#E6EFE6;vertical-align:middle;margin-right:6px;border-radius:2px"></span>Target band (70–180)</span>
         <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#C66B5B;vertical-align:middle;margin-right:6px"></span>Out-of-range reading</span>
       </div>
       <?php else: ?>
@@ -310,8 +310,8 @@ require __DIR__ . '/../includes/header.php';
         </div>
         <div class="tir-legend">
           <div class="row" style="justify-content:space-between"><span><span class="sw" style="background:var(--coral)"></span>Low &lt; 70</span><span class="mono"><?= $lowPct ?>% &middot; <?= $low ?> readings</span></div>
-          <div class="row" style="justify-content:space-between"><span><span class="sw" style="background:var(--sage)"></span>In range 70–140</span><span class="mono"><?= $tirPct ?>% &middot; <?= $inRange ?> readings</span></div>
-          <div class="row" style="justify-content:space-between"><span><span class="sw" style="background:var(--amber)"></span>High &gt; 140</span><span class="mono"><?= $highPct ?>% &middot; <?= $high ?> readings</span></div>
+          <div class="row" style="justify-content:space-between"><span><span class="sw" style="background:var(--sage)"></span>In range 70–180</span><span class="mono"><?= $tirPct ?>% &middot; <?= $inRange ?> readings</span></div>
+          <div class="row" style="justify-content:space-between"><span><span class="sw" style="background:var(--amber)"></span>High &gt; 180</span><span class="mono"><?= $highPct ?>% &middot; <?= $high ?> readings</span></div>
         </div>
         <?php else: ?>
           <div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No readings yet</div>

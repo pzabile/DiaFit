@@ -16,10 +16,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
     $action = $_POST['action'] ?? '';
 
     if ($action === 'program') {
+        $weekNum = max(1, (int) ($_POST['week_num'] ?? 1));
+        $title   = trim($_POST['program_title'] ?? '') ?: null;
         try {
             $path = save_admin_program_pdf($_FILES['program'] ?? [], $id);
-            db_exec('UPDATE leads SET program_path = ?, updated_at = NOW() WHERE id = ?', [$path, $id]);
-            $_SESSION['flash'] = 'Program PDF uploaded.';
+            $existingProg = db_get('SELECT id FROM member_programs WHERE lead_id = ? AND week_number = ?', [$id, $weekNum]);
+            if ($existingProg) {
+                db_exec('UPDATE member_programs SET file_path = ?, title = ?, created_at = NOW() WHERE id = ?',
+                    [$path, $title, (int)$existingProg['id']]);
+            } else {
+                db_insert('INSERT INTO member_programs (lead_id, week_number, title, file_path, created_at) VALUES (?, ?, ?, ?, NOW())',
+                    [$id, $weekNum, $title, $path]);
+            }
+            if ($weekNum === 1) {
+                db_exec('UPDATE leads SET program_path = ?, updated_at = NOW() WHERE id = ?', [$path, $id]);
+            }
+            $_SESSION['flash'] = "Week {$weekNum} program PDF uploaded.";
         } catch (Throwable $ex) {
             $_SESSION['flash'] = 'Upload failed: ' . $ex->getMessage();
         }
@@ -123,6 +135,11 @@ $logs         = db_all('SELECT * FROM daily_logs WHERE lead_id = ? ORDER BY log_
 $meals        = db_all('SELECT * FROM meal_photos WHERE lead_id = ? ORDER BY created_at DESC LIMIT 20', [$id]);
 $conversation = db_all('SELECT * FROM coach_notes WHERE lead_id = ? AND is_private = 0 ORDER BY created_at ASC', [$id]);
 $privateNotes = db_all('SELECT * FROM coach_notes WHERE lead_id = ? AND is_private = 1 ORDER BY created_at DESC', [$id]);
+
+$memberPrograms = [];
+try {
+    $memberPrograms = db_all('SELECT * FROM member_programs WHERE lead_id = ? ORDER BY week_number ASC', [$id]);
+} catch (Throwable $ignored) {}
 
 // Member program info
 $prog    = member_program_info($lead);
@@ -361,16 +378,33 @@ $csrf = csrf_input();
             <?php endif; ?>
           </div>
           <div class="body">
-            <?php if ($lead['program_path']): ?>
-              <embed src="/<?= e($lead['program_path']) ?>" type="application/pdf" width="100%" height="340px" style="border-radius:10px;margin-bottom:14px" />
-            <?php else: ?>
-              <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;background:var(--bg);border-radius:10px;margin-bottom:14px">No program uploaded yet.</div>
+            <?php if ($memberPrograms): ?>
+              <div style="margin-bottom:14px">
+                <?php foreach ($memberPrograms as $mp): ?>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px">
+                  <span><strong>Week <?= (int)$mp['week_number'] ?></strong><?= $mp['title'] ? ' · ' . e($mp['title']) : '' ?></span>
+                  <a href="/<?= e($mp['file_path']) ?>" target="_blank" class="btn sm">Open PDF →</a>
+                </div>
+                <?php endforeach; ?>
+              </div>
+            <?php elseif (!$lead['program_path']): ?>
+              <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;background:var(--bg);border-radius:10px;margin-bottom:14px">No programs uploaded yet.</div>
             <?php endif; ?>
-            <form method="post" enctype="multipart/form-data" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <form method="post" enctype="multipart/form-data">
               <?= $csrf ?>
               <input type="hidden" name="action" value="program" />
-              <input type="file" name="program" accept="application/pdf" required style="font-size:13px;flex:1;min-width:0" />
-              <button class="btn pri">Upload PDF</button>
+              <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+                <select name="week_num" class="field-sel" style="width:auto;flex-shrink:0">
+                  <?php for ($w = 1; $w <= $prog['total']; $w++): ?>
+                  <option value="<?= $w ?>"<?= in_array($w, array_column($memberPrograms, 'week_number')) ? ' style="color:var(--sage-2);font-weight:600"' : '' ?>>Week <?= $w ?><?= in_array($w, array_column($memberPrograms, 'week_number')) ? ' ✓' : '' ?></option>
+                  <?php endfor; ?>
+                </select>
+                <input type="text" name="program_title" class="field-inp" style="flex:1;min-width:140px" placeholder="Title (optional)" />
+              </div>
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                <input type="file" name="program" accept="application/pdf" required style="font-size:13px;flex:1;min-width:0" />
+                <button class="btn pri">Upload PDF</button>
+              </div>
             </form>
             <form method="post" style="margin-top:14px;border-top:1px dashed var(--line);padding-top:14px">
               <?= $csrf ?>
