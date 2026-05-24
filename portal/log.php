@@ -225,6 +225,21 @@ require __DIR__ . '/../includes/header.php';
                 <button type="button">+ Hot outside</button>
               </div>
             </div>
+
+            <!-- 06 Workout journal -->
+            <div class="section">
+              <div class="section-head">
+                <div class="section-title"><span class="ix">06</span><h2>Training journal</h2></div>
+                <span class="muted" style="font-size:12px">Optional · just for you</span>
+              </div>
+              <textarea class="ta" name="workout_journal" placeholder="What did you enjoy? What was hard? Exercises you want to try, notes to yourself…" style="min-height:110px"><?= e($existing['workout_journal'] ?? '') ?></textarea>
+              <div class="hint">
+                <button type="button">+ Loved the deadlifts</button>
+                <button type="button">+ Shoulders felt weak</button>
+                <button type="button">+ Want to try incline bench</button>
+                <button type="button">+ Best session in weeks</button>
+              </div>
+            </div>
           </form>
         </div>
 

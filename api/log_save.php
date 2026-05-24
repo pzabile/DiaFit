@@ -55,7 +55,8 @@ $bsAfter    = nullableInt($data['bs_after']  ?? '');
 $bsTrend    = nullable($data['bs_trend']   ?? '');
 $foodBefore = nullable($data['food_before'] ?? '');
 $foodAfter  = nullable($data['food_after']  ?? '');
-$notes      = nullable($data['notes']      ?? '');
+$notes          = nullable($data['notes']           ?? '');
+$workoutJournal = nullable($data['workout_journal'] ?? '');
 
 // Try to find existing log
 $existing = db_get(
@@ -77,11 +78,12 @@ if ($existing) {
             bs_trend = COALESCE(?, bs_trend),
             food_before = COALESCE(?, food_before),
             food_after = COALESCE(?, food_after),
-            notes = COALESCE(?, notes)
+            notes = COALESCE(?, notes),
+            workout_journal = COALESCE(?, workout_journal)
          WHERE id = ?',
         [$feeling, $trained, $trainWhere, $workout, $soreness,
          $bsBefore, $bsAfter, $bsTrend, $foodBefore, $foodAfter,
-         $notes, (int)$existing['id']]
+         $notes, $workoutJournal, (int)$existing['id']]
     );
     $id = (int)$existing['id'];
 } else {
@@ -89,10 +91,10 @@ if ($existing) {
     $id = db_insert(
         'INSERT INTO daily_logs
             (lead_id, log_date, feeling, trained, train_where, workout, soreness,
-             bs_before, bs_after, bs_trend, food_before, food_after, notes, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+             bs_before, bs_after, bs_trend, food_before, food_after, notes, workout_journal, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
         [$leadId, $logDate, $feeling, $trained, $trainWhere, $workout, $soreness,
-         $bsBefore, $bsAfter, $bsTrend, $foodBefore, $foodAfter, $notes]
+         $bsBefore, $bsAfter, $bsTrend, $foodBefore, $foodAfter, $notes, $workoutJournal]
     );
 }
 

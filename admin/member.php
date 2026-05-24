@@ -78,6 +78,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
         header('Location: /admin/member?id=' . $id); exit;
     }
 
+    if ($action === 'set_motivation') {
+        $body = trim($_POST['motivation_note'] ?? '');
+        try {
+            db_exec('UPDATE leads SET motivation_note = ?, updated_at = NOW() WHERE id = ?', [$body ?: null, $id]);
+            $_SESSION['flash'] = 'Motivation note saved.';
+        } catch (Throwable $ex) {
+            $_SESSION['flash'] = 'Could not save note: ' . $ex->getMessage();
+        }
+        header('Location: /admin/member?id=' . $id); exit;
+    }
+
+    if ($action === 'set_program_targets') {
+        $targets = trim($_POST['targets'] ?? '');
+        try {
+            db_exec('UPDATE leads SET program_targets = ?, updated_at = NOW() WHERE id = ?', [$targets ?: null, $id]);
+            $_SESSION['flash'] = 'Program targets saved.';
+        } catch (Throwable $ex) {
+            $_SESSION['flash'] = 'Could not save targets: ' . $ex->getMessage();
+        }
+        header('Location: /admin/member?id=' . $id); exit;
+    }
+
     if ($action === 'add_private') {
         $body = trim($_POST['body'] ?? '');
         if ($body) {
@@ -312,6 +334,17 @@ $csrf = csrf_input();
                 </form>
               </div>
             </div>
+            <!-- Motivation note -->
+            <div style="margin-top:18px;border-top:1px dashed var(--line);padding-top:16px">
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px">Motivation note · visible on their Today page</div>
+              <p style="color:var(--muted);font-size:12px;margin:0 0 10px;line-height:1.5">A personal quote or nudge. Not a message — appears on their dashboard homepage.</p>
+              <form method="post" style="display:flex;flex-direction:column;gap:8px">
+                <?= $csrf ?>
+                <input type="hidden" name="action" value="set_motivation" />
+                <textarea name="motivation_note" class="field-inp" rows="2" placeholder="e.g. Small consistent steps beat one perfect day." style="resize:vertical;width:100%"><?= e($lead['motivation_note'] ?? '') ?></textarea>
+                <button class="btn sm" style="align-self:flex-end">Save note</button>
+              </form>
+            </div>
           </div>
         </div>
 
@@ -338,6 +371,13 @@ $csrf = csrf_input();
               <input type="hidden" name="action" value="program" />
               <input type="file" name="program" accept="application/pdf" required style="font-size:13px;flex:1;min-width:0" />
               <button class="btn pri">Upload PDF</button>
+            </form>
+            <form method="post" style="margin-top:14px;border-top:1px dashed var(--line);padding-top:14px">
+              <?= $csrf ?>
+              <input type="hidden" name="action" value="set_program_targets" />
+              <label class="field-lbl" style="margin-bottom:6px;display:block">Weekly targets / notes (shown on member's Program page)</label>
+              <textarea name="targets" class="field-inp" rows="3" placeholder="e.g. ≥80% time in range · 5 sessions · glucose before meals: aim 90–120 mg/dL" style="resize:vertical;width:100%;margin-bottom:8px"><?= e($lead['program_targets'] ?? '') ?></textarea>
+              <button class="btn sm">Save targets</button>
             </form>
           </div>
         </div>
@@ -369,7 +409,7 @@ $csrf = csrf_input();
 
       <!-- Right: conversation -->
       <div style="display:flex;flex-direction:column;gap:16px">
-        <div class="card" style="position:sticky;top:24px">
+        <div class="card">
           <div class="head">
             <div>
               <div class="eyebrow" style="margin-bottom:3px">Messages</div>
@@ -377,7 +417,7 @@ $csrf = csrf_input();
             </div>
             <a href="/admin/inbox?thread=<?= $id ?>" class="btn sm">Full inbox →</a>
           </div>
-          <div style="padding:16px 20px;max-height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;background:linear-gradient(180deg,#FFFDF7,#FAF7F0)">
+          <div id="convoBubbles" style="padding:16px 20px;max-height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;background:linear-gradient(180deg,#FFFDF7,#FAF7F0)">
             <?php if ($conversation): ?>
               <?php foreach ($conversation as $msg): ?>
                 <div class="note-bubble <?= $msg['from_member'] ? 'them' : 'me' ?>">
@@ -389,17 +429,13 @@ $csrf = csrf_input();
               <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">No messages yet.</div>
             <?php endif; ?>
           </div>
-          <div style="padding:14px 20px;border-top:1px solid var(--line)">
-            <form method="post" action="/admin/note_action">
-              <?= $csrf ?>
-              <input type="hidden" name="action"  value="add_public" />
-              <input type="hidden" name="lead_id" value="<?= $id ?>" />
-              <div style="display:flex;gap:8px;align-items:flex-end">
-                <textarea name="body" required placeholder="Send a message…" rows="2"
-                  style="flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13.5px;background:#fff;resize:none;outline:none;min-height:40px"></textarea>
-                <button class="btn pri sm">Send</button>
-              </div>
-            </form>
+          <div style="padding:14px 20px;border-top:1px solid var(--line)" id="msgSendBar">
+            <div style="display:flex;gap:8px;align-items:flex-end">
+              <textarea id="msgBody" placeholder="Send a message…" rows="2"
+                style="flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13.5px;background:#fff;resize:none;outline:none;min-height:40px"></textarea>
+              <button class="btn pri sm" id="msgSendBtn" onclick="adminSendMsg()">Send</button>
+            </div>
+            <div id="msgStatus" style="font-size:11.5px;color:var(--muted);margin-top:6px"></div>
           </div>
         </div>
 
@@ -533,4 +569,51 @@ $csrf = csrf_input();
   </div><!-- /view -->
 </main>
 </div>
+<script>
+const MEMBER_CSRF = <?= json_encode(csrf_token()) ?>;
+const MEMBER_ID = <?= (int)$id ?>;
+
+async function adminSendMsg() {
+  const body = document.getElementById('msgBody').value.trim();
+  if (!body) return;
+  const btn = document.getElementById('msgSendBtn');
+  const status = document.getElementById('msgStatus');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const fd = new FormData();
+    fd.append('action', 'add_public');
+    fd.append('lead_id', MEMBER_ID);
+    fd.append('body', body);
+    fd.append('csrf', MEMBER_CSRF);
+    fd.append('_ajax', '1');
+    const res = await fetch('/admin/note_action', { method: 'POST', body: fd });
+    const text = await res.text();
+    if (res.ok) {
+      document.getElementById('msgBody').value = '';
+      status.textContent = 'Sent ✓';
+      // Append bubble optimistically
+      const wrap = document.getElementById('convoBubbles');
+      if (wrap) {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+        const div = document.createElement('div');
+        div.className = 'note-bubble me';
+        div.innerHTML = body.replace(/\n/g,'<br>') + '<span class="t">just now</span>';
+        wrap.appendChild(div);
+        wrap.scrollTop = wrap.scrollHeight;
+      }
+      setTimeout(() => { status.textContent = ''; }, 3000);
+    } else {
+      status.textContent = 'Send failed — try again';
+    }
+  } catch(e) {
+    status.textContent = 'Network error';
+  }
+  btn.disabled = false; btn.textContent = 'Send';
+}
+
+document.getElementById('msgBody')?.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') adminSendMsg();
+});
+</script>
 <?php require __DIR__ . '/../includes/footer.php'; ?>

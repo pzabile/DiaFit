@@ -26,6 +26,13 @@ $latestCoach = db_get(
     [$leadId]
 );
 
+// Coach motivation note
+$motivationNote = null;
+try {
+    $motivationNote = db_get('SELECT motivation_note FROM leads WHERE id = ?', [$leadId])['motivation_note'] ?? null;
+    if (!$motivationNote) $motivationNote = null;
+} catch (Throwable $ignored) {}
+
 // Recent 5 daily logs
 $recentLogs = db_all(
     'SELECT * FROM daily_logs WHERE lead_id = ? ORDER BY log_date DESC LIMIT 5',
@@ -116,6 +123,17 @@ require __DIR__ . '/../includes/header.php';
   </header>
 
   <section class="view">
+    <?php if (!empty($_GET['logged'])): ?>
+    <div style="background:var(--sage-tint);border:1px solid var(--sage-tint-2);border-radius:14px;padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;color:var(--sage-3)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+      <span><strong>Check-in logged!</strong> Your coach can see it. Keep the streak going.</span>
+    </div>
+    <?php elseif (!empty($_GET['reviewed'])): ?>
+    <div style="background:var(--amber-tint);border:1px solid #E8D4AC;border-radius:14px;padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;color:#7C5215">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+      <span><strong>Weekly review submitted!</strong> Your coach will read it before next week's program.</span>
+    </div>
+    <?php endif; ?>
 
     <!-- Hero -->
     <div class="hero">
@@ -257,14 +275,7 @@ require __DIR__ . '/../includes/header.php';
                 </div>
               </div>
               <?php endif; ?>
-              <div class="plan-item" style="opacity:.6">
-                <div class="plan-check"></div>
-                <div>
-                  <div class="what">Weekly review</div>
-                  <div class="meta">Submit by end of week</div>
-                </div>
-                <div class="time">Weekly</div>
-              </div>
+              <!-- weekly review not shown in daily plan -->
             </div>
           <?php else: ?>
             <div style="text-align:center;padding:24px 0">
@@ -301,6 +312,16 @@ require __DIR__ . '/../includes/header.php';
             </div>
           </div>
         </div>
+
+        <!-- Motivation note from coach (personal, set in admin/member) -->
+        <?php if ($motivationNote): ?>
+        <div class="card" style="background:linear-gradient(135deg,var(--sage-3),#1a3527);border:1px solid #2A4738;color:#E6EFE6">
+          <div class="body" style="padding:20px 22px">
+            <div class="eyebrow" style="color:#9CC9A8;margin-bottom:10px">Your coach · just for you</div>
+            <div style="font-family:'Instrument Serif',serif;font-size:22px;line-height:1.35;letter-spacing:-.005em;font-style:italic;color:#E6EFE6">"<?= e($motivationNote) ?>"</div>
+          </div>
+        </div>
+        <?php endif; ?>
 
         <!-- Coach card -->
         <?php if ($latestCoach): ?>

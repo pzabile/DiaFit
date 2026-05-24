@@ -315,4 +315,34 @@ require __DIR__ . '/../includes/header.php';
     </div><!-- /view -->
   </main>
 </div>
+<script>
+// Live updates: poll every 12s for new waiting messages
+(function(){
+  const badge = document.querySelector('.nav a[href="/admin/inbox"] .badge');
+
+  async function pollCounts() {
+    try {
+      const r = await fetch('/admin/live_counts');
+      const d = await r.json();
+      const w = d.waiting || 0;
+
+      // Update inbox badge in sidebar
+      if (badge) { badge.textContent = w; badge.style.display = w > 0 ? '' : 'none'; }
+
+      // Update hero headline
+      const heroH1 = document.querySelector('.over-hero h1');
+      if (heroH1) {
+        if (w > 0) heroH1.innerHTML = w + ' member' + (w !== 1 ? 's' : '') + ' ' + (w === 1 ? 'is' : 'are') + ' <em>waiting</em> to hear back.';
+        else heroH1.innerHTML = 'All caught up &mdash; <em>great work.</em>';
+      }
+
+      // Update first KPI box (waiting count)
+      const waitKpi = document.querySelector('.kpi-grid .kpi:nth-child(4) .num');
+      if (waitKpi) waitKpi.innerHTML = w + '<small>' + (w === 1 ? 'member' : 'members') + '</small>';
+    } catch(e) {}
+  }
+
+  setInterval(pollCounts, 12000);
+})();
+</script>
 <?php require __DIR__ . '/../includes/footer.php'; ?>

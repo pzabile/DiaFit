@@ -30,6 +30,14 @@ if (!$programs && !empty($me['program_path'])) {
 
 $hasProgram = !empty($programs);
 
+// Coach's custom targets note for this member
+$programTargets = null;
+try {
+    $ptRow = db_get('SELECT program_targets FROM leads WHERE id = ?', [$leadId]);
+    $programTargets = $ptRow['program_targets'] ?? null;
+    if (!$programTargets) $programTargets = null;
+} catch (Throwable $ignored) {}
+
 // Sessions this week from daily_logs
 $weekStart = date('Y-m-d', strtotime('monday this week'));
 $weekEnd   = date('Y-m-d', strtotime('sunday this week'));
@@ -156,18 +164,20 @@ require __DIR__ . '/../includes/header.php';
             <div class="eyebrow">Week <?= $prog['current'] ?> &middot; sessions</div>
             <h3 class="h3" style="margin-top:4px">This week's activity</h3>
           </div>
-          <span class="chip"><?= count($weekLogs) ?> logged</span>
+          <?php $trainedLogs = array_filter($weekLogs, fn($wl) => $wl['trained'] === 'Yes'); ?>
+          <span class="chip"><?= count($trainedLogs) ?> trained</span>
         </div>
         <div class="body">
-          <?php if ($weekLogs): ?>
-            <?php foreach ($weekLogs as $wl): ?>
-              <div class="session<?= $wl['trained'] === 'Yes' ? ' done' : '' ?>">
+          <?php if ($trainedLogs): ?>
+            <?php foreach ($trainedLogs as $wl): ?>
+              <a href="/portal/log?date=<?= urlencode($wl['log_date']) ?>" style="text-decoration:none;color:inherit;display:block">
+              <div class="session done" style="cursor:pointer">
                 <div class="session-day">
                   <div class="d"><?= strtoupper(date('D', strtotime($wl['log_date']))) ?></div>
                   <div class="n"><?= date('j', strtotime($wl['log_date'])) ?></div>
                 </div>
                 <div>
-                  <div class="ttl"><?= e($wl['workout'] ? substr($wl['workout'],0,60).(strlen($wl['workout'])>60?'…':'') : ($wl['trained']==='Yes' ? 'Training session' : 'Rest day')) ?></div>
+                  <div class="ttl"><?= e($wl['workout'] ? substr($wl['workout'],0,60).(strlen($wl['workout'])>60?'…':'') : 'Training session') ?></div>
                   <div class="meta">
                     <?php if ($wl['feeling']): ?><span>Feeling: <?= e($wl['feeling']) ?></span><?php endif; ?>
                     <?php if ($wl['bs_before'] && $wl['bs_after']): ?>
@@ -175,11 +185,12 @@ require __DIR__ . '/../includes/header.php';
                     <?php endif; ?>
                   </div>
                 </div>
-                <div><?= $wl['trained']==='Yes' ? '<span class="chip sage">✓ Done</span>' : '<span class="chip">Rest</span>' ?></div>
+                <div><span class="chip sage">✓ Done</span></div>
               </div>
+              </a>
             <?php endforeach; ?>
           <?php else: ?>
-            <div style="text-align:center;padding:20px;color:var(--muted)">No sessions logged this week yet. <a href="/portal/log" style="color:var(--sage-2);font-weight:600">Log today →</a></div>
+            <div style="text-align:center;padding:20px;color:var(--muted)">No training sessions logged this week yet. <a href="/portal/log" style="color:var(--sage-2);font-weight:600">Log today →</a></div>
           <?php endif; ?>
         </div>
       </div>
@@ -193,6 +204,15 @@ require __DIR__ . '/../includes/header.php';
             </div>
           </div>
           <div class="body">
+            <?php if ($programTargets): ?>
+              <div style="white-space:pre-wrap;font-size:14px;line-height:1.6;color:var(--ink)"><?= e($programTargets) ?></div>
+              <?php if (!empty($answers['primary_goal'])): ?>
+              <div class="goal-row" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
+                <div><div class="lbl">Primary goal</div></div>
+                <div style="text-align:right"><div class="val" style="font-size:14px"><?= e($answers['primary_goal']) ?></div></div>
+              </div>
+              <?php endif; ?>
+            <?php else: ?>
             <div class="goal-row">
               <div><div class="lbl">Time in range (70–140)</div><div class="meta">Pre/post sessions</div></div>
               <div style="text-align:right"><div class="val">&ge; 80%</div></div>
@@ -210,6 +230,7 @@ require __DIR__ . '/../includes/header.php';
               <div><div class="lbl">Primary goal</div></div>
               <div style="text-align:right"><div class="val" style="font-size:14px"><?= e($answers['primary_goal']) ?></div></div>
             </div>
+            <?php endif; ?>
             <?php endif; ?>
           </div>
         </div>

@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS `leads` (
   `plan_days`       SMALLINT UNSIGNED NOT NULL DEFAULT 84,
   `program_path`    VARCHAR(255)    NULL,
   `admin_notes`     LONGTEXT        NULL,
+  `motivation_note`  TEXT NULL,
+  `program_targets`  TEXT NULL,
   `last_login_at`   DATETIME        NULL,
   `created_at`      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -60,6 +62,7 @@ CREATE TABLE IF NOT EXISTS `daily_logs` (
   `food_before`  VARCHAR(255)    NULL,
   `food_after`   VARCHAR(255)    NULL,
   `notes`        TEXT            NULL,
+  `workout_journal`  TEXT NULL,
   `created_at`   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_lead_date` (`lead_id`, `log_date`),
@@ -112,3 +115,9 @@ CREATE TABLE IF NOT EXISTS `admins` (
 -- Default credentials below: admin / DiaFitusAdmin#2026
 INSERT IGNORE INTO `admins` (`username`, `password_hash`)
 VALUES ('admin', '$2y$12$d9sW7ytmBwUcoi.GmLFyKuAwmouOMgtXQ3hls5pgiWncPbBsabdZ2');
+
+-- ─── Migrations (run once on existing databases) ──────────────────────────────
+-- MySQL 5.7 syntax: run each line manually if column doesn't exist yet
+-- ALTER TABLE `leads` ADD COLUMN `motivation_note` TEXT NULL AFTER `admin_notes`;
+-- ALTER TABLE `leads` ADD COLUMN `program_targets` TEXT NULL AFTER `motivation_note`;
+-- ALTER TABLE `daily_logs` ADD COLUMN `workout_journal` TEXT NULL AFTER `notes`;

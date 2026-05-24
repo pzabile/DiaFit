@@ -66,4 +66,13 @@ if ($action === 'add_public') {
     }
 }
 
-header('Location: /admin/member?id=' . $leadId);
+// Return JSON for AJAX callers (?ajax=1 or XHR header), redirect for regular form POSTs
+$isAjax = !empty($_GET['ajax'])
+       || (($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest')
+       || isset($_POST['_ajax']);
+if ($isAjax) {
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['ok' => true]);
+} else {
+    header('Location: /admin/member?id=' . $leadId);
+}
