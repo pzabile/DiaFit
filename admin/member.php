@@ -164,6 +164,33 @@ try {
     if ($gluc && $gluc['v']) $avgGlucose = (int)round($gluc['v']);
 } catch (Throwable $ignored) {}
 
+// Glucose trend chart data for admin view
+$glucTrend = [];
+try {
+    $glucTrend = db_all(
+        'SELECT log_date, bs_before, bs_after FROM daily_logs WHERE lead_id = ? AND log_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) ORDER BY log_date ASC',
+        [$id]
+    );
+} catch (Throwable $ignored) {}
+
+// Compute SVG chart points (last 14 entries max)
+$glucTrendSlice = array_slice($glucTrend, -14);
+$admChartPts = [];
+if ($glucTrendSlice) {
+    $n = count($glucTrendSlice);
+    $xStep = $n > 1 ? 740 / ($n - 1) : 0;
+    foreach ($glucTrendSlice as $i => $row) {
+        $vals = array_filter([(int)($row['bs_before'] ?? 0), (int)($row['bs_after'] ?? 0)]);
+        if ($vals) {
+            $avg = array_sum($vals) / count($vals);
+            $minG = 60; $maxG = 220;
+            $y = round(140 - (($avg - $minG) / ($maxG - $minG)) * 120, 1);
+            $y = max(10, min(140, $y));
+            $admChartPts[] = ['x' => round(40 + $i * $xStep, 1), 'y' => $y, 'val' => round($avg), 'date' => $row['log_date']];
+        }
+    }
+}
+
 // KPI: last log
 $lastLog = null;
 try {
@@ -564,9 +591,9 @@ $csrf = csrf_input();
           </tr>
         </thead>
         <tbody>
-          <?php foreach ($logs as $l): ?>
-          <tr>
-            <td style="font-family:'JetBrains Mono',monospace;font-size:12px"><?= e($l['log_date']) ?></td>
+          <?php foreach ($logs as $li => $l): ?>
+          <tr style="cursor:pointer" onclick="toggleLogDetail(<?= (int)$l['id'] ?>)" title="Click to expand">
+            <td style="font-family:'JetBrains Mono',monospace;font-size:12px"><?= e($l['log_date']) ?> <span style="font-size:10px;color:var(--muted)">▸</span></td>
             <td>
               <?php if ($l['feeling']): ?>
                 <span class="chip <?= $l['feeling'] === 'great' ? 'sage' : ($l['feeling'] === 'rough' ? 'coral' : '') ?>" style="font-size:11px"><?= e($l['feeling']) ?></span>
@@ -577,10 +604,109 @@ $csrf = csrf_input();
             <td style="font-size:12.5px"><?= $l['bs_after'] ? $l['bs_after'] . ' mg/dL' : '—' ?></td>
             <td style="font-size:12.5px"><?= $l['soreness'] !== null ? (int)$l['soreness'] . '/10' : '—' ?></td>
           </tr>
+          <tr id="log-detail-<?= (int)$l['id'] ?>" style="display:none;background:var(--sage-tint)">
+            <td colspan="6" style="padding:14px 18px">
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;font-size:12.5px">
+                <?php if ($l['workout']): ?>
+                <div><div style="font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px">Workout</div><div><?= nl2br(e($l['workout'])) ?></div></div>
+                <?php endif; ?>
+                <?php if ($l['food_before']): ?>
+                <div><div style="font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px">Food before</div><div><?= nl2br(e($l['food_before'])) ?></div></div>
+                <?php endif; ?>
+                <?php if ($l['food_after']): ?>
+                <div><div style="font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px">Food after</div><div><?= nl2br(e($l['food_after'])) ?></div></div>
+                <?php endif; ?>
+                <?php if ($l['notes']): ?>
+                <div style="grid-column:1/-1"><div style="font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px">Notes for coach</div><div><?= nl2br(e($l['notes'])) ?></div></div>
+                <?php endif; ?>
+                <?php if (!empty($l['workout_journal'])): ?>
+                <div style="grid-column:1/-1"><div style="font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--sage-2);margin-bottom:3px">Training journal</div><div style="font-style:italic"><?= nl2br(e($l['workout_journal'])) ?></div></div>
+                <?php endif; ?>
+                <?php if (!$l['workout'] && !$l['food_before'] && !$l['food_after'] && !$l['notes'] && empty($l['workout_journal'])): ?>
+                <div style="color:var(--muted)">No additional notes for this entry.</div>
+                <?php endif; ?>
+                <div style="grid-column:1/-1;margin-top:6px">
+                  <a href="/portal/log?date=<?= urlencode($l['log_date']) ?>" target="_blank" class="btn sm">View member's log →</a>
+                </div>
+              </div>
+            </td>
+          </tr>
           <?php endforeach; ?>
         </tbody>
       </table>
       </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Glucose trend for admin -->
+    <?php if ($admChartPts): ?>
+    <div class="section-title">Glucose trend · last 30 days</div>
+    <div class="card" style="margin-bottom:20px;padding:20px">
+      <div style="display:flex;gap:24px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600">7-day avg</div>
+          <div style="font-family:'Instrument Serif',serif;font-size:36px;letter-spacing:-.02em"><?= $avgGlucose ? $avgGlucose . ' <span style="font-size:14px;color:var(--muted)">mg/dL</span>' : '—' ?></div>
+        </div>
+        <?php
+        $admReadings = [];
+        $admIn = 0; $admLow = 0; $admHigh = 0;
+        foreach ($glucTrend as $gr) {
+            foreach (['bs_before','bs_after'] as $col) {
+                if (!empty($gr[$col])) {
+                    $v = (int)$gr[$col]; $admReadings[] = $v;
+                    if ($v < 70) $admLow++;
+                    elseif ($v > 180) $admHigh++;
+                    else $admIn++;
+                }
+            }
+        }
+        $admTotal = count($admReadings);
+        $admTir = $admTotal ? round($admIn / $admTotal * 100) : 0;
+        ?>
+        <div>
+          <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600">Time in range (70–180)</div>
+          <div style="font-family:'Instrument Serif',serif;font-size:36px;letter-spacing:-.02em;color:<?= $admTir >= 80 ? 'var(--sage-2)' : ($admTir >= 60 ? 'var(--amber)' : 'var(--coral)') ?>"><?= $admTir ?>%</div>
+        </div>
+        <div style="font-size:12.5px;color:var(--muted)">
+          <?= $admTotal ?> readings &middot; <?= $admLow ?> low &middot; <?= $admHigh ?> high
+        </div>
+      </div>
+      <svg viewBox="0 0 800 160" style="width:100%;height:auto;display:block">
+        <!-- Target band 70-180 -->
+        <?php
+        function adm_glucose_y($g) {
+            $minG=60;$maxG=220;$minY=10;$maxY=140;
+            $g=max($minG,min($maxG,(int)$g));
+            return round($maxY-(($g-$minG)/($maxG-$minG))*($maxY-$minY),1);
+        }
+        ?>
+        <rect x="40" y="<?= adm_glucose_y(180) ?>" width="750" height="<?= adm_glucose_y(70)-adm_glucose_y(180) ?>" fill="#E6EFE6" opacity=".5"/>
+        <line x1="40" y1="<?= adm_glucose_y(180) ?>" x2="790" y2="<?= adm_glucose_y(180) ?>" stroke="#9CC9A8" stroke-dasharray="3 4" stroke-width="1"/>
+        <line x1="40" y1="<?= adm_glucose_y(70) ?>" x2="790" y2="<?= adm_glucose_y(70) ?>" stroke="#9CC9A8" stroke-dasharray="3 4" stroke-width="1"/>
+        <!-- Gridlines -->
+        <line x1="40" y1="<?= adm_glucose_y(200) ?>" x2="790" y2="<?= adm_glucose_y(200) ?>" stroke="#E2DCCD" stroke-width="1"/>
+        <line x1="40" y1="<?= adm_glucose_y(120) ?>" x2="790" y2="<?= adm_glucose_y(120) ?>" stroke="#E2DCCD" stroke-width="1"/>
+        <!-- Y labels -->
+        <text x="2" y="<?= adm_glucose_y(200)+4 ?>" font-family="JetBrains Mono" font-size="9" fill="#9AA197">200</text>
+        <text x="2" y="<?= adm_glucose_y(180)+4 ?>" font-family="JetBrains Mono" font-size="9" fill="#9CC9A8">180</text>
+        <text x="2" y="<?= adm_glucose_y(70)+4 ?>" font-family="JetBrains Mono" font-size="9" fill="#9CC9A8">70</text>
+        <!-- Chart line -->
+        <?php
+        $admPts = array_map(fn($p) => $p['x'].','.$p['y'], $admChartPts);
+        $admPath = 'M' . implode(' L', $admPts);
+        $admFirst = $admChartPts[0]; $admLast = $admChartPts[count($admChartPts)-1];
+        $admArea = $admPath . " L{$admLast['x']},150 L{$admFirst['x']},150 Z";
+        ?>
+        <path d="<?= e($admArea) ?>" fill="#4A8A68" opacity=".08"/>
+        <path d="<?= e($admPath) ?>" fill="none" stroke="#4A8A68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <?php foreach ($admChartPts as $i => $pt): ?>
+          <circle cx="<?= $pt['x'] ?>" cy="<?= $pt['y'] ?>" r="<?= $i === count($admChartPts)-1 ? 4 : 3 ?>" fill="<?= ($pt['val'] < 70 || $pt['val'] > 180) ? '#C66B5B' : '#4A8A68' ?>"/>
+        <?php endforeach; ?>
+        <!-- X labels -->
+        <?php foreach ($admChartPts as $i => $pt): if ($i % 2 === 0): ?>
+          <text x="<?= $pt['x'] ?>" y="157" font-family="JetBrains Mono" font-size="8" fill="#9AA197" text-anchor="middle"><?= strtoupper(date('MD', strtotime($pt['date']))) ?></text>
+        <?php endif; endforeach; ?>
+      </svg>
     </div>
     <?php endif; ?>
 
@@ -649,5 +775,11 @@ async function adminSendMsg() {
 document.getElementById('msgBody')?.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') adminSendMsg();
 });
+
+function toggleLogDetail(id) {
+  var row = document.getElementById('log-detail-' + id);
+  if (!row) return;
+  row.style.display = row.style.display === 'none' ? '' : 'none';
+}
 </script>
 <?php require __DIR__ . '/../includes/footer.php'; ?>
