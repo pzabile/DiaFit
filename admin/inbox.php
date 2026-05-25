@@ -212,7 +212,10 @@ require __DIR__ . '/../includes/header.php';
                 <div class="date-sep"><span><?= e($dateLabel) ?></span></div>
               <?php endif; ?>
                 <div class="bubble <?= $msg['from_member'] ? 'them' : 'me' ?>">
-                  <?= nl2br(e($msg['body'])) ?>
+                  <?php if (!empty($msg['image_path'])): ?>
+                    <img style="max-width:100%;border-radius:10px;display:block;cursor:pointer;margin-bottom:4px" src="/<?= e($msg['image_path']) ?>" alt="Attached image" onclick="window.open(this.src,'_blank')">
+                  <?php endif; ?>
+                  <?php if ($msg['body']): ?><?= nl2br(e($msg['body'])) ?><?php endif; ?>
                   <span class="time"><?= date('g:i A', strtotime($msg['created_at'])) ?></span>
                 </div>
               <?php endforeach; ?>
@@ -341,7 +344,13 @@ function appendMessage(m) {
   const div = document.createElement('div');
   div.className = 'bubble ' + (m.from_member ? 'them' : 'me');
   div.dataset.id = m.id;
-  div.innerHTML = escHtml(m.body).replace(/\n/g,'<br>') + '<span class="time">' + escHtml(m.time||'') + '</span>';
+  let html = '';
+  if (m.image_path) {
+    html += '<img style="max-width:100%;border-radius:10px;display:block;cursor:pointer;margin-bottom:4px" src="/' + escHtml(m.image_path) + '" alt="Attached image" onclick="window.open(this.src,\'_blank\')">';
+  }
+  if (m.body) html += escHtml(m.body).replace(/\n/g,'<br>');
+  html += '<span class="time">' + escHtml(m.time||'') + '</span>';
+  div.innerHTML = html;
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
 }

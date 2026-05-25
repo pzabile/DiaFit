@@ -38,7 +38,7 @@ if ($method === 'GET') {
     }
 
     $rows = db_all(
-        'SELECT id, body, from_member, created_at
+        'SELECT id, body, image_path, from_member, created_at
          FROM coach_notes
          WHERE lead_id = ? AND id > ?
          ORDER BY id ASC',
@@ -50,6 +50,7 @@ if ($method === 'GET') {
         $messages[] = [
             'id'          => (int)$r['id'],
             'body'        => $r['body'],
+            'image_path'  => $r['image_path'] ?? null,
             'from_member' => (int)$r['from_member'],
             'time'        => date('g:i A', strtotime($r['created_at'])),
             'created_at'  => $r['created_at'],
@@ -110,6 +111,7 @@ if ($method === 'POST') {
         'message' => [
             'id'          => $newId,
             'body'        => $body,
+            'image_path'  => null,
             'from_member' => 0,
             'time'        => date('g:i A'),
             'created_at'  => $now,

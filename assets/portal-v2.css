@@ -395,7 +395,7 @@ a{color:inherit;text-decoration:none}
 .thread .preview{font-size:12.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
 .thread .ud{margin-left:auto;background:var(--sage);color:#fff;font-size:10px;font-weight:700;border-radius:99px;padding:1px 6px;min-width:18px;text-align:center}
 
-.chat-pane{display:flex;flex-direction:column}
+.chat-pane{display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .chat-head{padding:16px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
 .chat-head .who{display:flex;gap:12px;align-items:center}
 .chat-head .av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#9CC9A8,#3B6E54);display:grid;place-items:center;color:#fff;font-weight:600;font-size:13px}
@@ -404,7 +404,7 @@ a{color:inherit;text-decoration:none}
 .chat-head .status{display:flex;align-items:center;gap:6px;color:var(--sage-2);font-size:12px;font-weight:500}
 .chat-head .status .pip{width:7px;height:7px;border-radius:50%;background:var(--sage)}
 
-.msgs{padding:22px;display:flex;flex-direction:column;gap:18px;flex:1;background:linear-gradient(180deg,#FFFDF7,#FAF7F0);overflow-y:auto}
+.msgs{padding:22px;display:flex;flex-direction:column;gap:18px;flex:1;min-height:0;background:linear-gradient(180deg,#FFFDF7,#FAF7F0);overflow-y:auto}
 .date-sep{text-align:center;color:var(--muted);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;margin:4px 0}
 .bubble{max-width:62%;padding:11px 14px;border-radius:14px;font-size:13.5px;line-height:1.5}
 .bubble.them{background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px;align-self:flex-start}
@@ -417,6 +417,14 @@ a{color:inherit;text-decoration:none}
 .attach-card .ic{width:32px;height:32px;border-radius:8px;background:var(--sage-tint);display:grid;place-items:center;color:var(--sage-2)}
 .attach-card .nm{font-weight:600;font-size:13px}
 .attach-card .sub{font-size:11px;color:var(--muted)}
+
+.bubble .chat-img{max-width:100%;border-radius:10px;display:block;cursor:pointer}
+.bubble.me .chat-img{border:1px solid rgba(255,255,255,.15)}
+.bubble.them .chat-img{border:1px solid var(--line)}
+.upload-preview{position:relative;padding:6px 10px;border-top:1px dashed var(--line);background:var(--bg);display:flex;align-items:center;gap:10px}
+.upload-preview img{width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.upload-preview .remove{width:24px;height:24px;border-radius:6px;background:var(--bg-2);color:var(--muted);display:grid;place-items:center;margin-left:auto}
+.upload-preview .remove:hover{color:var(--coral);background:var(--coral-tint)}
 
 .composer{border-top:1px solid var(--line);padding:14px 18px;background:var(--card);display:flex;gap:10px;align-items:flex-end}
 .composer textarea{flex:1;border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:13.5px;min-height:44px;max-height:120px;background:var(--bg);resize:none;outline:none}

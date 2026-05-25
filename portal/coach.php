@@ -8,7 +8,7 @@ $leadId = (int)$me['id'];
 
 // Load all messages
 $messages = db_all(
-    'SELECT id, body, from_member, created_at FROM coach_notes WHERE lead_id = ? ORDER BY created_at ASC',
+    'SELECT id, body, image_path, from_member, created_at FROM coach_notes WHERE lead_id = ? ORDER BY created_at ASC',
     [$leadId]
 );
 
@@ -119,7 +119,10 @@ require __DIR__ . '/../includes/header.php';
             <div class="date-sep">— <?= e($dateLabel) ?> —</div>
             <?php foreach ($dayMsgs as $msg): ?>
               <div class="bubble <?= $msg['from_member'] ? 'me' : 'them' ?>" data-id="<?= (int)$msg['id'] ?>">
-                <?= nl2br(e($msg['body'])) ?>
+                <?php if (!empty($msg['image_path'])): ?>
+                  <img class="chat-img" src="/<?= e($msg['image_path']) ?>" alt="Attached image" onclick="window.open(this.src,'_blank')">
+                <?php endif; ?>
+                <?php if ($msg['body']): ?><?= nl2br(e($msg['body'])) ?><?php endif; ?>
                 <span class="time"><?= date('g:i A', strtotime($msg['created_at'])) ?></span>
               </div>
             <?php endforeach; ?>
@@ -134,9 +137,15 @@ require __DIR__ . '/../includes/header.php';
           <?php endif; ?>
         </div>
 
+        <div id="uploadPreview" class="upload-preview" style="display:none">
+          <img id="previewThumb" src="" alt="preview">
+          <span id="previewName" style="font-size:12px;color:var(--ink-2)"></span>
+          <button class="remove" id="removeAttach" type="button" title="Remove">&times;</button>
+        </div>
         <div class="composer">
           <div class="tools">
-            <button type="button" title="Attach a photo">
+            <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/heic" style="display:none">
+            <button type="button" id="attachBtn" title="Attach a photo">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 17l-5-5-10 9"/></svg>
             </button>
           </div>
@@ -153,11 +162,16 @@ require __DIR__ . '/../includes/header.php';
 const CSRF = <?= json_encode(csrf_token()) ?>;
 let lastId = <?= $lastId ?>;
 const msgList = document.getElementById('msgList');
+let pendingFile = null;
 
 function scrollToBottom() {
   msgList.scrollTop = msgList.scrollHeight;
 }
 scrollToBottom();
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 function addBubble(msg) {
   const isMe = msg.from_member == 1;
@@ -166,36 +180,101 @@ function addBubble(msg) {
   const div = document.createElement('div');
   div.className = 'bubble ' + (isMe ? 'me' : 'them');
   div.dataset.id = msg.id;
-  div.innerHTML = msg.body.replace(/\n/g,'<br>') + `<span class="time">${time}</span>`;
+  let html = '';
+  if (msg.image_path) {
+    html += '<img class="chat-img" src="/' + escHtml(msg.image_path) + '" alt="Attached image" onclick="window.open(this.src,\'_blank\')">';
+  }
+  if (msg.body) {
+    html += escHtml(msg.body).replace(/\n/g,'<br>');
+  }
+  html += '<span class="time">' + time + '</span>';
+  div.innerHTML = html;
   msgList.appendChild(div);
   scrollToBottom();
 }
 
+// Attachment handling
+const fileInput = document.getElementById('fileInput');
+const attachBtn = document.getElementById('attachBtn');
+const uploadPreview = document.getElementById('uploadPreview');
+const previewThumb = document.getElementById('previewThumb');
+const previewName = document.getElementById('previewName');
+const removeAttach = document.getElementById('removeAttach');
+
+attachBtn.addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  if (file.size > 8 * 1024 * 1024) {
+    alert('Image must be under 8 MB.');
+    this.value = '';
+    return;
+  }
+  pendingFile = file;
+  previewThumb.src = URL.createObjectURL(file);
+  previewName.textContent = file.name;
+  uploadPreview.style.display = 'flex';
+});
+
+removeAttach.addEventListener('click', () => {
+  pendingFile = null;
+  fileInput.value = '';
+  uploadPreview.style.display = 'none';
+  previewThumb.src = '';
+});
+
 async function sendMessage() {
   const input = document.getElementById('msgInput');
   const body = input.value.trim();
-  if (!body) return;
+  if (!body && !pendingFile) return;
+
   input.value = '';
+  input.style.height = '';
   input.disabled = true;
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
   try {
-    const res = await fetch('/chat_api', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','X-CSRF-Token': CSRF},
-      body: JSON.stringify({body, csrf: CSRF})
-    });
+    let res;
+    if (pendingFile) {
+      const fd = new FormData();
+      fd.append('image', pendingFile);
+      fd.append('body', body);
+      fd.append('csrf', CSRF);
+      res = await fetch('/chat_api', {
+        method: 'POST',
+        headers: {'X-CSRF-Token': CSRF},
+        body: fd
+      });
+      pendingFile = null;
+      fileInput.value = '';
+      uploadPreview.style.display = 'none';
+    } else {
+      res = await fetch('/chat_api', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-Token': CSRF},
+        body: JSON.stringify({body, csrf: CSRF})
+      });
+    }
     const json = await res.json();
     if (json.ok) {
       addBubble(json.message);
       lastId = json.message.id;
     }
-  } catch(e) {}
+  } catch(e) { console.error('Send error:', e); }
+
   input.disabled = false;
+  btn.disabled = false;
+  btn.innerHTML = 'Send <span class="k">⏎</span>';
   input.focus();
 }
 
 document.getElementById('sendBtn').addEventListener('click', sendMessage);
 document.getElementById('msgInput').addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); sendMessage(); }
+  if (e.key === 'Enter' && !e.shiftKey && !e.metaKey && !e.ctrlKey) { e.preventDefault(); sendMessage(); }
 });
 
 // Auto-resize textarea
