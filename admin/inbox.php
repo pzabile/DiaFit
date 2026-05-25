@@ -39,13 +39,15 @@ $threads = db_all("
                SELECT 1 FROM coach_notes cn2
                WHERE cn2.lead_id = l.id AND cn2.from_member = 0
                  AND cn2.created_at > cn.created_at
-           )) AS is_waiting,
+           ) AND (l.coach_dismissed_at IS NULL OR cn.created_at > l.coach_dismissed_at)
+           ) AS is_waiting,
            TIMESTAMPDIFF(MINUTE, cn.created_at, NOW()) AS waiting_min,
            (SELECT COUNT(*) FROM coach_notes cn3
             WHERE cn3.lead_id = l.id AND cn3.from_member = 1
               AND cn3.created_at > COALESCE(
                   (SELECT MAX(created_at) FROM coach_notes WHERE lead_id = l.id AND from_member = 0), '2000-01-01'
               )
+              AND cn3.created_at > COALESCE(l.coach_dismissed_at, '2000-01-01')
            ) AS unread_count
     FROM leads l
     JOIN coach_notes cn ON cn.id = (SELECT MAX(id) FROM coach_notes WHERE lead_id = l.id)
@@ -182,9 +184,7 @@ require __DIR__ . '/../includes/header.php';
                     <span class="chip <?= adm_waiting_cls($wmin) ?> lg">Waiting · <?= adm_waiting_label($wmin) ?></span>
                   <?php endif; ?>
                 <a href="/admin/member?id=<?= (int)$selectedThreadId ?>" class="btn sm">Open profile →</a>
-                <button class="icon-btn">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-                </button>
+                <button class="btn sm" id="resolveBtn" onclick="markResolved()" title="Dismiss waiting — no reply needed for now">✓ Mark resolved</button>
               </div>
             </div>
 
@@ -232,10 +232,16 @@ require __DIR__ . '/../includes/header.php';
               </div>
             </div>
 
+            <div id="inboxUploadPreview" style="display:none;padding:8px 18px;border-top:1px dashed var(--line);background:var(--bg);display:none;align-items:center;gap:10px">
+              <img id="inboxPreviewThumb" src="" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid var(--line)">
+              <span id="inboxPreviewName" style="font-size:12px;color:var(--ink-2);flex:1"></span>
+              <button id="inboxRemoveAttach" type="button" style="width:24px;height:24px;border-radius:6px;background:var(--bg-2);color:var(--muted);display:grid;place-items:center" onclick="removeInboxAttach()">&times;</button>
+            </div>
             <div class="composer">
               <div class="tools">
-                <button title="Attach">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12l-9.5 9.5a4.5 4.5 0 11-6.4-6.4L14 6a3 3 0 014.2 4.2l-9 9a1.5 1.5 0 11-2.1-2.1L15 9"/></svg>
+                <input type="file" id="inboxFileInput" accept="image/jpeg,image/png,image/webp,image/heic" style="display:none">
+                <button title="Attach image" id="inboxAttachBtn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 17l-5-5-10 9"/></svg>
                 </button>
               </div>
               <textarea id="composer" placeholder="Reply to <?= e($selectedLead['first_name'] ?: 'member') ?>…" rows="2"></textarea>
@@ -355,14 +361,36 @@ function appendMessage(m) {
   msgs.scrollTop = msgs.scrollHeight;
 }
 
+// Attachment handling
+let inboxPendingFile = null;
+const inboxFileInput = document.getElementById('inboxFileInput');
+const inboxAttachBtn = document.getElementById('inboxAttachBtn');
+const inboxUploadPreview = document.getElementById('inboxUploadPreview');
+
+inboxAttachBtn?.addEventListener('click', () => inboxFileInput?.click());
+inboxFileInput?.addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  if (file.size > 8 * 1024 * 1024) { alert('Image must be under 8 MB.'); this.value = ''; return; }
+  inboxPendingFile = file;
+  document.getElementById('inboxPreviewThumb').src = URL.createObjectURL(file);
+  document.getElementById('inboxPreviewName').textContent = file.name;
+  if (inboxUploadPreview) inboxUploadPreview.style.display = 'flex';
+});
+function removeInboxAttach() {
+  inboxPendingFile = null;
+  if (inboxFileInput) inboxFileInput.value = '';
+  if (inboxUploadPreview) inboxUploadPreview.style.display = 'none';
+}
+
 async function sendMessage() {
   const ta = document.getElementById('composer');
   const body = ta ? ta.value.trim() : '';
-  if (!body || !currentThreadId) return;
+  if (!body && !inboxPendingFile) return;
+  if (!currentThreadId) return;
   const btn = document.getElementById('sendBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
 
-  // Optimistically show the message immediately
   const tempId = 'temp_' + Date.now();
   const tempDiv = document.createElement('div');
   tempDiv.className = 'bubble me';
@@ -370,33 +398,44 @@ async function sendMessage() {
   tempDiv.style.opacity = '0.6';
   const now = new Date();
   const timeStr = now.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
-  tempDiv.innerHTML = escHtml(body).replace(/\n/g,'<br>') + '<span class="time">' + timeStr + '</span>';
+  let tempHtml = '';
+  if (inboxPendingFile) tempHtml += '<div style="color:var(--muted);font-size:12px;margin-bottom:4px">Uploading image…</div>';
+  if (body) tempHtml += escHtml(body).replace(/\n/g,'<br>');
+  tempHtml += '<span class="time">' + timeStr + '</span>';
+  tempDiv.innerHTML = tempHtml;
   const msgs = document.getElementById('msgs');
   if (msgs) { msgs.appendChild(tempDiv); msgs.scrollTop = msgs.scrollHeight; }
 
   try {
-    const r = await fetch('/admin/inbox_api', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','X-CSRF-Token': CSRF},
-      body: JSON.stringify({thread: currentThreadId, body: body, csrf: CSRF})
-    });
+    let r;
+    if (inboxPendingFile) {
+      const fd = new FormData();
+      fd.append('image', inboxPendingFile);
+      fd.append('thread', currentThreadId);
+      fd.append('body', body);
+      fd.append('csrf', CSRF);
+      r = await fetch('/admin/inbox_api', {
+        method: 'POST',
+        headers: {'X-CSRF-Token': CSRF},
+        body: fd
+      });
+      removeInboxAttach();
+    } else {
+      r = await fetch('/admin/inbox_api', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-Token': CSRF},
+        body: JSON.stringify({thread: currentThreadId, body: body, csrf: CSRF})
+      });
+    }
     const d = await r.json();
     if (d.ok && d.message) {
-      // Replace temp bubble with confirmed one
       if (tempDiv.parentNode) tempDiv.remove();
       ta.value = '';
       ta.style.height = '';
       appendMessage(d.message);
       lastMsgId = d.message.id;
-      const thr = document.querySelector('.thread[data-thread-id="' + currentThreadId + '"]');
-      if (thr) {
-        thr.classList.remove('unread');
-        thr.dataset.waiting = '0';
-        const w = thr.querySelector('.waiting');
-        if (w) w.remove();
-      }
+      clearWaitingUI();
     } else {
-      // Failed — remove temp, restore text
       if (tempDiv.parentNode) tempDiv.remove();
       ta.value = body;
       console.error('Send failed:', d);
@@ -408,6 +447,40 @@ async function sendMessage() {
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = 'Send <span class="kbd">⌘⏎</span>'; }
     if (ta) ta.focus();
+  }
+}
+
+function clearWaitingUI() {
+  const thr = document.querySelector('.thread[data-thread-id="' + currentThreadId + '"]');
+  if (thr) {
+    thr.classList.remove('unread');
+    thr.dataset.waiting = '0';
+    thr.dataset.unread = '0';
+    const w = thr.querySelector('.waiting');
+    if (w) w.remove();
+  }
+  const waitingChip = document.querySelector('.convo-head .chip.lg');
+  if (waitingChip) waitingChip.remove();
+}
+
+async function markResolved() {
+  if (!currentThreadId) return;
+  const btn = document.getElementById('resolveBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Resolving…'; }
+  try {
+    const r = await fetch('/admin/inbox_api', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','X-CSRF-Token': CSRF},
+      body: JSON.stringify({action: 'resolve', thread: currentThreadId, csrf: CSRF})
+    });
+    const d = await r.json();
+    if (d.ok) {
+      clearWaitingUI();
+      if (btn) { btn.textContent = '✓ Resolved'; setTimeout(() => { btn.textContent = '✓ Mark resolved'; btn.disabled = false; }, 2000); }
+    }
+  } catch(e) {
+    console.error('Resolve error:', e);
+    if (btn) { btn.disabled = false; btn.textContent = '✓ Mark resolved'; }
   }
 }
 
