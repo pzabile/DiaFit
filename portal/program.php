@@ -144,7 +144,7 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?= e($p['file_path']) ?>" target="_blank" class="btn sm">Open PDF →</a>
       </div>
       <div class="body" style="padding:0">
-        <iframe src="<?= e($p['file_path']) ?>#view=FitH" width="100%" height="680px" style="border-radius:0 0 var(--r-lg) var(--r-lg);border:0;display:block" title="Week <?= $wNum ?> program PDF"></iframe>
+        <iframe src="<?= e($p['file_path']) ?>#view=FitH" width="100%" style="border-radius:0 0 var(--r-lg) var(--r-lg);border:0;display:block;height:min(680px, 70vh)" title="Week <?= $wNum ?> program PDF"></iframe>
       </div>
     </div>
     <?php endforeach; ?>
