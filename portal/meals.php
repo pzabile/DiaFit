@@ -77,6 +77,11 @@ require __DIR__ . '/../includes/header.php';
           <div class="info">
             <div class="what"><?= e(mb_substr($m['caption'] ?? 'Meal', 0, 60)) ?><?= mb_strlen($m['caption'] ?? '') > 60 ? '…' : '' ?></div>
             <div class="when"><?= $m['eaten_at'] ? e(date('D · g:i A', strtotime($m['eaten_at']))) : e(date('D · g:i A', strtotime($m['created_at']))) ?></div>
+            <?php if (!empty($m['admin_comment'])): ?>
+              <div style="margin-top:6px;padding:6px 8px;background:var(--sage-tint);border-radius:8px;font-size:11.5px;color:var(--sage-2);line-height:1.4">
+                <strong>Coach:</strong> <?= e(mb_substr($m['admin_comment'], 0, 120)) ?><?= mb_strlen($m['admin_comment']) > 120 ? '…' : '' ?>
+              </div>
+            <?php endif; ?>
           </div>
         </div>
       <?php endforeach; ?>

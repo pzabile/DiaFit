@@ -26,6 +26,46 @@ $latestCoach = db_get(
     [$leadId]
 );
 
+// Daily coach message (custom per member, or fallback to motivational quote)
+$dailyMessage = null;
+try {
+    $dailyMessage = db_get('SELECT body FROM member_daily_messages WHERE lead_id = ? AND message_date = CURDATE()', [$leadId]);
+} catch (Throwable $ignored) {}
+
+$dailyQuotes = [
+    "Small consistent steps beat one perfect day.",
+    "Your body is listening — every choice is a conversation.",
+    "Progress isn't always a number. Sometimes it's how you feel.",
+    "You don't have to be perfect. You just have to show up.",
+    "Every check-in is a win. You're building the habit.",
+    "Your glucose doesn't define you — your effort does.",
+    "One walk after a meal can change the entire curve.",
+    "The data tells a story. You're the author.",
+    "Rest days are part of the plan, not a break from it.",
+    "What you did yesterday got you here. Keep going.",
+    "Fueling well before a workout is a form of self-respect.",
+    "The best workout is the one you actually do.",
+    "Your coach is here. Don't hesitate to ask.",
+    "Consistency over intensity — always.",
+    "You're building something that lasts. Not a quick fix.",
+    "Notice what works. Repeat it. That's the whole method.",
+    "Celebrate the small wins — they compound.",
+    "Hydration, sleep, movement. The basics are never basic.",
+    "A tough day logged is still a day tracked. That matters.",
+    "You're further along than you were last week.",
+    "Trust the process. The numbers will follow.",
+    "One good meal choice leads to the next.",
+    "Your energy today is tomorrow's foundation.",
+    "Listen to your body — it knows more than you think.",
+    "Every day is a fresh start. Use it.",
+    "The fact that you're here means you care. That's everything.",
+    "Strong is not just physical. It's showing up when it's hard.",
+    "Your glucose trend matters more than any single reading.",
+    "You're not just managing diabetes — you're mastering your health.",
+    "Keep the streak alive. Future you will thank you.",
+];
+$dailyQuoteText = $dailyQuotes[(date('z') + $leadId) % count($dailyQuotes)];
+
 // Coach motivation note
 $motivationNote = null;
 try {
@@ -355,12 +395,15 @@ require __DIR__ . '/../includes/header.php';
         </div>
         <?php endif; ?>
 
-        <!-- Coach card -->
-        <?php if ($latestCoach): ?>
+        <!-- Coach daily message card -->
+        <?php
+        $noteText = $dailyMessage ? $dailyMessage['body'] : $dailyQuoteText;
+        $isCustom = (bool)$dailyMessage;
+        ?>
         <div class="card coach-card">
           <div class="head">
             <div class="eyebrow sage">A note from your coach</div>
-            <span class="chip sage">unread</span>
+            <?php if ($isCustom): ?><span class="chip sage">today</span><?php endif; ?>
           </div>
           <div class="body">
             <div class="who">
@@ -370,22 +413,13 @@ require __DIR__ . '/../includes/header.php';
                 <div class="role">Diafitus coach</div>
               </div>
             </div>
-            <div class="msg">"<?= e(mb_substr($latestCoach['body'], 0, 220)) ?><?= mb_strlen($latestCoach['body']) > 220 ? '…' : '' ?>"</div>
+            <div class="msg">"<?= e($noteText) ?>"</div>
             <div style="margin-top:14px;display:flex;gap:10px">
               <a href="/portal/coach" class="btn sm pri">Reply</a>
               <a href="/portal/coach" class="btn sm">View all</a>
             </div>
           </div>
         </div>
-        <?php else: ?>
-        <div class="card">
-          <div class="head"><div class="eyebrow sage">Coach</div></div>
-          <div class="body" style="text-align:center;padding:20px">
-            <div style="color:var(--muted);font-size:13px;margin-bottom:12px">No messages yet</div>
-            <a href="/portal/coach" class="btn sm pri">Message your coach</a>
-          </div>
-        </div>
-        <?php endif; ?>
       </div>
     </div>
 

@@ -146,6 +146,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
         header('Location: /admin/member?id=' . $id . '&targets_week=' . $targetWeek); exit;
     }
 
+    if ($action === 'comment_meal') {
+        $mealId  = (int)($_POST['meal_id'] ?? 0);
+        $comment = trim($_POST['comment'] ?? '');
+        if ($mealId) {
+            try {
+                db_exec('UPDATE meal_photos SET admin_comment = ? WHERE id = ? AND lead_id = ?', [$comment ?: null, $mealId, $id]);
+                if (!empty($_POST['_ajax']) || (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'json'))) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['ok' => true]);
+                    exit;
+                }
+                $_SESSION['flash'] = 'Comment saved.';
+            } catch (Throwable $ex) {
+                if (!empty($_POST['_ajax']) || (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'json'))) {
+                    http_response_code(500);
+                    echo json_encode(['ok' => false]);
+                    exit;
+                }
+                $_SESSION['flash'] = 'Could not save comment.';
+            }
+        }
+        header('Location: /admin/member?id=' . $id); exit;
+    }
+
+    if ($action === 'set_daily_message') {
+        $msgDate = $_POST['message_date'] ?? date('Y-m-d');
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $msgDate)) $msgDate = date('Y-m-d');
+        $body = trim($_POST['daily_message'] ?? '');
+        try {
+            if ($body) {
+                $existing = db_get('SELECT id FROM member_daily_messages WHERE lead_id = ? AND message_date = ?', [$id, $msgDate]);
+                if ($existing) {
+                    db_exec('UPDATE member_daily_messages SET body = ? WHERE id = ?', [$body, (int)$existing['id']]);
+                } else {
+                    db_insert('INSERT INTO member_daily_messages (lead_id, message_date, body, created_at) VALUES (?, ?, ?, NOW())', [$id, $msgDate, $body]);
+                }
+                $_SESSION['flash'] = "Daily message set for {$msgDate}.";
+            } else {
+                db_exec('DELETE FROM member_daily_messages WHERE lead_id = ? AND message_date = ?', [$id, $msgDate]);
+                $_SESSION['flash'] = "Daily message cleared for {$msgDate}.";
+            }
+        } catch (Throwable $ex) {
+            $_SESSION['flash'] = 'Could not save message: ' . $ex->getMessage();
+        }
+        header('Location: /admin/member?id=' . $id); exit;
+    }
+
     if ($action === 'add_private') {
         $body = trim($_POST['body'] ?? '');
         if ($body) {
@@ -420,10 +467,32 @@ $csrf = csrf_input();
                 </form>
               </div>
             </div>
+            <!-- Daily coach message -->
+            <?php
+            $dailyMsgDate = date('Y-m-d');
+            $existingDailyMsg = null;
+            try {
+                $existingDailyMsg = db_get('SELECT body FROM member_daily_messages WHERE lead_id = ? AND message_date = ?', [$id, $dailyMsgDate]);
+            } catch (Throwable $ignored) {}
+            ?>
+            <div style="margin-top:18px;border-top:1px dashed var(--line);padding-top:16px">
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px">Daily message · "Note from your coach" card</div>
+              <p style="color:var(--muted);font-size:12px;margin:0 0 10px;line-height:1.5">Shows on their Today page as "A note from your coach". Leave blank to show a rotating motivational quote instead.</p>
+              <form method="post" style="display:flex;flex-direction:column;gap:8px">
+                <?= $csrf ?>
+                <input type="hidden" name="action" value="set_daily_message" />
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="date" name="message_date" value="<?= e($dailyMsgDate) ?>" class="field-inp" style="width:auto" />
+                  <span style="font-size:12px;color:var(--muted)"><?= date('l') ?></span>
+                </div>
+                <textarea name="daily_message" class="field-inp" rows="2" placeholder="e.g. Great work on yesterday's session — keep the momentum going today!" style="resize:vertical;width:100%"><?= e($existingDailyMsg['body'] ?? '') ?></textarea>
+                <button class="btn sm" style="align-self:flex-end">Save message</button>
+              </form>
+            </div>
             <!-- Motivation note -->
             <div style="margin-top:18px;border-top:1px dashed var(--line);padding-top:16px">
-              <div style="font-size:13px;font-weight:600;margin-bottom:4px">Motivation note · visible on their Today page</div>
-              <p style="color:var(--muted);font-size:12px;margin:0 0 10px;line-height:1.5">A personal quote or nudge. Not a message — appears on their dashboard homepage.</p>
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px">Motivation note · pinned on their Today page</div>
+              <p style="color:var(--muted);font-size:12px;margin:0 0 10px;line-height:1.5">A personal quote or nudge. Always visible (separate from daily message).</p>
               <form method="post" style="display:flex;flex-direction:column;gap:8px">
                 <?= $csrf ?>
                 <input type="hidden" name="action" value="set_motivation" />
@@ -492,7 +561,7 @@ $csrf = csrf_input();
               <h3 class="h3">Program PDF</h3>
             </div>
             <?php if ($lead['program_path']): ?>
-              <a href="/<?= e($lead['program_path']) ?>" target="_blank" class="btn sm">Open PDF →</a>
+              <a href="<?= e($lead['program_path']) ?>" target="_blank" class="btn sm">Open PDF →</a>
             <?php endif; ?>
           </div>
           <div class="body">
@@ -501,7 +570,7 @@ $csrf = csrf_input();
                 <?php foreach ($memberPrograms as $mp): ?>
                 <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px">
                   <span><strong>Week <?= (int)$mp['week_number'] ?></strong><?= $mp['title'] ? ' · ' . e($mp['title']) : '' ?></span>
-                  <a href="/<?= e($mp['file_path']) ?>" target="_blank" class="btn sm">Open PDF →</a>
+                  <a href="<?= e($mp['file_path']) ?>" target="_blank" class="btn sm">Open PDF →</a>
                 </div>
                 <?php endforeach; ?>
               </div>
@@ -820,18 +889,46 @@ $targetsText = $targetsRow['program_targets'] ?? '';
     <!-- Meal photos -->
     <?php if ($meals): ?>
     <div class="section-title">Meal photos (<?= count($meals) ?>)</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px">
       <?php foreach ($meals as $m): ?>
-      <div style="border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--card)">
-        <img src="<?= e($m['file_path']) ?>" alt="" loading="lazy" style="width:100%;height:100px;object-fit:cover;display:block" />
+      <div style="border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--card);cursor:pointer" onclick="openMealModal(<?= (int)$m['id'] ?>, '<?= e(addslashes($m['file_path'])) ?>', '<?= e(addslashes($m['meal_type'] ?: 'Meal')) ?>', '<?= e(substr($m['created_at'], 0, 16)) ?>', <?= json_encode($m['admin_comment'] ?? '') ?>)">
+        <img src="/<?= e($m['file_path']) ?>" alt="" loading="lazy" style="width:100%;height:120px;object-fit:cover;display:block" />
         <div style="padding:8px 10px;font-size:11.5px">
           <div style="font-weight:600"><?= e($m['meal_type'] ?: 'Meal') ?></div>
           <div style="color:var(--muted)"><?= substr($m['created_at'], 0, 10) ?></div>
+          <?php if (!empty($m['admin_comment'])): ?>
+            <div style="color:var(--sage-2);font-size:10.5px;margin-top:3px">💬 Commented</div>
+          <?php endif; ?>
         </div>
       </div>
       <?php endforeach; ?>
     </div>
     <?php endif; ?>
+
+    <!-- Meal photo modal -->
+    <div id="mealModal" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(27,32,28,.55);backdrop-filter:blur(2px);align-items:center;justify-content:center" onclick="if(event.target===this)closeMealModal()">
+      <div style="background:var(--card);border-radius:18px;width:min(560px,92vw);max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lift)">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)">
+          <div>
+            <div id="mealModalType" style="font-weight:600;font-size:15px"></div>
+            <div id="mealModalDate" style="color:var(--muted);font-size:12px;margin-top:2px"></div>
+          </div>
+          <button onclick="closeMealModal()" style="width:32px;height:32px;border-radius:8px;background:var(--bg-2);display:grid;place-items:center;color:var(--muted)">&times;</button>
+        </div>
+        <div style="padding:0">
+          <img id="mealModalImg" src="" alt="" style="width:100%;display:block;max-height:400px;object-fit:contain;background:#f5f3eb" />
+        </div>
+        <div style="padding:16px 20px;border-top:1px solid var(--line)">
+          <label style="font-size:12px;font-weight:600;color:var(--ink-2);display:block;margin-bottom:6px">Coach comment</label>
+          <textarea id="mealCommentInput" rows="2" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;background:var(--bg);resize:vertical;outline:none" placeholder="Add a comment about this meal…"></textarea>
+          <input type="hidden" id="mealCommentId" value="" />
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+            <span id="mealCommentStatus" style="font-size:12px;color:var(--sage-2)"></span>
+            <button class="btn pri" style="font-size:12.5px;padding:8px 14px" onclick="saveMealComment()">Save comment</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div><!-- /view -->
 </main>
@@ -887,6 +984,42 @@ function toggleLogDetail(id) {
   var row = document.getElementById('log-detail-' + id);
   if (!row) return;
   row.style.display = row.style.display === 'none' ? '' : 'none';
+}
+
+function openMealModal(id, path, type, date, comment) {
+  document.getElementById('mealModalImg').src = '/' + path;
+  document.getElementById('mealModalType').textContent = type;
+  document.getElementById('mealModalDate').textContent = date;
+  document.getElementById('mealCommentInput').value = comment || '';
+  document.getElementById('mealCommentId').value = id;
+  document.getElementById('mealCommentStatus').textContent = '';
+  document.getElementById('mealModal').style.display = 'flex';
+}
+function closeMealModal() {
+  document.getElementById('mealModal').style.display = 'none';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMealModal(); });
+
+async function saveMealComment() {
+  const mealId = document.getElementById('mealCommentId').value;
+  const comment = document.getElementById('mealCommentInput').value.trim();
+  const status = document.getElementById('mealCommentStatus');
+  try {
+    const fd = new FormData();
+    fd.append('action', 'comment_meal');
+    fd.append('meal_id', mealId);
+    fd.append('comment', comment);
+    fd.append('csrf', MEMBER_CSRF);
+    const res = await fetch('/admin/member?id=' + MEMBER_ID, { method: 'POST', body: fd });
+    if (res.ok) {
+      status.textContent = 'Saved ✓';
+      setTimeout(() => { status.textContent = ''; }, 3000);
+    } else {
+      status.textContent = 'Failed — try again';
+    }
+  } catch(e) {
+    status.textContent = 'Network error';
+  }
 }
 </script>
 <?php require __DIR__ . '/../includes/footer.php'; ?>

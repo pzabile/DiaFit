@@ -141,10 +141,10 @@ require __DIR__ . '/../includes/header.php';
           <div class="eyebrow">Week <?= $wNum ?> · plan document</div>
           <h3 class="h3" style="margin-top:4px"><?= e($title) ?></h3>
         </div>
-        <a href="/<?= e($p['file_path']) ?>" target="_blank" class="btn sm">Open PDF →</a>
+        <a href="<?= e($p['file_path']) ?>" target="_blank" class="btn sm">Open PDF →</a>
       </div>
       <div class="body" style="padding:0">
-        <iframe src="/<?= e($p['file_path']) ?>#view=FitH" width="100%" height="680px" style="border-radius:0 0 var(--r-lg) var(--r-lg);border:0;display:block" title="Week <?= $wNum ?> program PDF"></iframe>
+        <iframe src="<?= e($p['file_path']) ?>#view=FitH" width="100%" height="680px" style="border-radius:0 0 var(--r-lg) var(--r-lg);border:0;display:block" title="Week <?= $wNum ?> program PDF"></iframe>
       </div>
     </div>
     <?php endforeach; ?>
