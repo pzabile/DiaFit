@@ -181,7 +181,7 @@ require __DIR__ . '/../includes/header.php';
                   if ($thisThr && $thisThr[0]['is_waiting']): $wmin=(int)$thisThr[0]['waiting_min']; ?>
                     <span class="chip <?= adm_waiting_cls($wmin) ?> lg">Waiting · <?= adm_waiting_label($wmin) ?></span>
                   <?php endif; ?>
-                <button class="btn sm" onclick="openMemberDrawer(<?= (int)$selectedThreadId ?>)">Open profile →</button>
+                <a href="/admin/member?id=<?= (int)$selectedThreadId ?>" class="btn sm">Open profile →</a>
                 <button class="icon-btn">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
                 </button>
@@ -213,7 +213,7 @@ require __DIR__ . '/../includes/header.php';
               <?php endif; ?>
                 <div class="bubble <?= $msg['from_member'] ? 'them' : 'me' ?>">
                   <?php if (!empty($msg['image_path'])): ?>
-                    <img style="max-width:100%;border-radius:10px;display:block;cursor:pointer;margin-bottom:4px" src="/<?= e($msg['image_path']) ?>" alt="Attached image" onclick="window.open(this.src,'_blank')">
+                    <img style="max-width:100%;border-radius:10px;display:block;cursor:pointer;margin-bottom:4px" src="<?= e($msg['image_path']) ?>" alt="Attached image" onclick="window.open(this.src,'_blank')">
                   <?php endif; ?>
                   <?php if ($msg['body']): ?><?= nl2br(e($msg['body'])) ?><?php endif; ?>
                   <span class="time"><?= date('g:i A', strtotime($msg['created_at'])) ?></span>
@@ -346,7 +346,7 @@ function appendMessage(m) {
   div.dataset.id = m.id;
   let html = '';
   if (m.image_path) {
-    html += '<img style="max-width:100%;border-radius:10px;display:block;cursor:pointer;margin-bottom:4px" src="/' + escHtml(m.image_path) + '" alt="Attached image" onclick="window.open(this.src,\'_blank\')">';
+    html += '<img style="max-width:100%;border-radius:10px;display:block;cursor:pointer;margin-bottom:4px" src="' + escHtml(m.image_path) + '" alt="Attached image" onclick="window.open(this.src,\'_blank\')">';
   }
   if (m.body) html += escHtml(m.body).replace(/\n/g,'<br>');
   html += '<span class="time">' + escHtml(m.time||'') + '</span>';

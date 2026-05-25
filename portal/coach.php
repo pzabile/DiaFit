@@ -120,7 +120,7 @@ require __DIR__ . '/../includes/header.php';
             <?php foreach ($dayMsgs as $msg): ?>
               <div class="bubble <?= $msg['from_member'] ? 'me' : 'them' ?>" data-id="<?= (int)$msg['id'] ?>">
                 <?php if (!empty($msg['image_path'])): ?>
-                  <img class="chat-img" src="/<?= e($msg['image_path']) ?>" alt="Attached image" onclick="window.open(this.src,'_blank')">
+                  <img class="chat-img" src="<?= e($msg['image_path']) ?>" alt="Attached image" onclick="window.open(this.src,'_blank')">
                 <?php endif; ?>
                 <?php if ($msg['body']): ?><?= nl2br(e($msg['body'])) ?><?php endif; ?>
                 <span class="time"><?= date('g:i A', strtotime($msg['created_at'])) ?></span>
@@ -182,7 +182,7 @@ function addBubble(msg) {
   div.dataset.id = msg.id;
   let html = '';
   if (msg.image_path) {
-    html += '<img class="chat-img" src="/' + escHtml(msg.image_path) + '" alt="Attached image" onclick="window.open(this.src,\'_blank\')">';
+    html += '<img class="chat-img" src="' + escHtml(msg.image_path) + '" alt="Attached image" onclick="window.open(this.src,\'_blank\')">';
   }
   if (msg.body) {
     html += escHtml(msg.body).replace(/\n/g,'<br>');
