@@ -12,6 +12,16 @@ if (!isset($plans[$selected])) $selected = $default;
 
 function pct($r, $t) { return $r > 0 ? (int) round((($r - $t) / $r) * 100) : 0; }
 function perDay($t, $d) { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
+
+function reviewer_image($name) {
+    $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $name));
+    $slug = trim($slug, '-');
+    foreach (['jpg', 'jpeg', 'png', 'webp'] as $ext) {
+        $path = __DIR__ . '/assets/reviews/' . $slug . '.' . $ext;
+        if (file_exists($path)) return '/assets/reviews/' . $slug . '.' . $ext;
+    }
+    return null;
+}
 ?>
   <header class="nav slim">
     <a href="/" class="brand">
@@ -262,10 +272,16 @@ function perDay($t, $d) { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
       <div class="marquee-wrap">
         <div class="reviews-marquee">
           <?php for ($d = 0; $d < 2; $d++): ?>
-            <?php foreach ($reviews as $r): [$name, $tag, $text] = $r; ?>
+            <?php foreach ($reviews as $r): [$name, $tag, $text] = $r; $img = reviewer_image($name); ?>
               <article class="rev-card">
                 <header>
-                  <div class="rev-avatar"><?= avatar_svg($name, 56) ?></div>
+                  <div class="rev-avatar">
+                    <?php if ($img): ?>
+                      <img src="<?= e($img) ?>" alt="" loading="lazy" />
+                    <?php else: ?>
+                      <?= avatar_svg($name, 56) ?>
+                    <?php endif; ?>
+                  </div>
                   <div class="rev-meta">
                     <strong><?= e($name) ?></strong>
                     <small><?= e($tag) ?></small>
