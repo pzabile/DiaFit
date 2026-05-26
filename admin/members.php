@@ -23,13 +23,20 @@ function mem_plan_label(int $days): string {
     if ($days <= 56) return '8-wk';
     return '12-wk';
 }
-function mem_plan_weeks(int $days): int {
-    return max(1, (int)ceil($days / 7));
+function mem_plan_total(int $days): array {
+    if ($days <= 7) return [$days, 'day'];
+    return [max(1, (int)ceil($days / 7)), 'week'];
 }
-function mem_week_num(string $startedAt, int $planWeeks): int {
-    if (!$startedAt) return 1;
-    $elapsed = floor((time() - strtotime($startedAt)) / 86400);
-    return min($planWeeks, max(1, (int)ceil(($elapsed + 1) / 7)));
+function mem_current_pos(string $startedAt, int $planDays): array {
+    [$total, $label] = mem_plan_total($planDays);
+    if (!$startedAt) return [1, $total, $label];
+    $elapsed = max(0, floor((time() - strtotime($startedAt)) / 86400));
+    if ($planDays <= 7) {
+        $current = min($total, (int)$elapsed + 1);
+    } else {
+        $current = min($total, max(1, (int)ceil(($elapsed + 1) / 7)));
+    }
+    return [$current, $total, $label];
 }
 
 $q = trim($_GET['q'] ?? '');
@@ -60,8 +67,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     fputcsv($out, ['ID','Name','Email','Phone','Plan','Started','Plan weeks','Week #','Last log','Messages','Status']);
     foreach ($rows as $r) {
         $planDays  = (int)($r['plan_days'] ?? 84);
-        $planWeeks = mem_plan_weeks($planDays);
-        $weekNum   = mem_week_num($r['started_at'] ?? '', $planWeeks);
+        [$posNum, $posTotal, $posLabel] = mem_current_pos($r['started_at'] ?? '', $planDays);
         $isWaiting = (int)($r['last_from_member'] ?? 0) === 1;
         $lastLog   = $r['last_log_date'] ?? '';
         $daysSince = $lastLog ? floor((time() - strtotime($lastLog)) / 86400) : 999;
@@ -76,8 +82,8 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
             $r['phone'] ?: '—',
             mem_plan_label($planDays),
             $r['started_at'] ?: '—',
-            $planWeeks,
-            $weekNum,
+            $posTotal,
+            $posNum,
             $lastLog ?: '—',
             (int)$r['msg_count'],
             $status,
@@ -156,7 +162,7 @@ require __DIR__ . '/../includes/header.php';
             <tr>
               <th>Member</th>
               <th>Plan</th>
-              <th>Week</th>
+              <th>Progress</th>
               <th>Last log</th>
               <th>Inbox</th>
               <th>Status</th>
@@ -172,8 +178,7 @@ require __DIR__ . '/../includes/header.php';
             <?php foreach ($rows as $r):
               $planDays  = (int)($r['plan_days'] ?? 84);
               $planLbl   = mem_plan_label($planDays);
-              $planWeeks = mem_plan_weeks($planDays);
-              $weekNum   = mem_week_num($r['started_at'] ?? '', $planWeeks);
+              [$posNum, $posTotal, $posLabel] = mem_current_pos($r['started_at'] ?? '', $planDays);
               $initials  = mem_initials($r['first_name'] ?? '', $r['email']);
               $avColor   = mem_av_color($r['email']);
               $isWaiting = (int)($r['last_from_member'] ?? 0) === 1;
@@ -208,7 +213,7 @@ require __DIR__ . '/../includes/header.php';
                   </div>
                 </td>
                 <td><span class="chip"><?= e($planLbl) ?></span></td>
-                <td style="font-size:13px;color:var(--ink-2)"><?= $weekNum ?> / <?= $planWeeks ?></td>
+                <td style="font-size:13px;color:var(--ink-2)"><?= $posNum ?> / <?= $posTotal ?></td>
                 <td style="font-size:12.5px;color:var(--muted)"><?= e($lastLogLbl) ?></td>
                 <td>
                   <?php if ($isWaiting): ?>

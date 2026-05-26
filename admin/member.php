@@ -407,7 +407,7 @@ $csrf = csrf_input();
         <!-- Program progress -->
         <div style="min-width:180px;text-align:right">
           <div style="font-family:'Instrument Serif',serif;font-size:52px;line-height:1;letter-spacing:-.02em;color:var(--sage-2)"><?= $prog['current'] ?><span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;color:var(--muted)"> / <?= $prog['total'] ?></span></div>
-          <div style="color:var(--muted);font-size:11.5px;margin-top:4px">Week of <?= $prog['total'] ?>-week plan</div>
+          <div style="color:var(--muted);font-size:11.5px;margin-top:4px"><?= ucfirst($prog['label']) ?> <?= $prog['current'] ?> of <?= $prog['total'] ?>-<?= $prog['label'] ?> plan</div>
           <div style="height:6px;border-radius:99px;background:var(--bg-3);overflow:hidden;margin-top:8px">
             <div style="height:100%;width:<?= $prog['pct'] ?>%;background:linear-gradient(90deg,var(--sage),#9CC9A8);border-radius:99px"></div>
           </div>
