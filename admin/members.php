@@ -144,6 +144,7 @@ require __DIR__ . '/../includes/header.php';
             <button class="chip" data-filter="active" onclick="filterRows('active',this)">Active</button>
             <button class="chip" data-filter="new" onclick="filterRows('new',this)">New</button>
             <button class="chip" data-filter="at_risk" onclick="filterRows('at_risk',this)">At risk</button>
+            <button class="chip" data-filter="inactive" onclick="filterRows('inactive',this)">Inactive</button>
           </div>
         </div>
         <div class="muted" style="font-size:12px">Sorted by · most recent</div>
@@ -188,7 +189,10 @@ require __DIR__ . '/../includes/header.php';
               /* Determine status */
               $isNew   = strtotime($r['created_at']) >= strtotime('-7 days');
               $atRisk  = $daysSince >= 3 && !$isNew;
-              if ($isNew)        { $statusLbl = 'New'; $statusCls = 'sage'; $filterStatus = 'new'; }
+              $planEnd = !empty($r['started_at']) ? strtotime($r['started_at'] . ' +' . $planDays . ' days') : null;
+              $isInactive = $planEnd && $planEnd <= time();
+              if ($isInactive)   { $statusLbl = 'Inactive'; $statusCls = 'muted-chip'; $filterStatus = 'inactive'; }
+              elseif ($isNew)    { $statusLbl = 'New'; $statusCls = 'sage'; $filterStatus = 'new'; }
               elseif ($atRisk)   { $statusLbl = 'At risk · '.$daysSince.'d no log'; $statusCls = 'coral'; $filterStatus = 'at_risk'; }
               elseif ($isWaiting){ $statusLbl = 'Needs reply'; $statusCls = 'amber'; $filterStatus = 'active'; }
               else               { $statusLbl = 'On track'; $statusCls = 'sage'; $filterStatus = 'active'; }

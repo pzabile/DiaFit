@@ -86,13 +86,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
 
     if ($action === 'change_plan') {
         $planDays  = (int) ($_POST['plan_days'] ?? 84);
-        $resetDate = !empty($_POST['reset_start']) ? 1 : 0;
+        $startDate = trim($_POST['start_date'] ?? '');
         $allowed   = [7, 28, 84];
         if (!in_array($planDays, $allowed, true)) $planDays = 84;
+        if ($startDate && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate)) $startDate = '';
         try {
-            if ($resetDate) {
-                db_exec('UPDATE leads SET plan_days = ?, started_at = CURDATE(), updated_at = NOW() WHERE id = ?', [$planDays, $id]);
-                $effectiveStart = date('Y-m-d');
+            if ($startDate) {
+                db_exec('UPDATE leads SET plan_days = ?, started_at = ?, updated_at = NOW() WHERE id = ?', [$planDays, $startDate, $id]);
+                $effectiveStart = $startDate;
             } else {
                 db_exec('UPDATE leads SET plan_days = ?, updated_at = NOW() WHERE id = ?', [$planDays, $id]);
                 $effectiveStart = $lead['started_at'] ?: '';
@@ -451,7 +452,7 @@ $csrf = csrf_input();
               <!-- Change plan -->
               <div>
                 <div style="font-size:13px;font-weight:600;margin-bottom:4px">Change plan</div>
-                <p style="color:var(--muted);font-size:12px;margin:0 0 10px;line-height:1.5">Current: <strong><?= (int)($lead['plan_days'] ?? 84) ?> days</strong>. Dashboard updates instantly.</p>
+                <p style="color:var(--muted);font-size:12px;margin:0 0 10px;line-height:1.5">Current: <strong><?= (int)($lead['plan_days'] ?? 84) ?> days</strong> · Started: <strong><?= $lead['started_at'] ? date('M j, Y', strtotime($lead['started_at'])) : '—' ?></strong></p>
                 <form method="post" style="display:flex;flex-direction:column;gap:8px">
                   <?= $csrf ?>
                   <input type="hidden" name="action" value="change_plan" />
@@ -460,9 +461,11 @@ $csrf = csrf_input();
                     <option value="28" <?= ($lead['plan_days'] ?? 84) == 28 ? 'selected' : '' ?>>4-week (28-day)</option>
                     <option value="84" <?= ($lead['plan_days'] ?? 84) == 84 ? 'selected' : '' ?>>12-week (84-day)</option>
                   </select>
-                  <label style="font-size:12px;display:flex;align-items:center;gap:7px;color:var(--ink-2)">
-                    <input type="checkbox" name="reset_start" value="1" /> Reset start date to today
-                  </label>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <label style="font-size:12px;color:var(--ink-2);white-space:nowrap">Start date:</label>
+                    <input type="date" name="start_date" value="<?= e($lead['started_at'] ?? '') ?>" class="field-inp" style="flex:1" />
+                  </div>
+                  <p style="color:var(--muted);font-size:11px;margin:0;line-height:1.4">Set the start date to control which week/day the member sees. Move it forward to restart, back to extend.</p>
                   <button class="btn pri" style="justify-content:center">Update plan</button>
                 </form>
               </div>

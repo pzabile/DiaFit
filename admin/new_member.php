@@ -41,7 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
                     send_email(
                         $email, $firstName ?: 'there',
                         'Welcome to DiaFitus — create your account',
-                        account_setup_email_html($firstName ?: 'there', $url)
+                        account_setup_email_html($firstName ?: 'there', $url),
+                        null,
+                        nutrition_guide_attachment()
                     );
                     $flash = "Member created and welcome email sent to {$email}.";
                 } else {
