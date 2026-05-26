@@ -14,6 +14,7 @@ try {
         JOIN coach_notes cn ON cn.id=(SELECT MAX(id) FROM coach_notes WHERE lead_id=l.id)
         WHERE l.paid=1 AND cn.from_member=1
           AND NOT EXISTS (SELECT 1 FROM coach_notes cn2 WHERE cn2.lead_id=l.id AND cn2.from_member=0 AND cn2.created_at > cn.created_at)
+          AND (l.coach_dismissed_at IS NULL OR cn.created_at > l.coach_dismissed_at)
     ")['c'] ?? 0);
 
     $preview = db_all("
@@ -23,6 +24,7 @@ try {
         JOIN coach_notes cn ON cn.id=(SELECT MAX(id) FROM coach_notes WHERE lead_id=l.id)
         WHERE l.paid=1 AND cn.from_member=1
           AND NOT EXISTS (SELECT 1 FROM coach_notes cn2 WHERE cn2.lead_id=l.id AND cn2.from_member=0 AND cn2.created_at > cn.created_at)
+          AND (l.coach_dismissed_at IS NULL OR cn.created_at > l.coach_dismissed_at)
         ORDER BY cn.created_at ASC LIMIT 5
     ");
 } catch (Throwable $ignored) {}

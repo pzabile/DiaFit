@@ -62,6 +62,7 @@ try {
             SELECT 1 FROM coach_notes cn2
             WHERE cn2.lead_id=l.id AND cn2.from_member=0 AND cn2.created_at > cn.created_at
           )
+          AND (l.coach_dismissed_at IS NULL OR cn.created_at > l.coach_dismissed_at)
         ORDER BY cn.created_at ASC
         LIMIT 20
     ");

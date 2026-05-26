@@ -118,6 +118,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
         header('Location: /admin/member?id=' . $id); exit;
     }
 
+    if ($action === 'resend_welcome') {
+        try {
+            $token = create_account_setup_token($id, 168);
+            $url = rtrim(cfg('site_url'), '/') . '/setup?token=' . $token;
+            send_email(
+                $lead['email'],
+                $lead['first_name'] ?: 'there',
+                'Welcome to DiaFitus — you\'re in 🎉',
+                account_setup_email_html($lead['first_name'] ?: 'there', $url, $lead['email']),
+                null,
+                nutrition_guide_attachment()
+            );
+            $_SESSION['flash'] = 'Welcome email with nutrition PDF sent to ' . $lead['email'] . '.';
+        } catch (Throwable $ex) {
+            $_SESSION['flash'] = 'Could not send email: ' . $ex->getMessage();
+        }
+        header('Location: /admin/member?id=' . $id); exit;
+    }
+
     if ($action === 'set_motivation') {
         $body = trim($_POST['motivation_note'] ?? '');
         try {
@@ -447,6 +466,11 @@ $csrf = csrf_input();
                   <?= $csrf ?>
                   <input type="hidden" name="action" value="send_reset" />
                   <button class="btn" style="width:100%;justify-content:center">📧 Send reset email</button>
+                </form>
+                <form method="post" style="margin-top:8px" onsubmit="return confirm('Resend welcome email with nutrition PDF to <?= e(addslashes($lead['email'])) ?>?')">
+                  <?= $csrf ?>
+                  <input type="hidden" name="action" value="resend_welcome" />
+                  <button class="btn" style="width:100%;justify-content:center">📨 Resend welcome email</button>
                 </form>
               </div>
               <!-- Change plan -->
