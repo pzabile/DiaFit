@@ -23,9 +23,15 @@ function stripe_request($method, $endpoint, $params = []) {
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
     }
 
-    $raw = curl_exec($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $raw   = curl_exec($ch);
+    $errno = curl_errno($ch);
+    $error = curl_error($ch);
+    $code  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
+
+    if ($errno !== 0) {
+        throw new RuntimeException('Stripe connection failed: ' . $error . ' (curl #' . $errno . ')');
+    }
 
     $data = json_decode($raw, true);
     if ($code >= 400) {

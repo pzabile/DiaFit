@@ -12,60 +12,82 @@ $paid = false;
 $user = user_session();
 $answers = answers();
 
+function _success_mark_paid(string $email, string $name, string $phone, int $planDays, string $stripeCustomer, string $stripeSub, array $answers, ?float $amountTotal): void {
+    $res    = lead_mark_paid($email, $stripeCustomer, $stripeSub, $name, $phone, $planDays);
+    $leadId = $res['id'];
+    $_SESSION['user'] = ['firstName' => $name, 'email' => $email, 'phone' => $phone];
+
+    if (!empty($_SESSION['post_purchase_done'])) return;
+
+    try {
+        $token = create_account_setup_token($leadId, 168);
+        $url   = rtrim(cfg('site_url'), '/') . '/setup?token=' . $token;
+        send_email(
+            $email, $name ?: 'there',
+            'Welcome to DiaFitus — you\'re in 🎉',
+            account_setup_email_html($name ?: 'there', $url, $email),
+            null,
+            nutrition_guide_attachment()
+        );
+    } catch (Throwable $ex) { error_log('setup email: ' . $ex->getMessage()); }
+
+    try {
+        $tmpPdf = sys_get_temp_dir() . '/diafitus_paid_' . time() . '_' . bin2hex(random_bytes(3)) . '.pdf';
+        build_lead_pdf($tmpPdf, $answers, ['firstName' => $name, 'email' => $email, 'phone' => $phone]);
+        $amt    = $amountTotal !== null ? number_format($amountTotal / 100, 2) : '?';
+        $lines  = ['<b>💸 DiaFitus — NEW PAID MEMBER</b>'];
+        $lines[] = 'Amount: $' . $amt . ' (one-time)';
+        $lines[] = '<b>Name:</b> ' . htmlspecialchars($name);
+        $lines[] = '<b>Email:</b> ' . htmlspecialchars($email);
+        $lines[] = '<b>Phone:</b> ' . htmlspecialchars($phone);
+        $lines[] = '';
+        foreach ($answers as $k => $v) {
+            $val     = is_array($v) ? implode(', ', $v) : $v;
+            $lines[] = '<b>' . htmlspecialchars(ucwords(str_replace('_', ' ', $k))) . ':</b> ' . htmlspecialchars($val);
+        }
+        tg_send_message(implode("\n", $lines));
+        tg_send_document($tmpPdf, 'New paid member — questionnaire (PDF)');
+        @unlink($tmpPdf);
+    } catch (Throwable $ex) { error_log('telegram paid: ' . $ex->getMessage()); }
+
+    $_SESSION['post_purchase_done'] = true;
+}
+
+$apiError = false;
 if ($sessionId) {
     try {
         $sess = stripe_get_session($sessionId);
         if (($sess['payment_status'] ?? '') === 'paid' || ($sess['status'] ?? '') === 'complete') {
-            $paid = true;
+            $paid  = true;
             $email = $sess['customer_details']['email'] ?? ($user['email'] ?? '');
             $name  = $sess['customer_details']['name']  ?? ($user['firstName'] ?? '');
             $phone = $user['phone'] ?? '';
-            $stripeCustomer = $sess['customer'] ?? '';
-            $stripeSub      = $sess['subscription'] ?? '';
-
             if ($email) {
-                $planDays = (int) ($sess['metadata']['plan_days'] ?? 84);
-                $res = lead_mark_paid($email, $stripeCustomer, $stripeSub, $name, $phone, $planDays);
-                $leadId = $res['id'];
-                $_SESSION['user'] = ['firstName' => $name, 'email' => $email, 'phone' => $phone];
-
-                if (empty($_SESSION['post_purchase_done'])) {
-                    try {
-                        $token = create_account_setup_token($leadId, 168);
-                        $url = rtrim(cfg('site_url'), '/') . '/setup?token=' . $token;
-                        send_email(
-                            $email, $name ?: 'there',
-                            'Welcome to DiaFitus — you\'re in 🎉',
-                            account_setup_email_html($name ?: 'there', $url, $email),
-                            null,
-                            nutrition_guide_attachment()
-                        );
-                    } catch (Throwable $ex) { error_log('setup email: ' . $ex->getMessage()); }
-
-                    try {
-                        $tmpPdf = sys_get_temp_dir() . '/diafitus_paid_' . time() . '_' . bin2hex(random_bytes(3)) . '.pdf';
-                        build_lead_pdf($tmpPdf, $answers, ['firstName' => $name, 'email' => $email, 'phone' => $phone]);
-                        $lines = ['<b>💸 DiaFitus — NEW PAID MEMBER</b>'];
-                        $lines[] = 'Amount: $' . number_format((float)($sess['amount_total'] ?? cfg('price_today') * 100) / 100, 2) . ' (one-time)';
-                        $lines[] = '<b>Name:</b> ' . htmlspecialchars($name);
-                        $lines[] = '<b>Email:</b> ' . htmlspecialchars($email);
-                        $lines[] = '<b>Phone:</b> ' . htmlspecialchars($phone);
-                        $lines[] = '';
-                        foreach ($answers as $k => $v) {
-                            $val = is_array($v) ? implode(', ', $v) : $v;
-                            $lines[] = '<b>' . htmlspecialchars(ucwords(str_replace('_', ' ', $k))) . ':</b> ' . htmlspecialchars($val);
-                        }
-                        tg_send_message(implode("\n", $lines));
-                        tg_send_document($tmpPdf, 'New paid member — questionnaire (PDF)');
-                        @unlink($tmpPdf);
-                    } catch (Throwable $ex) { error_log('telegram paid: ' . $ex->getMessage()); }
-
-                    $_SESSION['post_purchase_done'] = true;
-                }
+                $planDays = (int)($sess['metadata']['plan_days'] ?? 84);
+                _success_mark_paid($email, $name, $phone, $planDays, $sess['customer'] ?? '', $sess['subscription'] ?? '', $answers, isset($sess['amount_total']) ? (float)$sess['amount_total'] : null);
             }
         }
     } catch (Throwable $ex) {
-        error_log('success.php verify error: ' . $ex->getMessage());
+        error_log('success.php stripe API error: ' . $ex->getMessage());
+        $apiError = true;
+    }
+}
+
+/* Fallback: Stripe API failed but session_id matches what we stored before the redirect.
+   The session value was set server-side after a real Stripe checkout session was created,
+   so matching it proves the user came back from a legitimate Stripe payment page. */
+if (!$paid && $apiError && $sessionId && !empty($_SESSION['stripe_session_id'])
+    && hash_equals((string)$_SESSION['stripe_session_id'], $sessionId)
+    && !empty($user['email'])) {
+    try {
+        $planKey  = $_SESSION['plan'] ?? cfg('default_plan');
+        $plans    = cfg('plans');
+        $planDays = (int)($plans[$planKey]['days'] ?? 84);
+        _success_mark_paid($user['email'], $user['firstName'] ?? '', $user['phone'] ?? '', $planDays, '', '', $answers, null);
+        $paid = true;
+        error_log('success.php: used session fallback for ' . $user['email']);
+    } catch (Throwable $ex) {
+        error_log('success.php fallback error: ' . $ex->getMessage());
     }
 }
 

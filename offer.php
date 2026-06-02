@@ -13,6 +13,71 @@ if (!isset($plans[$selected])) $selected = $default;
 function pct($r, $t) { return $r > 0 ? (int) round((($r - $t) / $r) * 100) : 0; }
 function perDay($t, $d) { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
 ?>
+  <style>
+  /* Offer page — card-style feature lists */
+  .what-you-get h2,
+  .highlights-section h2 {
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    margin: 0 0 18px;
+    color: #0f1a14;
+  }
+  .wyg-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 600px) { .wyg-grid { grid-template-columns: 1fr; } }
+  .wyg-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    border: 1.5px solid #ddd9cf;
+    border-radius: 14px;
+    padding: 18px 16px;
+    background: #fff;
+  }
+  .wyg-icon, .hl-icon {
+    font-size: 26px;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .wyg-item strong, .hl-item strong {
+    display: block;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #0f1a14;
+    margin-bottom: 4px;
+  }
+  .wyg-item p, .hl-item p {
+    font-size: 13px;
+    color: #6b7a72;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .hl-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .hl-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    border: 1.5px solid #ddd9cf;
+    border-radius: 14px;
+    padding: 16px;
+    background: #fff;
+  }
+  .wyg-cta {
+    display: block;
+    margin: 22px auto 0;
+    max-width: 340px;
+    text-align: center;
+  }
+  </style>
   <header class="nav slim">
     <a href="/" class="brand">
       <span class="logo-dot"></span>
