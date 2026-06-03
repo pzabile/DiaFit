@@ -165,55 +165,60 @@ function perDay($t, $d) { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
     </section>
 
     <!-- BEFORE / AFTER -->
-    <section class="before-after-section">
-      <h2 class="ba-title">Your transformation, step by step</h2>
-      <p class="ba-sub">Based on answers from members with a similar profile</p>
-      <div class="ba-cards">
-        <div class="ba-card ba-now">
-          <div class="ba-label ba-label-now">Now</div>
-          <div class="ba-stats">
-            <div class="ba-stat">
-              <span class="ba-stat-label">Blood sugar</span>
-              <strong>Elevated</strong>
+    <section style="margin:2.5rem 0;text-align:center">
+      <h2 style="font-size:clamp(1.3rem,3vw,1.8rem);font-weight:700;margin-bottom:.3rem;color:#0f1a14">Your transformation, step by step</h2>
+      <p style="font-size:.9rem;color:#6b7a72;margin-bottom:1.4rem">Based on answers from members with a similar profile</p>
+      <div style="display:flex;align-items:stretch;gap:1rem;justify-content:center;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px;max-width:280px;background:#fff;border:1.5px solid #e3e0d6;border-radius:18px;padding:1.25rem 1.5rem;text-align:left">
+          <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1rem;padding:.25rem .7rem;border-radius:20px;display:inline-block;background:#fde8e6;color:#b83228">Now</div>
+          <div>
+            <div style="padding:.55rem 0;border-bottom:1px solid #e3e0d6">
+              <span style="font-size:.78rem;color:#8a8f8b;display:block;margin-bottom:.15rem">Blood sugar</span>
+              <strong style="font-size:.95rem;color:#0f1a14">Elevated</strong>
             </div>
-            <div class="ba-stat">
-              <span class="ba-stat-label">Energy levels</span>
-              <strong>Low</strong>
+            <div style="padding:.55rem 0;border-bottom:1px solid #e3e0d6">
+              <span style="font-size:.78rem;color:#8a8f8b;display:block;margin-bottom:.15rem">Energy levels</span>
+              <strong style="font-size:.95rem;color:#0f1a14">Low</strong>
             </div>
-            <div class="ba-stat">
-              <span class="ba-stat-label">Fitness level</span>
-              <div class="ba-dots">
-                <span class="ba-dot ba-dot-on"></span>
-                <span class="ba-dot"></span>
-                <span class="ba-dot"></span>
+            <div style="padding:.55rem 0;border-bottom:1px solid #e3e0d6">
+              <span style="font-size:.78rem;color:#8a8f8b;display:block;margin-bottom:.15rem">Fitness level</span>
+              <div style="display:flex;gap:.35rem;margin-top:.2rem">
+                <span style="width:26px;height:9px;border-radius:4px;background:#d8493c;display:inline-block"></span>
+                <span style="width:26px;height:9px;border-radius:4px;background:#e5e0d5;display:inline-block"></span>
+                <span style="width:26px;height:9px;border-radius:4px;background:#e5e0d5;display:inline-block"></span>
               </div>
             </div>
-            <div class="ba-stat">
-              <span class="ba-stat-label">A1C control</span>
-              <strong>Needs work</strong>
+            <div style="padding:.55rem 0">
+              <span style="font-size:.78rem;color:#8a8f8b;display:block;margin-bottom:.15rem">A1C control</span>
+              <strong style="font-size:.95rem;color:#0f1a14">Needs work</strong>
             </div>
           </div>
         </div>
-        <div class="ba-arrow">&#187;</div>
-        <div class="ba-card ba-goal">
-          <div class="ba-label ba-label-goal">After 28 Days</div>
-          <div class="ba-stats">
-            <div class="ba-stat">
-              <span class="ba-stat-label">Blood sugar</span>
-              <strong class="ba-green">More stable</strong>
+        <div style="font-size:2rem;color:#16a36a;display:flex;align-items:center;font-weight:700;flex-shrink:0">&#187;</div>
+        <div style="flex:1;min-width:200px;max-width:280px;background:#fff;border:1.5px solid #e3e0d6;border-radius:18px;padding:1.25rem 1.5rem;text-align:left">
+          <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1rem;padding:.25rem .7rem;border-radius:20px;display:inline-block;background:#d6f0e1;color:#0d7d4f">After 28 Days</div>
+          <div>
+            <div style="padding:.55rem 0;border-bottom:1px solid #e3e0d6">
+              <span style="font-size:.78rem;color:#8a8f8b;display:block;margin-bottom:.15rem">Blood sugar</span>
+              <strong style="font-size:.95rem;color:#0d7d4f">More stable</strong>
             </div>
-            <div class="ba-stat">
-              <span class="ba-stat-label">Energy levels</span>
-              <strong class="ba-green">Noticeably higher</strong>
+            <div style="padding:.55rem 0;border-bottom:1px solid #e3e0d6">
+              <span style="font-size:.78rem;color:#8a8f8b;display:block;margin-bottom:.15rem">Energy levels</span>
+              <strong style="font-size:.95rem;color:#0d7d4f">Noticeably higher</strong>
             </div>
-            <div class="ba-stat">
-              <span class="ba-stat-label">Fitness level</span>
-              <div class="ba-dots">
-                <span class="ba-dot ba-dot-goal"></span>
-                <span class="ba-dot ba-dot-goal"></span>
-                <span class="ba-dot ba-dot-goal"></span>
+            <div style="padding:.55rem 0;border-bottom:1px solid #e3e0d6">
+              <span style="font-size:.78rem;color:#8a8f8b;display:block;margin-bottom:.15rem">Fitness level</span>
+              <div style="display:flex;gap:.35rem;margin-top:.2rem">
+                <span style="width:26px;height:9px;border-radius:4px;background:#16a36a;display:inline-block"></span>
+                <span style="width:26px;height:9px;border-radius:4px;background:#16a36a;display:inline-block"></span>
+                <span style="width:26px;height:9px;border-radius:4px;background:#16a36a;display:inline-block"></span>
               </div>
             </div>
+            <div style="padding:.55rem 0">
+              <span style="font-size:.78rem;color:#8a8f8b;display:block;margin-bottom:.15rem">A1C control</span>
+              <strong style="font-size:.95rem;color:#0d7d4f">Trending down</strong>
+            </div>
+          </div>
             <div class="ba-stat">
               <span class="ba-stat-label">A1C control</span>
               <strong class="ba-green">Trending down</strong>
@@ -221,7 +226,7 @@ function perDay($t, $d) { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
           </div>
         </div>
       </div>
-      <p class="ba-disclaimer">Individual results vary. Based on member-reported outcomes.</p>
+      <p style="font-size:.75rem;color:#8a8f8b;margin-top:.85rem">Individual results vary. Based on member-reported outcomes.</p>
     </section>
 
     <!-- WHAT YOU GET -->
