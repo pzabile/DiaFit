@@ -14,69 +14,81 @@ function pct($r, $t) { return $r > 0 ? (int) round((($r - $t) / $r) * 100) : 0; 
 function perDay($t, $d) { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
 ?>
   <style>
-  /* Offer page — card-style feature lists */
-  .what-you-get h2,
-  .highlights-section h2 {
-    font-size: 22px;
-    font-weight: 700;
-    text-align: center;
-    margin: 0 0 18px;
-    color: #0f1a14;
+  /* ── Before / After ── */
+  .before-after-section { margin: 2.5rem 0; text-align: center; }
+  .ba-title { font-size: clamp(1.3rem,3vw,1.8rem); font-weight: 700; margin-bottom: .3rem; color: #0f1a14; }
+  .ba-sub { font-size: .9rem; color: #6b7a72; margin-bottom: 1.4rem; }
+  .ba-cards { display: flex; align-items: stretch; gap: 1rem; justify-content: center; }
+  .ba-arrow { font-size: 2rem; color: #16a36a; display: flex; align-items: center; font-weight: 700; flex-shrink: 0; }
+  .ba-card {
+    flex: 1;
+    background: #fff;
+    border: 1.5px solid #e3e0d6;
+    border-radius: 18px;
+    padding: 1.25rem 1.5rem;
+    text-align: left;
+    min-width: 0;
   }
-  .wyg-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+  .ba-label {
+    font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    margin-bottom: 1rem; padding: .25rem .7rem; border-radius: 20px; display: inline-block;
   }
-  @media (max-width: 600px) { .wyg-grid { grid-template-columns: 1fr; } }
+  .ba-label-now  { background: #fde8e6; color: #b83228; }
+  .ba-label-goal { background: #d6f0e1; color: #0d7d4f; }
+  .ba-stat { padding: .55rem 0; border-bottom: 1px solid #e3e0d6; }
+  .ba-stat:last-child { border-bottom: none; }
+  .ba-stat-label { font-size: .78rem; color: #8a8f8b; display: block; margin-bottom: .15rem; }
+  .ba-stat strong { font-size: .95rem; color: #0f1a14; }
+  .ba-green { color: #0d7d4f !important; }
+  .ba-dots { display: flex; gap: .35rem; margin-top: .2rem; }
+  .ba-dot { width: 26px; height: 9px; border-radius: 4px; background: #e5e0d5; }
+  .ba-dot-on   { background: #d8493c; }
+  .ba-dot-goal { background: #16a36a; }
+  .ba-disclaimer { font-size: .75rem; color: #8a8f8b; margin-top: .85rem; }
+  @media (max-width: 500px) {
+    .ba-cards { flex-direction: column; }
+    .ba-arrow { transform: rotate(90deg); justify-content: center; }
+  }
+
+  /* ── What You Get ── */
+  .what-you-get {
+    margin: 2.5rem 0;
+    background: #fff;
+    border: 1.5px solid #e3e0d6;
+    border-radius: 22px;
+    padding: clamp(1.25rem,3vw,2rem);
+  }
+  .what-you-get h2 {
+    font-size: clamp(1.2rem,3vw,1.6rem); font-weight: 700;
+    text-align: center; margin: 0 0 1.2rem; color: #0f1a14;
+  }
+  .wyg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 560px) { .wyg-grid { grid-template-columns: 1fr; } }
   .wyg-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    border: 1.5px solid #ddd9cf;
-    border-radius: 14px;
-    padding: 18px 16px;
-    background: #fff;
+    display: flex; align-items: flex-start; gap: 13px;
+    border: 1.5px solid #e3e0d6; border-radius: 14px;
+    padding: 16px 14px; background: #faf6f0;
   }
-  .wyg-icon, .hl-icon {
-    font-size: 26px;
-    line-height: 1;
-    flex-shrink: 0;
-    margin-top: 1px;
+  .wyg-icon { font-size: 1.5rem; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+  .wyg-item strong { display: block; font-size: .9rem; font-weight: 700; color: #0f1a14; margin-bottom: 4px; }
+  .wyg-item p { font-size: .82rem; color: #6b7a72; margin: 0; line-height: 1.5; }
+  .wyg-cta { display: block; margin: 1.4rem auto 0; max-width: 340px; text-align: center; }
+
+  /* ── Why it works ── */
+  .highlights-section { margin: 2.5rem 0; }
+  .highlights-section h2 {
+    font-size: clamp(1.2rem,3vw,1.6rem); font-weight: 700;
+    text-align: center; margin: 0 0 1.1rem; color: #0f1a14;
   }
-  .wyg-item strong, .hl-item strong {
-    display: block;
-    font-size: 14.5px;
-    font-weight: 700;
-    color: #0f1a14;
-    margin-bottom: 4px;
-  }
-  .wyg-item p, .hl-item p {
-    font-size: 13px;
-    color: #6b7a72;
-    margin: 0;
-    line-height: 1.5;
-  }
-  .hl-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+  .hl-list { display: flex; flex-direction: column; gap: 10px; }
   .hl-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    border: 1.5px solid #ddd9cf;
-    border-radius: 14px;
-    padding: 16px;
-    background: #fff;
+    display: flex; align-items: flex-start; gap: 13px;
+    border: 1.5px solid #e3e0d6; border-radius: 14px;
+    padding: 16px; background: #fff;
   }
-  .wyg-cta {
-    display: block;
-    margin: 22px auto 0;
-    max-width: 340px;
-    text-align: center;
-  }
+  .hl-icon { font-size: 1.5rem; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+  .hl-item strong { display: block; font-size: .9rem; font-weight: 700; color: #0f1a14; margin-bottom: 4px; }
+  .hl-item p { font-size: .82rem; color: #6b7a72; margin: 0; line-height: 1.5; }
   </style>
   <header class="nav slim">
     <a href="/" class="brand">
