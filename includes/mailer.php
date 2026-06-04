@@ -165,6 +165,114 @@ function account_setup_email_html($firstName, $setupUrl, $memberEmail = '') {
 HTML;
 }
 
+function lead_followup_email_html($firstName, $toEmail, $diabType = '', $goals = []) {
+    $brand    = cfg('brand_name');
+    $support  = cfg('support_email');
+    $site     = cfg('site_url');
+    $fn       = htmlspecialchars($firstName ?: 'there', ENT_QUOTES, 'UTF-8');
+    $brandE   = htmlspecialchars($brand, ENT_QUOTES, 'UTF-8');
+    $sup      = htmlspecialchars($support, ENT_QUOTES, 'UTF-8');
+    $offerUrl = htmlspecialchars(rtrim($site, '/') . '/offer', ENT_QUOTES, 'UTF-8');
+
+    // Personalise benefit line by diabetes type
+    switch (strtolower((string)$diabType)) {
+        case 'type_1': case 'type1':
+            $typeLabel   = 'Type&nbsp;1 diabetes';
+            $typeBenefit = 'safe exercise protocols that keep your blood sugar stable — no more guessing how a workout will affect your levels';
+            break;
+        case 'type_2': case 'type2':
+            $typeLabel   = 'Type&nbsp;2 diabetes';
+            $typeBenefit = 'blood-sugar-lowering workouts and nutrition guidance — many members see A1C improvements within 4&nbsp;weeks';
+            break;
+        case 'pre_diabetes': case 'prediabetes':
+            $typeLabel   = 'pre-diabetes';
+            $typeBenefit = 'evidence-based programs that have helped members reverse their pre-diabetes diagnosis through targeted exercise and nutrition';
+            break;
+        case 'gestational':
+            $typeLabel   = 'gestational diabetes';
+            $typeBenefit = 'pregnancy-safe workouts and glucose-stable meal plans reviewed by licensed physicians';
+            break;
+        default:
+            $typeLabel   = '';
+            $typeBenefit = 'blood-sugar-aware workouts and personalised nutrition to help you feel better every day';
+    }
+
+    $typeIntro = $typeLabel
+        ? "As someone managing <strong>{$typeLabel}</strong>, you need a program built around <em>your</em> blood sugar — not a generic fitness app."
+        : "You need a program built around your blood sugar — not a generic fitness app.";
+
+    // Pricing table with promo discount applied
+    $plans    = cfg('plans');
+    $planRows = '';
+    foreach ($plans as $p) {
+        $orig  = number_format((float)$p['price_today'], 2);
+        $disc  = number_format((float)$p['price_today'] * 0.8, 2);
+        $lbl   = htmlspecialchars($p['name'], ENT_QUOTES, 'UTF-8');
+        $planRows .= "<tr style=\"border-top:1px solid #e3e0d6;\">
+          <td style=\"padding:9px 12px;font-size:14px;color:#0f1a14;\">{$lbl}</td>
+          <td style=\"padding:9px 12px;font-size:14px;text-decoration:line-through;color:#8a8f8b;\">\${$orig}</td>
+          <td style=\"padding:9px 12px;font-size:14px;font-weight:700;color:#16a36a;\">\${$disc}</td>
+        </tr>";
+    }
+
+    return <<<HTML
+<!doctype html>
+<html><body style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f7f5f0;margin:0;padding:24px;color:#0f1a14;">
+<div style="max-width:580px;margin:0 auto;background:#fff;border-radius:18px;padding:40px 36px;border:1px solid #e3e0d6;box-shadow:0 4px 24px rgba(15,26,20,.06);">
+
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">
+    <span style="width:16px;height:16px;border-radius:50%;background:#16a36a;display:inline-block;flex-shrink:0;"></span>
+    <strong style="font-size:18px;letter-spacing:-.01em;">{$brandE}</strong>
+  </div>
+
+  <h1 style="font-size:24px;font-weight:700;margin:0 0 12px;letter-spacing:-.02em;">Your plan is still waiting, {$fn} 👋</h1>
+  <p style="font-size:15px;line-height:1.6;color:#4a5651;margin:0 0 18px;">{$typeIntro}</p>
+  <p style="font-size:15px;line-height:1.6;color:#4a5651;margin:0 0 22px;">With {$brandE} you get <strong>{$typeBenefit}</strong>.</p>
+
+  <!-- Benefits -->
+  <div style="background:#f3faf6;border-radius:14px;padding:20px 22px;margin:0 0 24px;">
+    <p style="font-size:12px;font-weight:700;color:#16a36a;letter-spacing:.07em;text-transform:uppercase;margin:0 0 14px;">What's inside your program</p>
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><td style="padding:6px 0;vertical-align:top;font-size:18px;width:30px;">🩸</td><td style="padding:6px 0;font-size:14px;color:#2d4a3a;line-height:1.5;"><strong>Blood-sugar-aware workouts</strong> — every session designed to stabilise your glucose, not spike it</td></tr>
+      <tr><td style="padding:6px 0;vertical-align:top;font-size:18px;">🥗</td><td style="padding:6px 0;font-size:14px;color:#2d4a3a;line-height:1.5;"><strong>Personalised meal guide</strong> — eat foods you love, built around your blood sugar response</td></tr>
+      <tr><td style="padding:6px 0;vertical-align:top;font-size:18px;">💬</td><td style="padding:6px 0;font-size:14px;color:#2d4a3a;line-height:1.5;"><strong>24/7 coach access</strong> — message your coach any time, real answers fast</td></tr>
+      <tr><td style="padding:6px 0;vertical-align:top;font-size:18px;">📊</td><td style="padding:6px 0;font-size:14px;color:#2d4a3a;line-height:1.5;"><strong>Progress &amp; glucose tracker</strong> — log weight, steps and readings in one place</td></tr>
+      <tr><td style="padding:6px 0;vertical-align:top;font-size:18px;">📅</td><td style="padding:6px 0;font-size:14px;color:#2d4a3a;line-height:1.5;"><strong>Weekly check-ins</strong> — your coach reviews your week and adjusts the plan</td></tr>
+    </table>
+  </div>
+
+  <!-- Discount Code -->
+  <div style="background:#fffbea;border:2px dashed #f0c84a;border-radius:14px;padding:22px;text-align:center;margin:0 0 24px;">
+    <p style="font-size:12px;font-weight:700;color:#92700a;letter-spacing:.07em;text-transform:uppercase;margin:0 0 8px;">Exclusive offer — just for you</p>
+    <p style="font-size:14px;color:#4a5651;margin:0 0 14px;">Use this code at checkout for an <strong style="color:#92700a;">extra 20%&nbsp;off</strong> any plan:</p>
+    <div style="background:#fff;border:2px solid #f0c84a;border-radius:10px;padding:14px 28px;display:inline-block;margin:0 0 12px;">
+      <span style="font-family:'Courier New',Courier,monospace;font-size:24px;font-weight:700;letter-spacing:.15em;color:#0f1a14;">JUSTFORYOU</span>
+    </div>
+    <p style="font-size:12px;color:#8a8f8b;margin:0;">Limited time — expires in 48&nbsp;hours</p>
+  </div>
+
+  <!-- Pricing with discount -->
+  <p style="font-size:14px;font-weight:700;color:#0f1a14;margin:0 0 8px;">Your prices with the code applied:</p>
+  <table style="border-collapse:collapse;width:100%;border:1px solid #e3e0d6;border-radius:10px;overflow:hidden;margin:0 0 24px;">
+    <thead><tr style="background:#f7f5f0;">
+      <th style="padding:9px 12px;font-size:12px;color:#8a8f8b;text-align:left;font-weight:600;">Plan</th>
+      <th style="padding:9px 12px;font-size:12px;color:#8a8f8b;text-align:left;font-weight:600;">Without code</th>
+      <th style="padding:9px 12px;font-size:12px;color:#16a36a;text-align:left;font-weight:700;">With JUSTFORYOU</th>
+    </tr></thead>
+    <tbody>{$planRows}</tbody>
+  </table>
+
+  <div style="text-align:center;margin:0 0 24px;">
+    <a href="{$offerUrl}" style="background:#16a36a;color:#fff;padding:16px 36px;border-radius:999px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block;">Get my plan now →</a>
+  </div>
+
+  <hr style="border:none;border-top:1px solid #e3e0d6;margin:0 0 14px;" />
+  <p style="font-size:11px;color:#8a8f8b;line-height:1.6;margin:0;text-align:center;">Questions? Reply here or write to <a href="mailto:{$sup}" style="color:#0d7d4f;">{$sup}</a>.<br>DiaFitus is fitness coaching, not medical advice. Always consult your doctor.</p>
+</div>
+</body></html>
+HTML;
+}
+
 function plan_changed_email_html($firstName, $planDays, $startedAt = '', $email = '') {
     $brand   = cfg('brand_name');
     $support = cfg('support_email');

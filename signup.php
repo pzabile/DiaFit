@@ -63,8 +63,18 @@ $prefillEmail = $answers['email'] ?? '';
         <div class="order-box">
           <div class="row"><span><?= e($plan['name']) ?></span><span>$<?= number_format($priceReg, 2) ?></span></div>
           <div class="row discount"><span>Launch discount (<?= (int) $pct ?>%)</span><span>−$<?= number_format($savings, 2) ?></span></div>
-          <div class="row total"><span>Today's total</span><span><strong>$<?= number_format($priceNow, 2) ?></strong></span></div>
+          <div class="row discount" id="promoRow" style="display:none"><span>Promo code (<span id="promoCodeLbl"></span>)</span><span id="promoSaving"></span></div>
+          <div class="row total"><span>Today's total</span><span><strong id="orderTotal">$<?= number_format($priceNow, 2) ?></strong></span></div>
         </div>
+
+        <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:14px">
+          <input type="text" id="promoInput" placeholder="Promo code" autocomplete="off"
+            style="flex:1;padding:10px 14px;border:1.5px solid #e3e0d6;border-radius:10px;font-size:14px;outline:none">
+          <button type="button" onclick="applyPromo()"
+            style="padding:10px 18px;background:#0f1a14;color:#fff;border:none;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer">Apply</button>
+          <input type="hidden" name="promo_code" id="promoHidden" value="">
+        </div>
+        <div id="promoMsg" style="font-size:13px;margin:-8px 0 12px;min-height:18px"></div>
 
         <label class="check">
           <input type="checkbox" name="agreed" value="1" required />
@@ -92,4 +102,33 @@ $prefillEmail = $answers['email'] ?? '';
     </aside>
   </main>
 
+<script>
+var basePrice = <?= json_encode((float)$priceNow) ?>;
+function applyPromo() {
+  var code = document.getElementById('promoInput').value.trim().toUpperCase();
+  var msg  = document.getElementById('promoMsg');
+  if (code === 'JUSTFORYOU') {
+    var discount = basePrice * 0.20;
+    var newTotal = basePrice - discount;
+    document.getElementById('promoHidden').value = code;
+    document.getElementById('promoCodeLbl').textContent = code;
+    document.getElementById('promoSaving').textContent = '−$' + discount.toFixed(2);
+    document.getElementById('promoRow').style.display = '';
+    document.getElementById('orderTotal').textContent = '$' + newTotal.toFixed(2);
+    msg.textContent = '✓ 20% discount applied!';
+    msg.style.color = '#16a36a';
+  } else if (code === '') {
+    msg.textContent = '';
+  } else {
+    msg.textContent = 'Invalid promo code.';
+    msg.style.color = '#d8493c';
+    document.getElementById('promoHidden').value = '';
+    document.getElementById('promoRow').style.display = 'none';
+    document.getElementById('orderTotal').textContent = '$' + basePrice.toFixed(2);
+  }
+}
+document.getElementById('promoInput').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') { e.preventDefault(); applyPromo(); }
+});
+</script>
 <?php require __DIR__ . '/includes/footer.php'; ?>

@@ -19,17 +19,26 @@ function _success_mark_paid(string $email, string $name, string $phone, int $pla
 
     if (!empty($_SESSION['post_purchase_done'])) return;
 
+    // Build setup URL — fall back to /login if the DB token columns don't exist yet
+    $setupUrl = rtrim(cfg('site_url'), '/') . '/login';
     try {
-        $token = create_account_setup_token($leadId, 168);
-        $url   = rtrim(cfg('site_url'), '/') . '/setup?token=' . $token;
-        send_email(
+        $token    = create_account_setup_token($leadId, 168);
+        $setupUrl = rtrim(cfg('site_url'), '/') . '/setup?token=' . $token;
+    } catch (Throwable $ex) {
+        error_log('setup token error: ' . $ex->getMessage());
+    }
+
+    // Send welcome email independently — even if token creation failed
+    try {
+        $sent = send_email(
             $email, $name ?: 'there',
             'Welcome to DiaFitus — you\'re in 🎉',
-            account_setup_email_html($name ?: 'there', $url, $email),
+            account_setup_email_html($name ?: 'there', $setupUrl, $email),
             null,
             nutrition_guide_attachment()
         );
-    } catch (Throwable $ex) { error_log('setup email: ' . $ex->getMessage()); }
+        if (!$sent) error_log('welcome email: mail() returned false for ' . $email);
+    } catch (Throwable $ex) { error_log('welcome email error: ' . $ex->getMessage()); }
 
     try {
         $tmpPdf = sys_get_temp_dir() . '/diafitus_paid_' . time() . '_' . bin2hex(random_bytes(3)) . '.pdf';

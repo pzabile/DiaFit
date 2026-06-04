@@ -160,7 +160,7 @@ require __DIR__ . '/../includes/header.php';
                 <td style="font-size:12px;color:var(--muted);white-space:nowrap"><?= e($submittedAt) ?></td>
                 <td>
                   <div style="display:flex;gap:6px;align-items:center">
-                    <a href="mailto:<?= e($r['email']) ?>" class="btn sm">Send email</a>
+                    <button class="btn sm" onclick="sendLeadEmail(this,<?= (int)$r['id'] ?>)">Send email</button>
                     <a href="/admin/member?id=<?= (int)$r['id'] ?>" class="btn sm sage">Convert →</a>
                   </div>
                 </td>
@@ -179,6 +179,28 @@ function filterLeads(f, btn) {
   document.querySelectorAll('#leadTbl tbody tr[data-heat]').forEach(function(row){
     row.style.display = (f === 'all' || row.dataset.heat === f) ? '' : 'none';
   });
+}
+function sendLeadEmail(btn, leadId) {
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  var fd = new FormData();
+  fd.append('lead_id', leadId);
+  fetch('/admin/lead_email', { method: 'POST', body: fd })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.ok) {
+        btn.textContent = '✓ Sent';
+        btn.style.background = 'var(--sage)';
+        btn.style.color = '#fff';
+      } else {
+        btn.textContent = 'Failed';
+        btn.style.background = 'var(--coral,#e57373)';
+        btn.style.color = '#fff';
+        btn.disabled = false;
+        alert('Error: ' + (d.error || 'Unknown error'));
+      }
+    })
+    .catch(function(){ btn.textContent = 'Error'; btn.disabled = false; });
 }
 </script>
 <?php require __DIR__ . '/../includes/footer.php'; ?>
