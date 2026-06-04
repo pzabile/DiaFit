@@ -50,7 +50,7 @@ function _smtp_send($toEmail, $toName, $subject, $htmlBody, $textBody, $attachme
     $toHeader   = $toName ? sprintf('%s <%s>', mb_encode_mimeheader($toName), $toEmail) : "<{$toEmail}>";
     $fromHeader = sprintf('%s <%s>', mb_encode_mimeheader($fromName), $from);
 
-    [$headers, $body] = _build_mime($fromHeader, $toHeader, $replyTo, $subject, $textBody ?? '', $htmlBody, $attachments);
+    [$headers, $body] = _build_mime($fromHeader, $toHeader, $replyTo, $subject, $htmlBody, $textBody ?? '', $attachments);
 
     // Connect
     $ssl  = ($port === 465);
@@ -84,7 +84,7 @@ function _smtp_send($toEmail, $toName, $subject, $htmlBody, $textBody, $attachme
         $ehlo = $cmd("EHLO {$domain}");
         if (strpos($ehlo, 'STARTTLS') !== false) {
             $ok('STARTTLS', 220);
-            stream_socket_enable_crypto($sock, true, STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT | STREAM_CRYPTO_METHOD_TLS_CLIENT);
+            stream_socket_enable_crypto($sock, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
             $ok("EHLO {$domain}", 250);
         }
     }
@@ -126,7 +126,12 @@ function send_email($toEmail, $toName, $subject, $htmlBody, $textBody = null, $a
         $textBody = trim(strip_tags(preg_replace('/<br\s*\/?>/i', "\n", $htmlBody)));
     }
     if (cfg('mail.smtp_host') && cfg('mail.smtp_user') && cfg('mail.smtp_pass')) {
-        return _smtp_send($toEmail, $toName, $subject, $htmlBody, $textBody, $attachments);
+        try {
+            return _smtp_send($toEmail, $toName, $subject, $htmlBody, $textBody, $attachments);
+        } catch (Throwable $ex) {
+            error_log('SMTP error: ' . $ex->getMessage());
+            throw $ex; // re-throw so callers see the real error
+        }
     }
     return _native_send($toEmail, $toName, $subject, $htmlBody, $textBody, $attachments);
 }

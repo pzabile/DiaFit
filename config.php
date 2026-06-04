@@ -92,10 +92,10 @@ return [
         'from_name'  => 'DiaFitus Team',
         'from_email' => 'support@diafitus.com',
         'reply_to'   => 'support@diafitus.com',
-        'smtp_host'  => 'mail.diafitus.com',   // or smtp.hostinger.com
+        'smtp_host'  => 'smtp.hostinger.com',   // Hostinger: hPanel → Emails → account → Connect devices
         'smtp_port'  => 465,                    // 465 = SSL, 587 = STARTTLS
         'smtp_user'  => 'support@diafitus.com', // full email address
-        'smtp_pass'  => '',                     // ← fill in your email password
+        'smtp_pass'  => '',                     // ← REQUIRED: your support@diafitus.com password
     ],
 
     // Uploads ------------------------------------------------------------

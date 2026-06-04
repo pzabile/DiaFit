@@ -30,15 +30,18 @@ $answers  = json_decode($lead['answers_json'] ?? '{}', true) ?: [];
 $diabType = $answers['diabetes_type'] ?? '';
 $goals    = $answers['goals'] ?? [];
 
-$sent = send_email(
-    $email,
-    $name ?: 'there',
-    'Your personalized diabetes plan is waiting — exclusive 20% off inside',
-    lead_followup_email_html($name, $email, $diabType, $goals)
-);
-
-if ($sent) {
-    echo json_encode(['ok' => true]);
-} else {
-    echo json_encode(['ok' => false, 'error' => 'mail() returned false — check server mail config']);
+try {
+    $sent = send_email(
+        $email,
+        $name ?: 'there',
+        'Your personalized diabetes plan is waiting — exclusive 20% off inside',
+        lead_followup_email_html($name, $email, $diabType, $goals)
+    );
+    if ($sent) {
+        echo json_encode(['ok' => true]);
+    } else {
+        echo json_encode(['ok' => false, 'error' => 'mail() returned false — check SMTP config']);
+    }
+} catch (Throwable $ex) {
+    echo json_encode(['ok' => false, 'error' => $ex->getMessage()]);
 }
