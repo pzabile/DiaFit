@@ -17,7 +17,7 @@ function _success_mark_paid(string $email, string $name, string $phone, int $pla
     $leadId = $res['id'];
     $_SESSION['user'] = ['firstName' => $name, 'email' => $email, 'phone' => $phone];
 
-    if (!empty($_SESSION['post_purchase_done'])) return;
+    if (!empty($_SESSION['welcome_sent_' . $leadId])) return;
 
     // Build setup URL — fall back to /login if the DB token columns don't exist yet
     $setupUrl = rtrim(cfg('site_url'), '/') . '/login';
@@ -59,7 +59,7 @@ function _success_mark_paid(string $email, string $name, string $phone, int $pla
         @unlink($tmpPdf);
     } catch (Throwable $ex) { error_log('telegram paid: ' . $ex->getMessage()); }
 
-    $_SESSION['post_purchase_done'] = true;
+    $_SESSION['welcome_sent_' . $leadId] = true;
 }
 
 $apiError = false;
