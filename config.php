@@ -86,10 +86,16 @@ return [
     ],
 
     // Mail ---------------------------------------------------------------
+    // SMTP is required on Hostinger — PHP mail() is blocked / goes to spam.
+    // Get these from hPanel → Emails → Email Accounts → your account → Connect devices → Manual setup
     'mail' => [
         'from_name'  => 'DiaFitus Team',
         'from_email' => 'support@diafitus.com',
         'reply_to'   => 'support@diafitus.com',
+        'smtp_host'  => 'mail.diafitus.com',   // or smtp.hostinger.com
+        'smtp_port'  => 465,                    // 465 = SSL, 587 = STARTTLS
+        'smtp_user'  => 'support@diafitus.com', // full email address
+        'smtp_pass'  => '',                     // ← fill in your email password
     ],
 
     // Uploads ------------------------------------------------------------

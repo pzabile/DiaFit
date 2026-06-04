@@ -1,68 +1,134 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
 
-function send_email($toEmail, $toName, $subject, $htmlBody, $textBody = null, $attachments = []) {
-    $fromName  = cfg('mail.from_name');
-    $fromEmail = cfg('mail.from_email');
-    $replyTo   = cfg('mail.reply_to');
-
-    if ($textBody === null) {
-        $textBody = trim(strip_tags(preg_replace('/<br\s*\/?>/i', "\n", $htmlBody)));
-    }
-
-    $to             = sprintf('%s <%s>', mb_encode_mimeheader($toName), $toEmail);
-    $encodedSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
-    $fromHeader     = sprintf('%s <%s>', mb_encode_mimeheader($fromName), $fromEmail);
+/* ── MIME builder (shared by both transports) ─────────────────────────── */
+function _build_mime($fromHeader, $toHeader, $replyTo, $subject, $htmlBody, $textBody, $attachments): array {
+    $b64subj = '=?UTF-8?B?' . base64_encode($subject) . '?=';
+    $date    = date('r');
+    $msgId   = '<' . time() . '.' . bin2hex(random_bytes(6)) . '@' . (explode('@', $fromHeader)[1] ?? 'mail') . '>';
 
     if (empty($attachments)) {
-        // Simple multipart/alternative (no attachments)
-        $b = 'alt_' . md5(uniqid('', true));
-        $headers  = "MIME-Version: 1.0\r\n";
-        $headers .= "From: {$fromHeader}\r\n";
-        $headers .= "Reply-To: {$replyTo}\r\n";
-        $headers .= "X-Mailer: DiaFitus\r\n";
-        $headers .= "Content-Type: multipart/alternative; boundary=\"{$b}\"";
-
-        $body  = "--{$b}\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n";
-        $body .= $textBody . "\r\n\r\n";
-        $body .= "--{$b}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n";
-        $body .= $htmlBody . "\r\n\r\n";
-        $body .= "--{$b}--";
+        $b        = 'alt_' . bin2hex(random_bytes(8));
+        $headers  = "Date: {$date}\r\nMessage-ID: {$msgId}\r\nFrom: {$fromHeader}\r\nTo: {$toHeader}\r\nReply-To: {$replyTo}\r\n";
+        $headers .= "Subject: {$b64subj}\r\nMIME-Version: 1.0\r\nContent-Type: multipart/alternative; boundary=\"{$b}\"";
+        $body     = "--{$b}\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n{$textBody}\r\n\r\n";
+        $body    .= "--{$b}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n{$htmlBody}\r\n\r\n";
+        $body    .= "--{$b}--";
     } else {
-        // multipart/mixed wrapping multipart/alternative + attachments
-        $outer = 'mix_' . md5(uniqid('', true));
-        $inner = 'alt_' . md5(uniqid('', true));
-
-        $headers  = "MIME-Version: 1.0\r\n";
-        $headers .= "From: {$fromHeader}\r\n";
-        $headers .= "Reply-To: {$replyTo}\r\n";
-        $headers .= "X-Mailer: DiaFitus\r\n";
-        $headers .= "Content-Type: multipart/mixed; boundary=\"{$outer}\"";
-
-        $body  = "--{$outer}\r\n";
-        $body .= "Content-Type: multipart/alternative; boundary=\"{$inner}\"\r\n\r\n";
-        $body .= "--{$inner}\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n";
-        $body .= $textBody . "\r\n\r\n";
-        $body .= "--{$inner}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n";
-        $body .= $htmlBody . "\r\n\r\n";
-        $body .= "--{$inner}--\r\n\r\n";
-
+        $outer   = 'mix_' . bin2hex(random_bytes(8));
+        $inner   = 'alt_' . bin2hex(random_bytes(8));
+        $headers = "Date: {$date}\r\nMessage-ID: {$msgId}\r\nFrom: {$fromHeader}\r\nTo: {$toHeader}\r\nReply-To: {$replyTo}\r\n";
+        $headers .= "Subject: {$b64subj}\r\nMIME-Version: 1.0\r\nContent-Type: multipart/mixed; boundary=\"{$outer}\"";
+        $body    = "--{$outer}\r\nContent-Type: multipart/alternative; boundary=\"{$inner}\"\r\n\r\n";
+        $body   .= "--{$inner}\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n{$textBody}\r\n\r\n";
+        $body   .= "--{$inner}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n{$htmlBody}\r\n\r\n";
+        $body   .= "--{$inner}--\r\n\r\n";
         foreach ($attachments as $att) {
             $path = $att['path'] ?? '';
             $name = $att['name'] ?? basename($path);
             $mime = $att['mime'] ?? 'application/octet-stream';
             if (!$path || !file_exists($path)) continue;
-            $data = base64_encode(file_get_contents($path));
-            $body .= "--{$outer}\r\n";
-            $body .= "Content-Type: {$mime}; name=\"{$name}\"\r\n";
-            $body .= "Content-Transfer-Encoding: base64\r\n";
-            $body .= "Content-Disposition: attachment; filename=\"{$name}\"\r\n\r\n";
+            $data  = base64_encode(file_get_contents($path));
+            $body .= "--{$outer}\r\nContent-Type: {$mime}; name=\"{$name}\"\r\nContent-Transfer-Encoding: base64\r\nContent-Disposition: attachment; filename=\"{$name}\"\r\n\r\n";
             $body .= chunk_split($data) . "\r\n";
         }
         $body .= "--{$outer}--";
     }
+    return [$headers, $body, $b64subj];
+}
 
-    return @mail($to, $encodedSubject, $body, $headers, '-f' . $fromEmail);
+/* ── SMTP transport ────────────────────────────────────────────────────── */
+function _smtp_send($toEmail, $toName, $subject, $htmlBody, $textBody, $attachments): bool {
+    $host     = cfg('mail.smtp_host');
+    $port     = (int)cfg('mail.smtp_port', 587);
+    $user     = cfg('mail.smtp_user');
+    $pass     = cfg('mail.smtp_pass');
+    $from     = cfg('mail.from_email');
+    $fromName = cfg('mail.from_name');
+    $replyTo  = cfg('mail.reply_to', $from);
+
+    $toHeader   = $toName ? sprintf('%s <%s>', mb_encode_mimeheader($toName), $toEmail) : "<{$toEmail}>";
+    $fromHeader = sprintf('%s <%s>', mb_encode_mimeheader($fromName), $from);
+
+    [$headers, $body] = _build_mime($fromHeader, $toHeader, $replyTo, $subject, $textBody ?? '', $htmlBody, $attachments);
+
+    // Connect
+    $ssl  = ($port === 465);
+    $ctx  = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true]]);
+    $addr = ($ssl ? 'ssl://' : '') . $host . ':' . $port;
+    $sock = @stream_socket_client($addr, $errno, $errstr, 30, STREAM_CLIENT_CONNECT, $ctx);
+    if (!$sock) throw new RuntimeException("SMTP connect failed ({$addr}): {$errstr} ({$errno})");
+    stream_set_timeout($sock, 30);
+
+    $rd = function () use ($sock): string {
+        $buf = '';
+        while (($line = fgets($sock, 1024)) !== false) {
+            $buf .= $line;
+            if (strlen($line) >= 4 && $line[3] === ' ') break;
+        }
+        return $buf;
+    };
+    $cmd = function (string $c) use ($sock, $rd): string { fwrite($sock, $c . "\r\n"); return $rd(); };
+    $ok  = function (string $c, int $code) use ($cmd): string {
+        $r = $cmd($c);
+        if (substr($r, 0, 3) !== (string)$code) throw new RuntimeException("SMTP [{$c}] expected {$code}, got: " . trim($r));
+        return $r;
+    };
+
+    $rd(); // server greeting
+    $domain = explode('@', $from)[1] ?? 'localhost';
+
+    if ($ssl) {
+        $ok("EHLO {$domain}", 250);
+    } else {
+        $ehlo = $cmd("EHLO {$domain}");
+        if (strpos($ehlo, 'STARTTLS') !== false) {
+            $ok('STARTTLS', 220);
+            stream_socket_enable_crypto($sock, true, STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT | STREAM_CRYPTO_METHOD_TLS_CLIENT);
+            $ok("EHLO {$domain}", 250);
+        }
+    }
+
+    $ok('AUTH LOGIN', 334);
+    $ok(base64_encode($user), 334);
+    $ok(base64_encode($pass), 235);
+    $ok("MAIL FROM:<{$from}>", 250);
+    $ok("RCPT TO:<{$toEmail}>", 250);
+    $ok('DATA', 354);
+
+    // Dot-stuffing: escape lines that start with a lone dot
+    $raw = $headers . "\r\n" . $body;
+    $raw = str_replace("\r\n.", "\r\n..", $raw);
+    fwrite($sock, $raw . "\r\n.\r\n");
+    $result = $rd();
+    $cmd('QUIT');
+    fclose($sock);
+
+    return substr($result, 0, 3) === '250';
+}
+
+/* ── Native mail() transport (fallback) ───────────────────────────────── */
+function _native_send($toEmail, $toName, $subject, $htmlBody, $textBody, $attachments): bool {
+    $fromEmail  = cfg('mail.from_email');
+    $fromName   = cfg('mail.from_name');
+    $replyTo    = cfg('mail.reply_to');
+    $toHeader   = sprintf('%s <%s>', mb_encode_mimeheader($toName), $toEmail);
+    $fromHeader = sprintf('%s <%s>', mb_encode_mimeheader($fromName), $fromEmail);
+    [,$headers, $body, $b64subj] = array_merge([''], _build_mime($fromHeader, $toHeader, $replyTo, $subject, $textBody ?? '', $htmlBody, $attachments));
+    // mail() injects its own To/Subject/Date — strip them from our headers block
+    $hdrsForMail = preg_replace('/^(Date|Message-ID|From|To|Subject):[^\r\n]*\r\n/im', '', $headers);
+    return (bool)@mail($toHeader, $b64subj, $body, trim($hdrsForMail), '-f' . $fromEmail);
+}
+
+/* ── Public API ────────────────────────────────────────────────────────── */
+function send_email($toEmail, $toName, $subject, $htmlBody, $textBody = null, $attachments = []): bool {
+    if ($textBody === null) {
+        $textBody = trim(strip_tags(preg_replace('/<br\s*\/?>/i', "\n", $htmlBody)));
+    }
+    if (cfg('mail.smtp_host') && cfg('mail.smtp_user') && cfg('mail.smtp_pass')) {
+        return _smtp_send($toEmail, $toName, $subject, $htmlBody, $textBody, $attachments);
+    }
+    return _native_send($toEmail, $toName, $subject, $htmlBody, $textBody, $attachments);
 }
 
 function nutrition_guide_attachment() {
