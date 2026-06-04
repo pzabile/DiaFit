@@ -120,13 +120,15 @@ require __DIR__ . '/includes/header.php';
         <div class="next-card">
           <h3>Next steps</h3>
           <ul class="check-list">
-            <li>Check your inbox for the <strong>"Create your account"</strong> email from <?= e(cfg('mail.from_email')) ?></li>
+            <li>Check your inbox (and <strong>spam / junk folder</strong>) for the <strong>"Create your account"</strong> email from <?= e(cfg('mail.from_email')) ?></li>
             <li>Click the link in that email to set your password</li>
             <li>Sign in at <a href="/login">diafitus.com/login</a> with your email and the password you just chose</li>
             <li>Our team is building your personalized program — it'll appear in your dashboard within 24 hours</li>
           </ul>
         </div>
-        <p class="muted">Didn't get the email after a minute? Check spam, or email <a href="mailto:<?= e(cfg('support_email')) ?>"><?= e(cfg('support_email')) ?></a> and we'll resend.</p>
+        <div style="margin-top:16px;padding:14px 18px;background:#fff8e1;border:1.5px solid #ffe082;border-radius:12px;font-size:14px;color:#5a4a00;">
+          <strong>No email after 5 minutes?</strong> Please check your spam / junk folder first. If it's still not there, email us at <a href="mailto:<?= e(cfg('support_email')) ?>" style="color:#b8860b;font-weight:600;"><?= e(cfg('support_email')) ?></a> and we'll resend it right away.
+        </div>
       <?php else: ?>
         <div class="success-icon">⏳</div>
         <h1>Almost there…</h1>
