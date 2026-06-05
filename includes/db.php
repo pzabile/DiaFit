@@ -27,6 +27,17 @@ function db() {
         $pdo->exec("ALTER TABLE `leads` ADD COLUMN IF NOT EXISTS `plan_days` SMALLINT UNSIGNED NOT NULL DEFAULT 84 AFTER `started_at`");
     } catch (PDOException $ignored) {}
 
+    // Email send tracking
+    try {
+        $pdo->exec("ALTER TABLE `leads` ADD COLUMN IF NOT EXISTS `email_sent_count` SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `plan_days`");
+    } catch (PDOException $ignored) {}
+
+    // CAN-SPAM opt-out
+    try {
+        $pdo->exec("ALTER TABLE `leads` ADD COLUMN IF NOT EXISTS `opted_out` TINYINT(1) NOT NULL DEFAULT 0 AFTER `email_sent_count`");
+        $pdo->exec("ALTER TABLE `leads` ADD COLUMN IF NOT EXISTS `opted_out_at` DATETIME NULL DEFAULT NULL AFTER `opted_out`");
+    } catch (PDOException $ignored) {}
+
     return $pdo;
 }
 

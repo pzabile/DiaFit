@@ -24,6 +24,11 @@ if (!$lead) {
     exit;
 }
 
+if (!empty($lead['opted_out'])) {
+    echo json_encode(['ok' => false, 'error' => 'This lead has opted out of marketing emails.']);
+    exit;
+}
+
 $name     = $lead['first_name'] ?: '';
 $email    = $lead['email'];
 $answers  = json_decode($lead['answers_json'] ?? '{}', true) ?: [];
@@ -38,7 +43,9 @@ try {
         lead_followup_email_html($name, $email, $diabType, $goals)
     );
     if ($sent) {
-        echo json_encode(['ok' => true]);
+        db_exec('UPDATE leads SET email_sent_count = COALESCE(email_sent_count, 0) + 1 WHERE id = ?', [$leadId]);
+        $newCount = (int)(db_get('SELECT email_sent_count FROM leads WHERE id = ?', [$leadId])['email_sent_count'] ?? 1);
+        echo json_encode(['ok' => true, 'sent_count' => $newCount]);
     } else {
         echo json_encode(['ok' => false, 'error' => 'mail() returned false — check SMTP config']);
     }

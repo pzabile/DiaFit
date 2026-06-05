@@ -100,3 +100,27 @@ $navItems = [
     </a>
   </div>
 </aside>
+
+<nav class="mob-nav" role="navigation" aria-label="Main navigation">
+  <?php foreach ([
+    ['route'=>'today',   'label'=>'Today',   'href'=>'/portal/today',
+     'icon'=>'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 001 1h4v-7h4v7h4a1 1 0 001-1V10"/></svg>'],
+    ['route'=>'log',     'label'=>'Log',     'href'=>'/portal/log',
+     'icon'=>'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>'],
+    ['route'=>'program', 'label'=>'Program', 'href'=>'/portal/program',
+     'icon'=>'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>'],
+    ['route'=>'coach',   'label'=>'Coach',   'href'=>'/portal/coach',
+     'icon'=>'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 01-12.5 6.6L4 20l1.4-4.5A8 8 0 1121 12z"/></svg>',
+     'badge'=>$unreadCoach > 0 ? $unreadCoach : null],
+    ['route'=>'account', 'label'=>'Account', 'href'=>'/portal/account',
+     'icon'=>'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>'],
+  ] as $mn): ?>
+    <a href="<?= e($mn['href']) ?>" class="mob-nav-item<?= $activeView === $mn['route'] ? ' active' : '' ?>">
+      <span class="mob-nav-ic">
+        <?= $mn['icon'] ?>
+        <?php if (!empty($mn['badge'])): ?><span class="mob-badge"><?= (int)$mn['badge'] ?></span><?php endif; ?>
+      </span>
+      <?= e($mn['label']) ?>
+    </a>
+  <?php endforeach; ?>
+</nav>

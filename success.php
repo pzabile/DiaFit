@@ -69,7 +69,8 @@ if ($sessionId) {
         if (($sess['payment_status'] ?? '') === 'paid' || ($sess['status'] ?? '') === 'complete') {
             $paid  = true;
             $email = $sess['customer_details']['email'] ?? ($user['email'] ?? '');
-            $name  = $sess['customer_details']['name']  ?? ($user['firstName'] ?? '');
+            // Prefer the first name from the signup form (session) over Stripe's full name
+            $name  = !empty($user['firstName']) ? $user['firstName'] : ($sess['customer_details']['name'] ?? '');
             $phone = $user['phone'] ?? '';
             if ($email) {
                 $planDays = (int)($sess['metadata']['plan_days'] ?? 84);

@@ -136,6 +136,12 @@ function send_email($toEmail, $toName, $subject, $htmlBody, $textBody = null, $a
     return _native_send($toEmail, $toName, $subject, $htmlBody, $textBody, $attachments);
 }
 
+function lead_unsubscribe_url(string $email): string {
+    $secret = cfg('telegram.bot_token', 'diafitus-optout-salt');
+    $token  = substr(hash_hmac('sha256', strtolower(trim($email)), $secret), 0, 40);
+    return rtrim(cfg('site_url'), '/') . '/unsubscribe?email=' . urlencode($email) . '&token=' . $token;
+}
+
 function nutrition_guide_attachment() {
     $path = __DIR__ . '/../assets/guides/nutrition-guide.pdf';
     if (!file_exists($path)) return [];
@@ -244,7 +250,8 @@ function lead_followup_email_html($firstName, $toEmail, $diabType = '', $goals =
     $brandE   = htmlspecialchars($brand, ENT_QUOTES, 'UTF-8');
     $sup      = htmlspecialchars($support, ENT_QUOTES, 'UTF-8');
     $offerUrl = htmlspecialchars(rtrim($site, '/') . '/offer', ENT_QUOTES, 'UTF-8');
-    $h1       = $fn ? "{$fn}, we built your personalized diabetes program 🎯" : "We built your personalized diabetes program 🎯";
+    $h1        = $fn ? "{$fn}, we built your personalized diabetes program 🎯" : "We built your personalized diabetes program 🎯";
+    $unsubUrlE = htmlspecialchars(lead_unsubscribe_url($toEmail), ENT_QUOTES, 'UTF-8');
 
     // Personalise benefit line by diabetes type
     switch (strtolower((string)$diabType)) {
@@ -339,7 +346,7 @@ function lead_followup_email_html($firstName, $toEmail, $diabType = '', $goals =
   </div>
 
   <hr style="border:none;border-top:1px solid #e3e0d6;margin:0 0 14px;" />
-  <p style="font-size:11px;color:#8a8f8b;line-height:1.6;margin:0;text-align:center;">Questions? Reply here or write to <a href="mailto:{$sup}" style="color:#0d7d4f;">{$sup}</a>.<br>DiaFitus is fitness coaching, not medical advice. Always consult your doctor.</p>
+  <p style="font-size:11px;color:#8a8f8b;line-height:1.6;margin:0;text-align:center;">Questions? Reply here or write to <a href="mailto:{$sup}" style="color:#0d7d4f;">{$sup}</a>.<br>DiaFitus is fitness coaching, not medical advice. Always consult your doctor.<br><a href="{$unsubUrlE}" style="color:#b0b8b4;font-size:10px;">Unsubscribe from promotional emails</a></p>
 </div>
 </body></html>
 HTML;
