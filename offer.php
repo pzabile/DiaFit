@@ -45,9 +45,9 @@ function perDay($t, $d) { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
   .ba-dot-on   { background: #d8493c; }
   .ba-dot-goal { background: #16a36a; }
   .ba-disclaimer { font-size: .75rem; color: #8a8f8b; margin-top: .85rem; }
-  @media (max-width: 500px) {
-    .ba-cards { flex-direction: column; }
-    .ba-arrow { transform: rotate(90deg); justify-content: center; }
+  @media (max-width: 560px) {
+    .ba-wrap { flex-direction: column !important; align-items: center !important; }
+    .ba-arr  { transform: rotate(90deg); }
   }
 
   /* ── What You Get ── */
@@ -219,7 +219,7 @@ function perDay($t, $d) { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
     <section style="margin:2.5rem 0;text-align:center">
       <h2 style="font-size:clamp(1.3rem,3vw,1.8rem);font-weight:700;margin-bottom:.3rem;color:#0f1a14">Your transformation, step by step</h2>
       <p style="font-size:.9rem;color:#6b7a72;margin-bottom:1.4rem">Based on answers from members with a similar profile</p>
-      <div style="display:flex;align-items:stretch;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <div class="ba-wrap" style="display:flex;align-items:stretch;gap:1rem;justify-content:center;flex-wrap:wrap">
         <div style="flex:1;min-width:200px;max-width:280px;background:#fff;border:1.5px solid #e3e0d6;border-radius:18px;padding:1.25rem 1.5rem;text-align:left">
           <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1rem;padding:.25rem .7rem;border-radius:20px;display:inline-block;background:#fde8e6;color:#b83228">Now</div>
           <div>
@@ -245,7 +245,7 @@ function perDay($t, $d) { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
             </div>
           </div>
         </div>
-        <div style="font-size:2rem;color:#16a36a;display:flex;align-items:center;font-weight:700;flex-shrink:0">&#187;</div>
+        <div class="ba-arr" style="font-size:2rem;color:#16a36a;display:flex;align-items:center;font-weight:700;flex-shrink:0">&#187;</div>
         <div style="flex:1;min-width:200px;max-width:280px;background:#fff;border:1.5px solid #e3e0d6;border-radius:18px;padding:1.25rem 1.5rem;text-align:left">
           <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1rem;padding:.25rem .7rem;border-radius:20px;display:inline-block;background:#d6f0e1;color:#0d7d4f">After 28 Days</div>
           <div>
@@ -268,11 +268,6 @@ function perDay($t, $d) { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
             <div style="padding:.55rem 0">
               <span style="font-size:.78rem;color:#8a8f8b;display:block;margin-bottom:.15rem">A1C control</span>
               <strong style="font-size:.95rem;color:#0d7d4f">Trending down</strong>
-            </div>
-          </div>
-            <div class="ba-stat">
-              <span class="ba-stat-label">A1C control</span>
-              <strong class="ba-green">Trending down</strong>
             </div>
           </div>
         </div>

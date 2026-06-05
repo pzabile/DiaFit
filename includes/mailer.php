@@ -277,7 +277,7 @@ function lead_followup_email_html($firstName, $toEmail, $diabType = '', $goals =
     $plans    = cfg('plans');
     $planRows = '';
     foreach ($plans as $p) {
-        $orig  = number_format((float)$p['price_today'], 2);
+        $orig  = number_format((float)$p['price_regular'], 2);
         $disc  = number_format((float)$p['price_today'] * 0.8, 2);
         $lbl   = htmlspecialchars($p['name'], ENT_QUOTES, 'UTF-8');
         $planRows .= "<tr style=\"border-top:1px solid #e3e0d6;\">
@@ -328,7 +328,7 @@ function lead_followup_email_html($firstName, $toEmail, $diabType = '', $goals =
   <table style="border-collapse:collapse;width:100%;border:1px solid #e3e0d6;border-radius:10px;overflow:hidden;margin:0 0 24px;">
     <thead><tr style="background:#f7f5f0;">
       <th style="padding:9px 12px;font-size:12px;color:#8a8f8b;text-align:left;font-weight:600;">Plan</th>
-      <th style="padding:9px 12px;font-size:12px;color:#8a8f8b;text-align:left;font-weight:600;">Without code</th>
+      <th style="padding:9px 12px;font-size:12px;color:#8a8f8b;text-align:left;font-weight:600;">Regular price</th>
       <th style="padding:9px 12px;font-size:12px;color:#16a36a;text-align:left;font-weight:700;">With JUSTFORYOU</th>
     </tr></thead>
     <tbody>{$planRows}</tbody>
