@@ -240,10 +240,11 @@ function lead_followup_email_html($firstName, $toEmail, $diabType = '', $goals =
     $brand    = cfg('brand_name');
     $support  = cfg('support_email');
     $site     = cfg('site_url');
-    $fn       = htmlspecialchars($firstName ?: 'there', ENT_QUOTES, 'UTF-8');
+    $fn       = htmlspecialchars($firstName ?: '', ENT_QUOTES, 'UTF-8');
     $brandE   = htmlspecialchars($brand, ENT_QUOTES, 'UTF-8');
     $sup      = htmlspecialchars($support, ENT_QUOTES, 'UTF-8');
     $offerUrl = htmlspecialchars(rtrim($site, '/') . '/offer', ENT_QUOTES, 'UTF-8');
+    $h1       = $fn ? "{$fn}, we built your personalized diabetes program 🎯" : "We built your personalized diabetes program 🎯";
 
     // Personalise benefit line by diabetes type
     switch (strtolower((string)$diabType)) {
@@ -296,7 +297,7 @@ function lead_followup_email_html($firstName, $toEmail, $diabType = '', $goals =
     <strong style="font-size:18px;letter-spacing:-.01em;">{$brandE}</strong>
   </div>
 
-  <h1 style="font-size:24px;font-weight:700;margin:0 0 12px;letter-spacing:-.02em;">Your plan is still waiting, {$fn} 👋</h1>
+  <h1 style="font-size:24px;font-weight:700;margin:0 0 12px;letter-spacing:-.02em;">{$h1}</h1>
   <p style="font-size:15px;line-height:1.6;color:#4a5651;margin:0 0 18px;">{$typeIntro}</p>
   <p style="font-size:15px;line-height:1.6;color:#4a5651;margin:0 0 22px;">With {$brandE} you get <strong>{$typeBenefit}</strong>.</p>
 

@@ -108,6 +108,57 @@ function perDay($t, $d) { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
       <span>✓ Built around your <strong>blood sugar response</strong></span>
     </div>
 
+    <!-- WHAT YOU GET (shown first so visitors see value before price) -->
+    <section class="what-you-get">
+      <h2>Everything included in your plan</h2>
+      <div class="wyg-grid">
+        <div class="wyg-item">
+          <div class="wyg-icon">🩸</div>
+          <div>
+            <strong>Blood-sugar-aware workouts</strong>
+            <p>Every exercise is chosen to help stabilize glucose — safe for Type&nbsp;1, Type&nbsp;2 &amp; pre-diabetes.</p>
+          </div>
+        </div>
+        <div class="wyg-item">
+          <div class="wyg-icon">🥗</div>
+          <div>
+            <strong>Personalized meal guide</strong>
+            <p>Eat the foods you love with a nutrition plan built around your blood sugar response, not a generic diet.</p>
+          </div>
+        </div>
+        <div class="wyg-item">
+          <div class="wyg-icon">💬</div>
+          <div>
+            <strong>24/7 coach messaging</strong>
+            <p>Message your coach any time — questions about your glucose, your workout, or your next meal are answered fast.</p>
+          </div>
+        </div>
+        <div class="wyg-item">
+          <div class="wyg-icon">📊</div>
+          <div>
+            <strong>Progress &amp; glucose tracker</strong>
+            <p>Log weight, steps, and readings in one place. See your trends and celebrate every milestone.</p>
+          </div>
+        </div>
+        <div class="wyg-item">
+          <div class="wyg-icon">🏠</div>
+          <div>
+            <strong>100+ home-friendly exercises</strong>
+            <p>No gym, no equipment needed. Short, effective sessions you can fit around your day.</p>
+          </div>
+        </div>
+        <div class="wyg-item">
+          <div class="wyg-icon">📅</div>
+          <div>
+            <strong>Weekly check-ins</strong>
+            <p>Your coach reviews your week and adjusts the plan so you're always moving in the right direction.</p>
+          </div>
+        </div>
+      </div>
+      <a href="#planForm" class="btn btn-orange btn-xl wyg-cta">GET MY PLAN</a>
+    </section>
+
+    <!-- PLAN SELECTOR -->
     <section class="offer-card">
       <h1>Get visible results in 4 weeks!</h1>
 
@@ -227,56 +278,6 @@ function perDay($t, $d) { return $d > 0 ? number_format($t / $d, 2) : '0.00'; }
         </div>
       </div>
       <p style="font-size:.75rem;color:#8a8f8b;margin-top:.85rem">Individual results vary. Based on member-reported outcomes.</p>
-    </section>
-
-    <!-- WHAT YOU GET -->
-    <section class="what-you-get">
-      <h2>Everything included in your plan</h2>
-      <div class="wyg-grid">
-        <div class="wyg-item">
-          <div class="wyg-icon">🩸</div>
-          <div>
-            <strong>Blood-sugar-aware workouts</strong>
-            <p>Every exercise is chosen to help stabilize glucose — safe for Type&nbsp;1, Type&nbsp;2 &amp; pre-diabetes.</p>
-          </div>
-        </div>
-        <div class="wyg-item">
-          <div class="wyg-icon">🥗</div>
-          <div>
-            <strong>Personalized meal guide</strong>
-            <p>Eat the foods you love with a nutrition plan built around your blood sugar response, not a generic diet.</p>
-          </div>
-        </div>
-        <div class="wyg-item">
-          <div class="wyg-icon">💬</div>
-          <div>
-            <strong>24/7 coach messaging</strong>
-            <p>Message your coach any time — questions about your glucose, your workout, or your next meal are answered fast.</p>
-          </div>
-        </div>
-        <div class="wyg-item">
-          <div class="wyg-icon">📊</div>
-          <div>
-            <strong>Progress &amp; glucose tracker</strong>
-            <p>Log weight, steps, and readings in one place. See your trends and celebrate every milestone.</p>
-          </div>
-        </div>
-        <div class="wyg-item">
-          <div class="wyg-icon">🏠</div>
-          <div>
-            <strong>100+ home-friendly exercises</strong>
-            <p>No gym, no equipment needed. Short, effective sessions you can fit around your day.</p>
-          </div>
-        </div>
-        <div class="wyg-item">
-          <div class="wyg-icon">📅</div>
-          <div>
-            <strong>Weekly check-ins</strong>
-            <p>Your coach reviews your week and adjusts the plan so you're always moving in the right direction.</p>
-          </div>
-        </div>
-      </div>
-      <a href="#planForm" class="btn btn-orange btn-xl wyg-cta">GET MY PLAN</a>
     </section>
 
     <!-- HIGHLIGHTS -->
