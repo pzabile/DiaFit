@@ -97,6 +97,7 @@ $bodyClass  = 'portal-page';
 $activeView = 'today';
 require __DIR__ . '/../includes/header.php';
 ?>
+<style>@media(max-width:900px){.hero .ring{justify-content:center!important;margin-top:16px!important}}</style>
 <div class="app">
 <?php require __DIR__ . '/../includes/portal_layout.php'; ?>
 <main class="main">

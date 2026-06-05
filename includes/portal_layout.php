@@ -135,13 +135,31 @@ $navItems = [
 
 <script>
 function openMobNav() {
-  document.querySelector('.sidebar').classList.add('mob-open');
-  document.getElementById('mobOverlay').classList.add('mob-open');
+  var s = document.querySelector('.sidebar');
+  if (!s) return;
+  var ov = document.getElementById('mobOverlay');
+  // Force sidebar visible + off-screen, then animate in (bypasses any cached display:none)
+  s.style.cssText = [
+    'display:flex','flex-direction:column','position:fixed',
+    'top:0','left:0','bottom:0','width:268px','z-index:198',
+    'overflow-y:auto','padding:20px 16px','gap:18px',
+    'background:var(--bg,#f7f5f0)','border-right:1px solid var(--line,#e3e0d6)',
+    'box-shadow:4px 0 28px rgba(0,0,0,.15)',
+    'transform:translateX(-100%)','transition:transform .22s ease'
+  ].join(';');
+  ov.style.display = 'block';
   document.body.style.overflow = 'hidden';
+  // Double rAF so the off-screen position paints before we slide in
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){
+    s.style.transform = 'translateX(0)';
+  }); });
 }
 function closeMobNav() {
-  document.querySelector('.sidebar').classList.remove('mob-open');
-  document.getElementById('mobOverlay').classList.remove('mob-open');
+  var s = document.querySelector('.sidebar');
+  if (!s) return;
+  s.style.transform = 'translateX(-100%)';
+  document.getElementById('mobOverlay').style.display = 'none';
   document.body.style.overflow = '';
+  setTimeout(function(){ s.style.cssText = ''; }, 230);
 }
 </script>
