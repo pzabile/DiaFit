@@ -101,6 +101,9 @@ $navItems = [
   </div>
 </aside>
 
+<!-- Mobile overlay backdrop -->
+<div class="mob-overlay" id="mobOverlay" onclick="closeMobNav()"></div>
+
 <nav class="mob-nav" role="navigation" aria-label="Main navigation">
   <?php foreach ([
     ['route'=>'today',   'label'=>'Today',   'href'=>'/portal/today',
@@ -112,8 +115,6 @@ $navItems = [
     ['route'=>'coach',   'label'=>'Coach',   'href'=>'/portal/coach',
      'icon'=>'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 01-12.5 6.6L4 20l1.4-4.5A8 8 0 1121 12z"/></svg>',
      'badge'=>$unreadCoach > 0 ? $unreadCoach : null],
-    ['route'=>'account', 'label'=>'Account', 'href'=>'/portal/account',
-     'icon'=>'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>'],
   ] as $mn): ?>
     <a href="<?= e($mn['href']) ?>" class="mob-nav-item<?= $activeView === $mn['route'] ? ' active' : '' ?>">
       <span class="mob-nav-ic">
@@ -123,4 +124,24 @@ $navItems = [
       <?= e($mn['label']) ?>
     </a>
   <?php endforeach; ?>
+  <!-- More → opens full sidebar drawer -->
+  <button class="mob-nav-item" onclick="openMobNav()" aria-label="All navigation">
+    <span class="mob-nav-ic">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </span>
+    Menu
+  </button>
 </nav>
+
+<script>
+function openMobNav() {
+  document.querySelector('.sidebar').classList.add('mob-open');
+  document.getElementById('mobOverlay').classList.add('mob-open');
+  document.body.style.overflow = 'hidden';
+}
+function closeMobNav() {
+  document.querySelector('.sidebar').classList.remove('mob-open');
+  document.getElementById('mobOverlay').classList.remove('mob-open');
+  document.body.style.overflow = '';
+}
+</script>

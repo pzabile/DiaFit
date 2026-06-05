@@ -108,7 +108,7 @@ a{color:inherit;text-decoration:none}
 .view{padding:24px 36px 60px}
 @media (max-width:700px){ .view{padding:20px 18px 40px} .topbar{padding:14px 18px 0}}
 
-/* ====================== MOBILE BOTTOM NAV ====================== */
+/* ====================== MOBILE BOTTOM NAV + DRAWER ====================== */
 .mob-nav{
   display:none;
   position:fixed;bottom:0;left:0;right:0;
@@ -121,6 +121,7 @@ a{color:inherit;text-decoration:none}
   display:flex;flex-direction:column;align-items:center;gap:3px;
   padding:4px 2px;font-size:10px;font-weight:500;color:var(--muted);
   text-decoration:none;position:relative;
+  background:none;border:none;cursor:pointer;font-family:inherit;
 }
 .mob-nav-item svg{stroke:var(--muted)}
 .mob-nav-item.active{color:var(--sage-2)}
@@ -132,10 +133,30 @@ a{color:inherit;text-decoration:none}
   font-size:9px;font-weight:700;min-width:14px;
   padding:1px 4px;border-radius:99px;line-height:1.3;text-align:center;
 }
+
+/* Overlay backdrop */
+.mob-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.4);z-index:195;
+  backdrop-filter:blur(2px);
+}
+.mob-overlay.mob-open{display:block}
+
 @media (max-width:980px){
   .mob-nav{display:grid}
   .view{padding-bottom:80px}
-  @media (max-width:700px){.view{padding-bottom:80px}}
+
+  /* Sidebar becomes a slide-in drawer */
+  .sidebar{
+    display:flex !important;
+    position:fixed;top:0;left:0;bottom:0;
+    width:268px;z-index:198;
+    transform:translateX(-100%);
+    transition:transform .22s cubic-bezier(.4,0,.2,1);
+    box-shadow:4px 0 28px rgba(0,0,0,.15);
+    overflow-y:auto;
+  }
+  .sidebar.mob-open{transform:translateX(0)}
 }
 
 /* ====================== COMMON ====================== */
