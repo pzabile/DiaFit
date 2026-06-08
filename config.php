@@ -63,7 +63,18 @@ return [
         'charset' => 'utf8mb4',
     ],
 
-    // Stripe -------------------------------------------------------------
+    // PayPal -------------------------------------------------------------
+    // 1. Go to developer.paypal.com → My Apps & Credentials
+    // 2. Create a new app (name it "DiaFitus"), choose "Merchant"
+    // 3. Copy the Client ID and Secret from the app dashboard
+    // 4. Set sandbox => false when you go live (and switch to your Live credentials)
+    'paypal' => [
+        'client_id' => 'REPLACE_PAYPAL_CLIENT_ID',
+        'secret'    => 'REPLACE_PAYPAL_SECRET',
+        'sandbox'   => true,
+    ],
+
+    // Stripe (kept for reference — no longer used for checkout) ----------
     'stripe' => [
         'publishable_key' => 'pk_test_REPLACE_ME',
         'secret_key'      => 'sk_test_REPLACE_ME',

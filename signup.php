@@ -45,7 +45,7 @@ $prefillEmail = $answers['email'] ?? '';
         </p>
       </div>
 
-      <form id="signupForm" class="form" action="/create_checkout" method="post">
+      <form id="signupForm" class="form" onsubmit="return false;">
         <input type="hidden" name="plan" value="<?= e($planKey) ?>" />
         <label>
           First name
@@ -81,23 +81,26 @@ $prefillEmail = $answers['email'] ?? '';
           <span>I agree to the <a href="/terms" target="_blank">Terms &amp; Conditions</a> and <a href="/privacy" target="_blank">Privacy Policy</a>. I understand DiaFitus is fitness coaching, not medical advice, and I am responsible for consulting my doctor.</span>
         </label>
 
-        <button type="submit" class="btn btn-primary btn-xl">Continue to secure checkout →</button>
-        <p class="micro">You'll be redirected to Stripe to complete payment. All sales final once digital content is delivered.</p>
+        <div id="paypal-button-container" style="margin-top:4px"></div>
+        <div id="paypalProcessing" style="display:none;text-align:center;padding:14px 0;color:var(--muted,#888);font-size:14px">
+          Processing your payment…
+        </div>
+        <p class="micro">Secure checkout via PayPal. All sales final once digital content is delivered.</p>
       </form>
     </div>
 
     <aside class="signup-side">
       <h3>What happens next</h3>
       <ol class="next-steps">
-        <li>You pay securely via Stripe ($<?= number_format($priceNow, 2) ?>)</li>
+        <li>You pay securely via PayPal ($<?= number_format($priceNow, 2) ?>)</li>
         <li>You receive a welcome email with a link to set your password</li>
         <li>You sign in at <strong>diafitus.com/login</strong></li>
         <li>Our team builds your personalized program and reaches out within 24 hours</li>
       </ol>
       <div class="trust">
-        <div>🔒 Bank-level encryption (Stripe)</div>
+        <div>🔒 Bank-level encryption (PayPal)</div>
         <div>👨‍⚕️ Reviewed by licensed doctors</div>
-        <div>🔐 PCI-DSS compliant via Stripe</div>
+        <div>🛡️ Buyer protection via PayPal</div>
       </div>
     </aside>
   </main>
@@ -130,5 +133,93 @@ function applyPromo() {
 document.getElementById('promoInput').addEventListener('keydown', function(e){
   if (e.key === 'Enter') { e.preventDefault(); applyPromo(); }
 });
+</script>
+<?php
+$ppClientId = urlencode(cfg('paypal.client_id'));
+$ppCurrency = strtoupper(cfg('currency', 'usd'));
+?>
+<script src="https://www.paypal.com/sdk/js?client-id=<?= $ppClientId ?>&currency=<?= $ppCurrency ?>&intent=capture"></script>
+<script>
+(function() {
+  function getFormData() {
+    var f = document.getElementById('signupForm');
+    return {
+      firstName:  f.querySelector('[name=firstName]').value.trim(),
+      email:      f.querySelector('[name=email]').value.trim(),
+      phone:      f.querySelector('[name=phone]').value.trim(),
+      plan:       f.querySelector('[name=plan]').value,
+      agreed:     f.querySelector('[name=agreed]').checked,
+      promo_code: document.getElementById('promoHidden').value || ''
+    };
+  }
+
+  function validateForm(d) {
+    if (!d.firstName) return 'Please enter your first name.';
+    if (!d.email || d.email.indexOf('@') < 0) return 'Please enter a valid email address.';
+    if (!d.phone) return 'Please enter your phone number.';
+    if (!d.agreed) return 'Please agree to the Terms & Conditions to continue.';
+    return null;
+  }
+
+  paypal.Buttons({
+    style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'pay' },
+
+    onClick: function(data, actions) {
+      var err = validateForm(getFormData());
+      if (err) { alert(err); return actions.reject(); }
+      return actions.resolve();
+    },
+
+    createOrder: function() {
+      var d = getFormData();
+      var fd = new FormData();
+      fd.append('firstName',  d.firstName);
+      fd.append('email',      d.email);
+      fd.append('phone',      d.phone);
+      fd.append('plan',       d.plan);
+      fd.append('agreed',     '1');
+      fd.append('promo_code', d.promo_code);
+      return fetch('/paypal_create_order.php', { method: 'POST', body: fd })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res.error) { alert(res.error); throw new Error(res.error); }
+          return res.id;
+        });
+    },
+
+    onApprove: function(data) {
+      document.getElementById('paypal-button-container').style.display = 'none';
+      document.getElementById('paypalProcessing').style.display = 'block';
+      return fetch('/paypal_capture.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderID: data.orderID })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok) {
+          window.location.href = '/success?via=paypal';
+        } else {
+          document.getElementById('paypal-button-container').style.display = 'block';
+          document.getElementById('paypalProcessing').style.display = 'none';
+          alert('Payment could not be confirmed: ' + (res.error || 'Unknown error') + '\n\nPlease contact support@diafitus.com');
+        }
+      })
+      .catch(function() {
+        document.getElementById('paypal-button-container').style.display = 'block';
+        document.getElementById('paypalProcessing').style.display = 'none';
+        alert('A network error occurred. Please check your connection and try again.');
+      });
+    },
+
+    onCancel: function() { /* user closed popup — no action needed */ },
+
+    onError: function(err) {
+      console.error('PayPal error:', err);
+      alert('A payment error occurred. Please try again or contact support@diafitus.com');
+    }
+
+  }).render('#paypal-button-container');
+})();
 </script>
 <?php require __DIR__ . '/includes/footer.php'; ?>

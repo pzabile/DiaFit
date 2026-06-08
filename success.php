@@ -3,11 +3,13 @@ require __DIR__ . '/includes/bootstrap.php';
 require __DIR__ . '/includes/db.php';
 require __DIR__ . '/includes/auth.php';
 require __DIR__ . '/includes/stripe.php';
+require __DIR__ . '/includes/paypal.php';
 require __DIR__ . '/includes/telegram.php';
 require __DIR__ . '/includes/mailer.php';
 require __DIR__ . '/includes/pdf.php';
 
 $sessionId = $_GET['session_id'] ?? '';
+$via       = $_GET['via'] ?? '';
 $paid = false;
 $user = user_session();
 $answers = answers();
@@ -98,6 +100,37 @@ if (!$paid && $apiError && $sessionId && !empty($_SESSION['stripe_session_id'])
         error_log('success.php: used session fallback for ' . $user['email']);
     } catch (Throwable $ex) {
         error_log('success.php fallback error: ' . $ex->getMessage());
+    }
+}
+
+/* PayPal path: JS redirected here after successful capture in paypal_capture.php.
+   The session flag ensures this is a genuine server-side capture, not a forged URL. */
+if (!$paid && $via === 'paypal' && !empty($_SESSION['paypal_paid']) && !empty($user['email'])) {
+    try {
+        $planKey  = $_SESSION['paypal_plan'] ?? cfg('default_plan');
+        $plans    = cfg('plans');
+        $planDays = (int)($plans[$planKey]['days'] ?? 84);
+
+        // Use stored capture result to extract amount (avoid a second API call)
+        $captureData = $_SESSION['paypal_capture'] ?? [];
+        $amtCents    = paypal_captured_cents($captureData);
+
+        _success_mark_paid(
+            $user['email'],
+            $user['firstName'] ?? '',
+            $user['phone'] ?? '',
+            $planDays,
+            'paypal',
+            $_SESSION['paypal_order_id'] ?? '',
+            $answers,
+            $amtCents
+        );
+        $paid = true;
+
+        // Clear so a page refresh doesn't re-run the block (emails already deduplicated by session flag anyway)
+        unset($_SESSION['paypal_paid'], $_SESSION['paypal_capture'], $_SESSION['paypal_order_id']);
+    } catch (Throwable $ex) {
+        error_log('success.php paypal path: ' . $ex->getMessage());
     }
 }
 
