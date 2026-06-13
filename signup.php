@@ -179,7 +179,7 @@ $ppCurrency = strtoupper(cfg('currency', 'usd'));
       fd.append('plan',       d.plan);
       fd.append('agreed',     '1');
       fd.append('promo_code', d.promo_code);
-      return fetch('/paypal_create_order.php', { method: 'POST', body: fd })
+      return fetch('/paypal_create_order', { method: 'POST', body: fd })
         .then(function(r) {
           if (!r.ok) throw new Error('__http_' + r.status);
           return r.json();
@@ -193,7 +193,7 @@ $ppCurrency = strtoupper(cfg('currency', 'usd'));
     onApprove: function(data) {
       document.getElementById('paypal-button-container').style.display = 'none';
       document.getElementById('paypalProcessing').style.display = 'block';
-      return fetch('/paypal_capture.php', {
+      return fetch('/paypal_capture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderID: data.orderID })
@@ -227,7 +227,7 @@ $ppCurrency = strtoupper(cfg('currency', 'usd'));
       } else if (msg.indexOf('__http_') === 0) {
         var code = msg.slice(7);
         if (code === '404') {
-          alert('Setup error: the payment file was not found on the server (paypal_create_order.php).\nPlease upload the file and try again.');
+          alert('Setup error: the payment file was not found on the server.\nPlease upload paypal_create_order.php and try again.');
         } else {
           alert('Server error (' + code + '). Please try again or contact support@diafitus.com');
         }
