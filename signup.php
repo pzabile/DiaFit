@@ -180,9 +180,12 @@ $ppCurrency = strtoupper(cfg('currency', 'usd'));
       fd.append('agreed',     '1');
       fd.append('promo_code', d.promo_code);
       return fetch('/paypal_create_order.php', { method: 'POST', body: fd })
-        .then(function(r) { return r.json(); })
+        .then(function(r) {
+          if (!r.ok) throw new Error('__http_' + r.status);
+          return r.json();
+        })
         .then(function(res) {
-          if (res.error) { alert(res.error); throw new Error(res.error); }
+          if (res.error) throw new Error('__msg_' + res.error);
           return res.id;
         });
     },
@@ -195,7 +198,10 @@ $ppCurrency = strtoupper(cfg('currency', 'usd'));
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderID: data.orderID })
       })
-      .then(function(r) { return r.json(); })
+      .then(function(r) {
+        if (!r.ok) throw new Error('capture_http_' + r.status);
+        return r.json();
+      })
       .then(function(res) {
         if (res.ok) {
           window.location.href = '/success?via=paypal';
@@ -205,18 +211,30 @@ $ppCurrency = strtoupper(cfg('currency', 'usd'));
           alert('Payment could not be confirmed: ' + (res.error || 'Unknown error') + '\n\nPlease contact support@diafitus.com');
         }
       })
-      .catch(function() {
+      .catch(function(e) {
         document.getElementById('paypal-button-container').style.display = 'block';
         document.getElementById('paypalProcessing').style.display = 'none';
-        alert('A network error occurred. Please check your connection and try again.');
+        alert('A network error occurred during payment confirmation. Please contact support@diafitus.com — your PayPal account may have been charged.');
       });
     },
 
     onCancel: function() { /* user closed popup — no action needed */ },
 
     onError: function(err) {
-      console.error('PayPal error:', err);
-      alert('A payment error occurred. Please try again or contact support@diafitus.com');
+      var msg = (err && err.message) || '';
+      if (msg.indexOf('__msg_') === 0) {
+        alert(msg.slice(6));
+      } else if (msg.indexOf('__http_') === 0) {
+        var code = msg.slice(7);
+        if (code === '404') {
+          alert('Setup error: the payment file was not found on the server (paypal_create_order.php).\nPlease upload the file and try again.');
+        } else {
+          alert('Server error (' + code + '). Please try again or contact support@diafitus.com');
+        }
+      } else {
+        console.error('PayPal SDK error:', err);
+        alert('A payment error occurred. Please try again or contact support@diafitus.com');
+      }
     }
 
   }).render('#paypal-button-container');
