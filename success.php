@@ -103,34 +103,19 @@ if (!$paid && $apiError && $sessionId && !empty($_SESSION['stripe_session_id'])
     }
 }
 
-/* PayPal path: JS redirected here after successful capture in paypal_capture.php.
-   The session flag ensures this is a genuine server-side capture, not a forged URL. */
-if (!$paid && $via === 'paypal' && !empty($_SESSION['paypal_paid']) && !empty($user['email'])) {
-    try {
-        $planKey  = $_SESSION['paypal_plan'] ?? cfg('default_plan');
-        $plans    = cfg('plans');
-        $planDays = (int)($plans[$planKey]['days'] ?? 84);
-
-        // Use stored capture result to extract amount (avoid a second API call)
-        $captureData = $_SESSION['paypal_capture'] ?? [];
-        $amtCents    = paypal_captured_cents($captureData);
-
-        _success_mark_paid(
-            $user['email'],
-            $user['firstName'] ?? '',
-            $user['phone'] ?? '',
-            $planDays,
-            'paypal',
-            $_SESSION['paypal_order_id'] ?? '',
-            $answers,
-            $amtCents
-        );
+/* PayPal path: paypal_capture.php already marked the lead as paid and sent the
+   welcome email. We just need to confirm $paid = true to show the success page.
+   Check the session flag (set by paypal_capture.php) OR verify against the DB. */
+if (!$paid && $via === 'paypal') {
+    if (!empty($_SESSION['paypal_paid'])) {
         $paid = true;
-
-        // Clear so a page refresh doesn't re-run the block (emails already deduplicated by session flag anyway)
-        unset($_SESSION['paypal_paid'], $_SESSION['paypal_capture'], $_SESSION['paypal_order_id']);
-    } catch (Throwable $ex) {
-        error_log('success.php paypal path: ' . $ex->getMessage());
+        unset($_SESSION['paypal_paid']);
+    } elseif (!empty($user['email'])) {
+        // Session flag missing (e.g. page was refreshed) — check DB directly
+        try {
+            $dbLead = lead_find_by_email($user['email']);
+            if ($dbLead && !empty($dbLead['paid'])) $paid = true;
+        } catch (Throwable $ignored) {}
     }
 }
 

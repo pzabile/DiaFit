@@ -38,6 +38,11 @@ function db() {
         $pdo->exec("ALTER TABLE `leads` ADD COLUMN IF NOT EXISTS `opted_out_at` DATETIME NULL DEFAULT NULL AFTER `opted_out`");
     } catch (PDOException $ignored) {}
 
+    // PayPal order tracking (stores pending order ID so capture works without session)
+    try {
+        $pdo->exec("ALTER TABLE `leads` ADD COLUMN IF NOT EXISTS `paypal_order_id` VARCHAR(64) NULL DEFAULT NULL AFTER `opted_out_at`");
+    } catch (PDOException $ignored) {}
+
     return $pdo;
 }
 
