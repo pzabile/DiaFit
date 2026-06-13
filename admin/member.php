@@ -26,6 +26,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['csrf'] ?? '')) {
         header('Location: /admin/member?id=' . $id); exit;
     }
 
+    if ($action === 'resend_welcome') {
+        try {
+            $token    = create_account_setup_token($id, 168);
+            $setupUrl = rtrim(cfg('site_url'), '/') . '/setup?token=' . $token;
+            require_once __DIR__ . '/../includes/pdf.php';
+            $sent = send_email(
+                $lead['email'],
+                $lead['first_name'] ?: 'there',
+                'Welcome to DiaFitus — you\'re in 🎉',
+                account_setup_email_html($lead['first_name'] ?: 'there', $setupUrl, $lead['email']),
+                null,
+                nutrition_guide_attachment()
+            );
+            $_SESSION['flash'] = $sent
+                ? 'Welcome email resent to ' . $lead['email'] . ' with a fresh account setup link.'
+                : 'Could not send email (check SMTP config). Lead is marked paid in the database.';
+        } catch (Throwable $ex) {
+            $_SESSION['flash'] = 'Error: ' . $ex->getMessage();
+        }
+        header('Location: /admin/member?id=' . $id); exit;
+    }
+
     if ($action === 'send_reset') {
         try {
             $res = create_password_reset_token($lead['email']);
@@ -283,14 +305,24 @@ $csrf = csrf_input();
           </div>
           <div class="body" style="padding:18px 20px">
             <div class="form-row">
+              <!-- Resend welcome -->
+              <div>
+                <div style="font-size:13px;font-weight:600;margin-bottom:4px">Welcome email</div>
+                <p style="color:var(--muted);font-size:12px;margin:0 0 10px;line-height:1.5">Resend the welcome email with a fresh account-setup link (valid 7 days) and the nutrition PDF.</p>
+                <form method="post" onsubmit="return confirm('Resend welcome email to <?= e(addslashes($lead['email'])) ?>?')">
+                  <?= $csrf ?>
+                  <input type="hidden" name="action" value="resend_welcome" />
+                  <button class="btn pri" style="width:100%;justify-content:center">✉ Resend welcome email</button>
+                </form>
+              </div>
               <!-- Password reset -->
               <div>
                 <div style="font-size:13px;font-weight:600;margin-bottom:4px">Password reset</div>
-                <p style="color:var(--muted);font-size:12px;margin:0 0 10px;line-height:1.5">Send a reset link to the member's email. Valid for 1 hour.</p>
+                <p style="color:var(--muted);font-size:12px;margin:0 0 10px;line-height:1.5">Send a password reset link. Valid for 1 hour.</p>
                 <form method="post" onsubmit="return confirm('Send reset to <?= e(addslashes($lead['email'])) ?>?')">
                   <?= $csrf ?>
                   <input type="hidden" name="action" value="send_reset" />
-                  <button class="btn" style="width:100%;justify-content:center">📧 Send reset email</button>
+                  <button class="btn" style="width:100%;justify-content:center">🔑 Send reset email</button>
                 </form>
               </div>
               <!-- Change plan -->
