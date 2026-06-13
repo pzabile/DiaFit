@@ -26,6 +26,15 @@ if (!isset($plans[$planKey])) $planKey = cfg('default_plan');
 $_SESSION['plan'] = $planKey;
 $plan = $plans[$planKey];
 
+$promoCode = strtoupper(trim($_POST['promo_code'] ?? ''));
+if ($promoCode === 'JUSTFORYOU') {
+    $plan['price_today'] = round($plan['price_today'] * 0.8, 2);
+    $plan['name'] .= ' (20% off — JUSTFORYOU)';
+    $_SESSION['promo_applied'] = $promoCode;
+} else {
+    unset($_SESSION['promo_applied']);
+}
+
 $user = ['firstName' => $firstName, 'email' => $email, 'phone' => $phone];
 $_SESSION['user'] = $user;
 

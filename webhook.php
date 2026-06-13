@@ -6,6 +6,8 @@ require __DIR__ . '/includes/stripe.php';
 require __DIR__ . '/includes/telegram.php';
 require __DIR__ . '/includes/mailer.php';
 require __DIR__ . '/includes/pdf.php';
+require __DIR__ . '/includes/db.php';
+require __DIR__ . '/includes/auth.php';
 
 $payload = file_get_contents('php://input');
 $sig     = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
@@ -32,9 +34,24 @@ if ($type === 'checkout.session.completed') {
         'minutes_per_day' => $sess['metadata']['minutes_per_day'] ?? '',
     ];
 
+    $planDays = (int) ($sess['metadata']['plan_days'] ?? 84);
+    $stripeCustomer = $sess['customer'] ?? '';
+
     try {
         if ($email) {
-            send_email($email, $name, 'Welcome to DiaFitus — your program is being built', welcome_email_html($name));
+            lead_mark_paid($email, $stripeCustomer, '', $name, $phone, $planDays);
+        }
+    } catch (Throwable $ex) { error_log('webhook lead_mark_paid: ' . $ex->getMessage()); }
+
+    try {
+        if ($email) {
+            send_email(
+                $email, $name,
+                'Welcome to DiaFitus — you\'re in 🎉',
+                welcome_email_html($name, $email),
+                null,
+                nutrition_guide_attachment()
+            );
         }
     } catch (Throwable $ex) { error_log('webhook welcome email: ' . $ex->getMessage()); }
 

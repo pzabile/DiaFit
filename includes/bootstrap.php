@@ -21,7 +21,9 @@ ini_set('log_errors', '1');
 // readable page instead of an opaque 500.
 set_exception_handler(function (Throwable $ex) {
     error_log('Uncaught: ' . $ex->getMessage() . "\n" . $ex->getTraceAsString());
-    http_response_code(500);
+    // Intentionally NOT setting 500 status on shared hosting (Hostinger intercepts
+    // 500 responses and shows its own error page, hiding our diagnostic output).
+    if (isset($_GET['debug'])) http_response_code(500);
     $debug = isset($_GET['debug']);
     $msg   = htmlspecialchars($ex->getMessage(), ENT_QUOTES, 'UTF-8');
     $trace = htmlspecialchars($ex->getTraceAsString(), ENT_QUOTES, 'UTF-8');

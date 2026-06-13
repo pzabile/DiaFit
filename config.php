@@ -11,7 +11,7 @@ return [
     // Brand --------------------------------------------------------------
     'brand_name'     => 'DiaFitus',
     'company_name'   => 'Benux Corp',
-    'company_email'  => 'hello@diafitus.com',
+    'company_email'  => 'support@diafitus.com',
     'support_email'  => 'support@diafitus.com',
     'site_url'       => 'https://diafitus.com',
     'dashboard_url'  => 'https://my.diafitus.com',
@@ -63,7 +63,18 @@ return [
         'charset' => 'utf8mb4',
     ],
 
-    // Stripe -------------------------------------------------------------
+    // PayPal -------------------------------------------------------------
+    // 1. Go to developer.paypal.com → My Apps & Credentials
+    // 2. Create a new app (name it "DiaFitus"), choose "Merchant"
+    // 3. Copy the Client ID and Secret from the app dashboard
+    // 4. Set sandbox => false when you go live (and switch to your Live credentials)
+    'paypal' => [
+        'client_id' => 'REPLACE_PAYPAL_CLIENT_ID',
+        'secret'    => 'REPLACE_PAYPAL_SECRET',
+        'sandbox'   => true,
+    ],
+
+    // Stripe (kept for reference — no longer used for checkout) ----------
     'stripe' => [
         'publishable_key' => 'pk_test_REPLACE_ME',
         'secret_key'      => 'sk_test_REPLACE_ME',
@@ -86,10 +97,16 @@ return [
     ],
 
     // Mail ---------------------------------------------------------------
+    // SMTP is required on Hostinger — PHP mail() is blocked / goes to spam.
+    // Get these from hPanel → Emails → Email Accounts → your account → Connect devices → Manual setup
     'mail' => [
         'from_name'  => 'DiaFitus Team',
-        'from_email' => 'no-reply@diafitus.com',
+        'from_email' => 'support@diafitus.com',
         'reply_to'   => 'support@diafitus.com',
+        'smtp_host'  => 'smtp.hostinger.com',   // Hostinger: hPanel → Emails → account → Connect devices
+        'smtp_port'  => 465,                    // 465 = SSL, 587 = STARTTLS
+        'smtp_user'  => 'support@diafitus.com', // full email address
+        'smtp_pass'  => '',                     // ← REQUIRED: your support@diafitus.com password
     ],
 
     // Uploads ------------------------------------------------------------

@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS `leads` (
   `password_reset_expires` DATETIME    NULL,
   `dob`             DATE            NULL,
   `started_at`      DATE            NULL,
+  `plan_days`       SMALLINT UNSIGNED NOT NULL DEFAULT 84,
   `program_path`    VARCHAR(255)    NULL,
   `admin_notes`     LONGTEXT        NULL,
   `last_login_at`   DATETIME        NULL,
